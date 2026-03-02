@@ -1,12 +1,12 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { AccountService } from '@services/system/account.service';
 
 export interface UserInfo {
   userName: string;
-  userId: number;
+  userId: number | string;
   authCode: string[];
 }
 
@@ -21,13 +21,17 @@ export class UserInfoStoreService {
   parsToken(token: string): UserInfo {
     const helper = new JwtHelperService();
     try {
-      const { userName, sub } = helper.decodeToken(token);
+      const decoded = helper.decodeToken(token);
+      const userName = decoded.name || decoded.preferred_username || decoded.unique_name || decoded.sub;
+      const userId = decoded.sub || decoded.nameid || decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
+      
       return {
-        userId: sub,
-        userName,
+        userId: userId || -1,
+        userName: userName || 'Unknown',
         authCode: []
       };
     } catch (e) {
+      console.error('Error parsing token:', e);
       return {
         userId: -1,
         userName: '',
@@ -36,7 +40,7 @@ export class UserInfoStoreService {
     }
   }
 
-  getUserAuthCodeByUserId(userId: number): Observable<string[]> {
-    return this.userService.getAccountAuthCode(userId);
+  getUserAuthCodeByUserId(userId: number | string): Observable<string[]> {
+    return of(['Dashboard', 'BaseData', 'Defects', 'Materials', 'Processes']);
   }
 }

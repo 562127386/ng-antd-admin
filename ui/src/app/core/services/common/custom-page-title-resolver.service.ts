@@ -14,7 +14,7 @@ export class CustomPageTitleResolverService extends TitleStrategy {
   override updateTitle(routerState: RouterStateSnapshot): void {
     const title = this.buildTitle(routerState);
     if (title !== undefined) {
-      this.title.setTitle(`${title} - Ant Design`);
+      this.title.setTitle(`${title} - TQMS`);
     }
   }
 }

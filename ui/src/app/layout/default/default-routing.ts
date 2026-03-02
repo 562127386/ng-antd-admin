@@ -41,6 +41,10 @@ export default [
         path: 'system',
         loadChildren: () => import('../../pages/system/system-routing')
       },
+      {
+        path: 'base-data',
+        loadChildren: () => import('../../pages/base-data/base-data-routing')
+      },
       // 此路由用于tab刷新时占位组件
       {
         path: 'refresh-empty',

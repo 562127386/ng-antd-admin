@@ -8,7 +8,7 @@ import { BaseHttpService } from '../base-http.service';
  * 用户管理
  * */
 export interface User {
-  id: number;
+  id: number|string;
   password: string;
   userName?: string;
   available?: boolean;
@@ -27,7 +27,7 @@ export interface User {
  * 用户修改密码
  * */
 export interface UserPsd {
-  id: number;
+  id: number|string;
   oldPassword: string;
   newPassword: string;
 }
@@ -42,11 +42,11 @@ export class AccountService {
     return this.http.post('/user/list', param);
   }
 
-  public getAccountDetail(id: number): Observable<User> {
+  public getAccountDetail(id: number | string): Observable<User> {
     return this.http.get(`/user/${id}`);
   }
 
-  public getAccountAuthCode(id: number): Observable<string[]> {
+  public getAccountAuthCode(id: number | string): Observable<string[]> {
     return this.http.get(`/user/auth-code/${id}`);
   }
 
@@ -54,7 +54,7 @@ export class AccountService {
     return this.http.post('/user/create', param, { needSuccessInfo: true });
   }
 
-  public delAccount(ids: number[]): Observable<void> {
+  public delAccount(ids: (number | string)[]): Observable<void> {
     return this.http.post('/user/del/', { ids }, { needSuccessInfo: true });
   }
 

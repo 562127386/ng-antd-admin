@@ -115,7 +115,7 @@ export class AccountComponent implements OnInit {
   }
 
   // 设置权限
-  setRole(id: number): void {
+  setRole(id: number | string): void {
     this.router.navigate(['/default/system/role-manager/set-role'], { queryParams: { id: id } });
   }
 
@@ -157,7 +157,7 @@ export class AccountComponent implements OnInit {
   // 在这里做了一个示例，用于获取选中列的数据，而不通过接口，这里可以通过dataItem获取到当前列的数据，也可以通过id从dataList中找到匹配的数据
   // 推荐使用接口获取详情的方式，因为这样保证了数据的实时性
   // 修改
-  edit(id: number, dataItem: User): void {
+  edit(id: number | string, dataItem: User): void {
     console.log(dataItem);
     this.dataService
       .getAccountDetail(id)
@@ -195,7 +195,7 @@ export class AccountComponent implements OnInit {
       });
   }
 
-  changeStatus(e: boolean, id: number): void {
+  changeStatus(e: boolean, id: number | string): void {
     this.tableConfig.loading = true;
     const people: Partial<User> = {
       id,
@@ -216,7 +216,7 @@ export class AccountComponent implements OnInit {
 
   allDel(): void {
     if (this.checkedCashArray.length > 0) {
-      const tempArrays: number[] = [];
+      const tempArrays: (number | string)[] = [];
       this.modalSrv.confirm({
         nzTitle: '确定要删除吗？',
         nzContent: '删除后不可恢复',
@@ -248,8 +248,8 @@ export class AccountComponent implements OnInit {
     }
   }
 
-  del(id: number): void {
-    const ids: number[] = [id];
+  del(id: number | string): void {
+    const ids: (number | string)[] = [id];
     this.modalSrv.confirm({
       nzTitle: '确定要删除吗？',
       nzContent: '删除后不可恢复',

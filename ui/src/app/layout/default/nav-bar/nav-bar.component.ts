@@ -277,7 +277,7 @@ export class NavBarComponent implements OnInit {
       route = route.firstChild;
     }
 
-    let title = 'Ant Design';
+    let title = 'TQMS';
     if (typeof route.routeConfig?.title === 'string') {
       title = route.routeConfig?.title;
     }
