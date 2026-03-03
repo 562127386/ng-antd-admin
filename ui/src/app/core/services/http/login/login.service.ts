@@ -51,7 +51,7 @@ export class LoginService {
   }
 
   public loginOut(): Observable<string> {
-    return this.http.post('/auth/signout', null, { needSuccessInfo: false });
+    return this.http.post('/api/account/logout', null, { needSuccessInfo: false });
   }
 
   public getMenuByUserAuthCode(userAuthCode: string[]): Observable<Menu[]> {
@@ -113,6 +113,30 @@ export class LoginService {
             selected: false,
             open: false,
             code: 'Processes',
+            children: []
+          },
+          {
+            id: 24,
+            fatherId: 2,
+            menuName: '检验标准',
+            menuType: 'C',
+            icon: 'check-circle',
+            path: '/default/base-data/inspection-standards',
+            selected: false,
+            open: false,
+            code: 'InspectionStandards',
+            children: []
+          },
+          {
+            id: 25,
+            fatherId: 2,
+            menuName: 'AQL配置',
+            menuType: 'C',
+            icon: 'audit',
+            path: '/default/base-data/aql-configs',
+            selected: false,
+            open: false,
+            code: 'AqlConfigs',
             children: []
           }
         ]

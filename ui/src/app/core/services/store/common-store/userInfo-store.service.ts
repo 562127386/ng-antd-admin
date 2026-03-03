@@ -41,6 +41,6 @@ export class UserInfoStoreService {
   }
 
   getUserAuthCodeByUserId(userId: number | string): Observable<string[]> {
-    return of(['Dashboard', 'BaseData', 'Defects', 'Materials', 'Processes']);
+    return of(['Dashboard', 'BaseData', 'Defects', 'Materials', 'Processes','InspectionStandards','AqlConfigs']);
   }
 }

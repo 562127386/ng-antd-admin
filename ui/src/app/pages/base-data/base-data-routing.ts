@@ -23,5 +23,17 @@ export default [
     title: '工序管理',
     data: { key: 'processes' },
     loadComponent: () => import('./processes/processes.component').then(m => m.ProcessesComponent)
+  },
+  {
+    path: 'inspection-standards',
+    title: '检验标准管理',
+    data: { key: 'inspection-standards' },
+    loadComponent: () => import('./inspection-standards/inspection-standards.component').then(m => m.InspectionStandardsComponent)
+  },
+  {
+    path: 'aql-configs',
+    title: 'AQL配置管理',
+    data: { key: 'aql-configs' },
+    loadComponent: () => import('./aql-configs/aql-configs.component').then(m => m.AqlConfigsComponent)
   }
 ] satisfies Route[];
