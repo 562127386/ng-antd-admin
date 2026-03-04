@@ -1,0 +1,320 @@
+<nz-card>
+  <form nz-form [formGroup]="filterForm" class="filter-form">
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>关键词</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="filter" placeholder="请输入单号或关联单号" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>状态</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="status" nzPlaceHolder="请选择状态" [nzAllowClear]="true">
+              <nz-option *ngFor="let option of statusOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>来源模块</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="sourceModule" nzPlaceHolder="请选择来源模块" [nzAllowClear]="true">
+              <nz-option *ngFor="let option of sourceModuleOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="24" class="button-group">
+        <button nz-button nzType="primary" (click)="onSearch()">搜索</button>
+        <button nz-button (click)="onReset()">重置</button>
+      </div>
+    </div>
+    <div class="add-button">
+      <button nz-button nzType="primary" (click)="showAddModal()">
+        <span nz-icon nzType="plus"></span>
+        新增不合格品处理
+      </button>
+    </div>
+  </form>
+</nz-card>
+
+<nz-card style="margin-top: 16px;">
+  <nz-table
+    #nonConformingTable
+    nzShowSizeChanger
+    [nzData]="data"
+    [nzLoading]="loading"
+    [nzPageIndex]="pageIndex"
+    [nzPageSize]="pageSize"
+    [nzTotal]="total"
+    [nzFrontPagination]="false"
+    (nzPageIndexChange)="onPageIndexChange($event)"
+    (nzPageSizeChange)="onPageSizeChange($event)"
+  >
+    <thead>
+      <tr>
+        <th>单号</th>
+        <th>来源模块</th>
+        <th>关联单号</th>
+        <th>物料</th>
+        <th>批次号</th>
+        <th>数量</th>
+        <th>不合格数</th>
+        <th>严重程度</th>
+        <th>状态</th>
+        <th>创建时间</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let data of nonConformingTable.data">
+        <td>{{ data.orderNo }}</td>
+        <td>{{ getSourceModuleText(data.sourceModule) }}</td>
+        <td>{{ data.relatedOrderNo }}</td>
+        <td>{{ data.materialCode }}</td>
+        <td>{{ data.batchNo || '-' }}</td>
+        <td>{{ data.quantity }}</td>
+        <td>{{ data.defectiveQuantity }}</td>
+        <td>
+          <nz-tag [nzColor]="getSeverityColor(data.severity)">{{ getSeverityText(data.severity) }}</nz-tag>
+        </td>
+        <td>
+          <nz-tag [nzColor]="getStatusColor(data.status)">{{ getStatusText(data.status) }}</nz-tag>
+        </td>
+        <td>{{ data.creationTime | date: 'yyyy-MM-dd HH:mm' }}</td>
+        <td>
+          <nz-space>
+            <a (click)="showViewModal(data)">查看</a>
+            <a (click)="showEditModal(data)" *ngIf="canEdit(data.status)">编辑</a>
+            <a (click)="showReviewModal(data)" *ngIf="canReview(data.status)">审核</a>
+            <a (click)="showDisposalModal(data)" *ngIf="canDispose(data.status)">处理</a>
+            <a nz-popconfirm nzPopconfirmTitle="确定删除?" (nzOnConfirm)="showDeleteConfirm(data.id)" nzPopconfirmOkText="确定" nzPopconfirmCancelText="取消" *ngIf="canDelete(data.status)">删除</a>
+          </nz-space>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+</nz-card>
+
+<nz-modal
+  [(nzVisible)]="isModalVisible"
+  nzTitle="{{ isReviewMode ? '审核不合格品' : (isDisposalMode ? '处理不合格品' : (isViewMode ? '查看不合格品' : (isEdit ? '编辑不合格品' : '新增不合格品'))) }}"
+  (nzOnCancel)="handleCancel()"
+  (nzOnOk)="handleOk()"
+  [nzWidth]="800"
+>
+  <ng-container *nzModalContent>
+    <div *ngIf="viewingItem && !isEdit && !isReviewMode && !isDisposalMode">
+      <nz-descriptions nzTitle="不合格品处理信息" nzBordered [nzColumn]="2">
+        <nz-descriptions-item nzTitle="单号">{{ viewingItem.orderNo }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="来源模块">{{ getSourceModuleText(viewingItem.sourceModule) }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="关联单号">{{ viewingItem.relatedOrderNo }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="物料代码">{{ viewingItem.materialCode }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="批次号">{{ viewingItem.batchNo || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="数量">{{ viewingItem.quantity }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="不合格数">{{ viewingItem.defectiveQuantity }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="严重程度">
+          <nz-tag [nzColor]="getSeverityColor(viewingItem.severity)">{{ getSeverityText(viewingItem.severity) }}</nz-tag>
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="状态">
+          <nz-tag [nzColor]="getStatusColor(viewingItem.status)">{{ getStatusText(viewingItem.status) }}</nz-tag>
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="缺陷代码">{{ viewingItem.defectCode || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="问题描述" [nzSpan]="2">{{ viewingItem.description }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="审核结果" *ngIf="viewingItem.reviewResult">{{ getReviewResultText(viewingItem.reviewResult) }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="返工数量" *ngIf="viewingItem.reworkQty">{{ viewingItem.reworkQty }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="返修数量" *ngIf="viewingItem.repairQty">{{ viewingItem.repairQty }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="报废数量" *ngIf="viewingItem.scrapQty">{{ viewingItem.scrapQty }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="责任人" *ngIf="viewingItem.responsiblePerson">{{ viewingItem.responsiblePerson }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="责任部门" *ngIf="viewingItem.responsibleDept">{{ viewingItem.responsibleDept }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="责任供应商" *ngIf="viewingItem.responsibleSupplier">{{ viewingItem.responsibleSupplier }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="复检结果" *ngIf="viewingItem.reInspectionResult">{{ getInspectionResultText(viewingItem.reInspectionResult) }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="完成时间" *ngIf="viewingItem.completionTime">{{ viewingItem.completionTime | date: 'yyyy-MM-dd HH:mm' }}</nz-descriptions-item>
+      </nz-descriptions>
+    </div>
+
+    <form *ngIf="!isViewMode || isEdit || isReviewMode || isDisposalMode" nz-form [formGroup]="isReviewMode ? reviewForm : (isDisposalMode ? disposalForm : createForm)">
+      <ng-container *ngIf="!isReviewMode && !isDisposalMode">
+        <div nz-row [nzGutter]="16">
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>来源模块</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="sourceModule" nzPlaceHolder="请选择来源模块">
+                  <nz-option *ngFor="let option of sourceModuleOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>关联单号</nz-form-label>
+              <nz-form-control>
+                <input nz-input formControlName="relatedOrderNo" placeholder="请输入关联单号" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+        <div nz-row [nzGutter]="16">
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>物料代码</nz-form-label>
+              <nz-form-control>
+                <input nz-input formControlName="materialCode" placeholder="请输入物料代码" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label>批次号</nz-form-label>
+              <nz-form-control>
+                <input nz-input formControlName="batchNo" placeholder="请输入批次号" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+        <div nz-row [nzGutter]="16">
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>数量</nz-form-label>
+              <nz-form-control>
+                <nz-input-number formControlName="quantity" [nzMin]="0" nzPlaceHolder="请输入数量" style="width: 100%;"></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>不合格数</nz-form-label>
+              <nz-form-control>
+                <nz-input-number formControlName="defectiveQuantity" [nzMin]="0" nzPlaceHolder="请输入不合格数" style="width: 100%;"></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+        <div nz-row [nzGutter]="16">
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>严重程度</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="severity" nzPlaceHolder="请选择严重程度">
+                  <nz-option *ngFor="let option of severityOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label>缺陷代码</nz-form-label>
+              <nz-form-control>
+                <input nz-input formControlName="defectCode" placeholder="请输入缺陷代码" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+        <nz-form-item>
+          <nz-form-label nzRequired>问题描述</nz-form-label>
+          <nz-form-control>
+            <textarea nz-input formControlName="description" placeholder="请输入问题描述" nzAutosize></textarea>
+          </nz-form-control>
+        </nz-form-item>
+      </ng-container>
+
+      <ng-container *ngIf="isReviewMode">
+        <div *ngIf="viewingItem?.status === 1" style="margin-bottom: 16px;">
+          <nz-alert nzType="info" nzMessage="点击确定开始审核"></nz-alert>
+        </div>
+        <div *ngIf="viewingItem?.status === 2">
+          <nz-divider nzText="审核信息"></nz-divider>
+          <div nz-row [nzGutter]="16">
+            <div nz-col nzSpan="12">
+              <nz-form-item>
+                <nz-form-label nzRequired>审核结果</nz-form-label>
+                <nz-form-control>
+                  <nz-select formControlName="reviewResult" nzPlaceHolder="请选择审核结果">
+                    <nz-option *ngFor="let option of reviewResultOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+          <div nz-row [nzGutter]="16">
+            <div nz-col nzSpan="8">
+              <nz-form-item>
+                <nz-form-label>返工数量</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number formControlName="reworkQty" [nzMin]="0" nzPlaceHolder="请输入返工数量" style="width: 100%;"></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col nzSpan="8">
+              <nz-form-item>
+                <nz-form-label>返修数量</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number formControlName="repairQty" [nzMin]="0" nzPlaceHolder="请输入返修数量" style="width: 100%;"></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col nzSpan="8">
+              <nz-form-item>
+                <nz-form-label>报废数量</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number formControlName="scrapQty" [nzMin]="0" nzPlaceHolder="请输入报废数量" style="width: 100%;"></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+          <div nz-row [nzGutter]="16">
+            <div nz-col nzSpan="8">
+              <nz-form-item>
+                <nz-form-label>责任人</nz-form-label>
+                <nz-form-control>
+                  <input nz-input formControlName="responsiblePerson" placeholder="请输入责任人" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col nzSpan="8">
+              <nz-form-item>
+                <nz-form-label>责任部门</nz-form-label>
+                <nz-form-control>
+                  <input nz-input formControlName="responsibleDept" placeholder="请输入责任部门" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col nzSpan="8">
+              <nz-form-item>
+                <nz-form-label>责任供应商</nz-form-label>
+                <nz-form-control>
+                  <input nz-input formControlName="responsibleSupplier" placeholder="请输入责任供应商" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="isDisposalMode">
+        <div *ngIf="viewingItem?.status === 3" style="margin-bottom: 16px;">
+          <nz-alert nzType="info" nzMessage="点击确定开始处理"></nz-alert>
+        </div>
+        <div *ngIf="viewingItem?.status === 4">
+          <nz-divider nzText="处理信息"></nz-divider>
+          <nz-form-item>
+            <nz-form-label>复检结果</nz-form-label>
+            <nz-form-control>
+              <nz-select formControlName="reInspectionResult" nzPlaceHolder="请选择复检结果" [nzAllowClear]="true">
+                <nz-option *ngFor="let option of inspectionResultOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </ng-container>
+    </form>
+  </ng-container>
+</nz-modal>

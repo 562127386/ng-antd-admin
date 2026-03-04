@@ -15,6 +15,7 @@ export interface IqcInspectionRecordDto {
   defectCode?: string;
   defectDescription?: string;
   defectCount: number;
+  improvementDescription?: string;
   remark?: string;
   creationTime: Date;
   creatorId?: string;
@@ -36,6 +37,7 @@ export interface CreateUpdateIqcInspectionRecordDto {
   defectCode?: string;
   defectDescription?: string;
   defectCount: number;
+  improvementDescription?: string;
   remark?: string;
 }
 

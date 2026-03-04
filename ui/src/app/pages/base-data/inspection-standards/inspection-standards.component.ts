@@ -104,6 +104,96 @@ export class InspectionStandardsComponent implements OnInit {
     return this.searchForm.get('items') as FormArray;
   }
 
+  validateItemValues(itemGroup: any): void {
+    const group = itemGroup as FormGroup;
+    const standardValue = group.get('standardValue')?.value;
+    const usl = group.get('usl')?.value;
+    const lsl = group.get('lsl')?.value;
+    const ucl = group.get('ucl')?.value;
+    const lcl = group.get('lcl')?.value;
+
+    const standardValueControl = group.get('standardValue');
+    const uslControl = group.get('usl');
+    const lslControl = group.get('lsl');
+    const uclControl = group.get('ucl');
+    const lclControl = group.get('lcl');
+
+    standardValueControl?.setErrors(null);
+    uslControl?.setErrors(null);
+    lslControl?.setErrors(null);
+    uclControl?.setErrors(null);
+    lclControl?.setErrors(null);
+
+    if (standardValue !== null && standardValue !== undefined) {
+      if (usl !== null && usl !== undefined && standardValue > usl) {
+        standardValueControl?.setErrors({ greaterThanUSL: true });
+      }
+      if (lsl !== null && lsl !== undefined && standardValue < lsl) {
+        standardValueControl?.setErrors({ lessThanLSL: true });
+      }
+      if (ucl !== null && ucl !== undefined && standardValue > ucl) {
+        standardValueControl?.setErrors({ greaterThanUCL: true });
+      }
+      if (lcl !== null && lcl !== undefined && standardValue < lcl) {
+        standardValueControl?.setErrors({ lessThanLCL: true });
+      }
+    }
+
+    if (usl !== null && usl !== undefined && lsl !== null && lsl !== undefined && usl < lsl) {
+      uslControl?.setErrors({ uslLessThanLSL: true });
+      lslControl?.setErrors({ lslGreaterThanUSL: true });
+    }
+
+    if (ucl !== null && ucl !== undefined && lcl !== null && lcl !== undefined && ucl < lcl) {
+      uclControl?.setErrors({ uclLessThanLCL: true });
+      lclControl?.setErrors({ lclGreaterThanUCL: true });
+    }
+
+    if (usl !== null && usl !== undefined && ucl !== null && ucl !== undefined && ucl > usl) {
+      uclControl?.setErrors({ uclGreaterThanUSL: true });
+    }
+
+    if (lsl !== null && lsl !== undefined && lcl !== null && lcl !== undefined && lcl < lsl) {
+      lclControl?.setErrors({ lclLessThanLSL: true });
+    }
+  }
+
+  getItemValidationClass(controlName: string, itemGroup: any): string {
+    const group = itemGroup as FormGroup;
+    const control = group.get(controlName);
+    if (!control || !control.errors || !control.dirty) {
+      return '';
+    }
+    return 'validation-error';
+  }
+
+  getItemValidationMessage(controlName: string, itemGroup: any): string {
+    const group = itemGroup as FormGroup;
+    const control = group.get(controlName);
+    if (!control || !control.errors || !control.dirty) {
+      return '';
+    }
+
+    const errors = control.errors;
+    if (errors['greaterThanUSL']) return '标准值不能大于规格上限';
+    if (errors['lessThanLSL']) return '标准值不能小于规格下限';
+    if (errors['greaterThanUCL']) return '标准值不能大于控制上限';
+    if (errors['lessThanLCL']) return '标准值不能小于控制下限';
+    if (errors['uslLessThanLSL']) return '规格上限不能小于规格下限';
+    if (errors['lslGreaterThanUSL']) return '规格下限不能大于规格上限';
+    if (errors['uclLessThanLCL']) return '控制上限不能小于控制下限';
+    if (errors['lclGreaterThanUCL']) return '控制下限不能大于控制上限';
+    if (errors['uclGreaterThanUSL']) return '控制上限不能大于规格上限';
+    if (errors['lclLessThanLSL']) return '控制下限不能小于规格下限';
+
+    return '';
+  }
+
+  isItemValid(itemGroup: any): boolean {
+    const group = itemGroup as FormGroup;
+    return !group.invalid;
+  }
+
   ngOnInit(): void {
     this.initForms();
     this.loadData();
@@ -241,11 +331,23 @@ export class InspectionStandardsComponent implements OnInit {
   }
 
   handleOk(): void {
-    if (this.searchForm.invalid) {
+    let hasInvalidItems = false;
+    this.itemsFormArray.controls.forEach(itemGroup => {
+      this.validateItemValues(itemGroup as FormGroup);
+      if ((itemGroup as FormGroup).invalid) {
+        hasInvalidItems = true;
+      }
+    });
+
+    if (this.searchForm.invalid || hasInvalidItems) {
       Object.values(this.searchForm.controls).forEach(control => {
         control.markAsDirty();
         control.updateValueAndValidity();
       });
+      
+      if (hasInvalidItems) {
+        this.messageService.warning('存在检验项目校验不通过，请检查');
+      }
       return;
     }
 

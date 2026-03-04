@@ -168,10 +168,10 @@
       </div>
 
       <div formArrayName="items">
-        <div *ngFor="let itemGroup of itemsFormArray.controls; let i = index" [formGroupName]="i" class="item-card">
+        <div *ngFor="let itemGroup of itemsFormArray.controls; let i = index" [formGroupName]="i" class="item-card" [ngClass]="{'item-invalid': !isItemValid(itemGroup)}">
           <nz-card nzSize="small" nzType="inner">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-              <span>检验项目 {{ i + 1 }}</span>
+              <span>检验项目 {{ i + 1 }} <span *ngIf="!isItemValid(itemGroup)" class="invalid-badge">校验不通过</span></span>
               <button nz-button nzType="text" nzDanger (click)="removeItem(i)">
                 <span nz-icon nzType="delete"></span>
               </button>
@@ -208,32 +208,44 @@
               <div nz-col nzSpan="6">
                 <nz-form-item>
                   <nz-form-label>标准值</nz-form-label>
-                  <nz-form-control>
-                    <nz-input-number formControlName="standardValue" [nzStep]="0.01" nzStyle="width: 100%;"></nz-input-number>
+                  <nz-form-control [ngClass]="getItemValidationClass('standardValue', itemGroup)">
+                    <nz-input-number formControlName="standardValue" [nzStep]="0.01" nzStyle="width: 100%;" (ngModelChange)="validateItemValues(itemGroup)"></nz-input-number>
+                    <div *ngIf="getItemValidationMessage('standardValue', itemGroup)" class="validation-message">
+                      {{ getItemValidationMessage('standardValue', itemGroup) }}
+                    </div>
                   </nz-form-control>
                 </nz-form-item>
               </div>
               <div nz-col nzSpan="6">
                 <nz-form-item>
-                  <nz-form-label>USL</nz-form-label>
-                  <nz-form-control>
-                    <nz-input-number formControlName="usl" [nzStep]="0.01" nzStyle="width: 100%;"></nz-input-number>
+                  <nz-form-label>USL (规格上限)</nz-form-label>
+                  <nz-form-control [ngClass]="getItemValidationClass('usl', itemGroup)">
+                    <nz-input-number formControlName="usl" [nzStep]="0.01" nzStyle="width: 100%;" (ngModelChange)="validateItemValues(itemGroup)"></nz-input-number>
+                    <div *ngIf="getItemValidationMessage('usl', itemGroup)" class="validation-message">
+                      {{ getItemValidationMessage('usl', itemGroup) }}
+                    </div>
                   </nz-form-control>
                 </nz-form-item>
               </div>
               <div nz-col nzSpan="6">
                 <nz-form-item>
-                  <nz-form-label>UCL</nz-form-label>
-                  <nz-form-control>
-                    <nz-input-number formControlName="ucl" [nzStep]="0.01" nzStyle="width: 100%;"></nz-input-number>
+                  <nz-form-label>UCL (控制上限)</nz-form-label>
+                  <nz-form-control [ngClass]="getItemValidationClass('ucl', itemGroup)">
+                    <nz-input-number formControlName="ucl" [nzStep]="0.01" nzStyle="width: 100%;" (ngModelChange)="validateItemValues(itemGroup)"></nz-input-number>
+                    <div *ngIf="getItemValidationMessage('ucl', itemGroup)" class="validation-message">
+                      {{ getItemValidationMessage('ucl', itemGroup) }}
+                    </div>
                   </nz-form-control>
                 </nz-form-item>
               </div>
               <div nz-col nzSpan="6">
                 <nz-form-item>
-                  <nz-form-label>LCL</nz-form-label>
-                  <nz-form-control>
-                    <nz-input-number formControlName="lcl" [nzStep]="0.01" nzStyle="width: 100%;"></nz-input-number>
+                  <nz-form-label>LCL (控制下限)</nz-form-label>
+                  <nz-form-control [ngClass]="getItemValidationClass('lcl', itemGroup)">
+                    <nz-input-number formControlName="lcl" [nzStep]="0.01" nzStyle="width: 100%;" (ngModelChange)="validateItemValues(itemGroup)"></nz-input-number>
+                    <div *ngIf="getItemValidationMessage('lcl', itemGroup)" class="validation-message">
+                      {{ getItemValidationMessage('lcl', itemGroup) }}
+                    </div>
                   </nz-form-control>
                 </nz-form-item>
               </div>
@@ -241,9 +253,12 @@
             <div nz-row [nzGutter]="16">
               <div nz-col nzSpan="6">
                 <nz-form-item>
-                  <nz-form-label>LSL</nz-form-label>
-                  <nz-form-control>
-                    <nz-input-number formControlName="lsl" [nzStep]="0.01" nzStyle="width: 100%;"></nz-input-number>
+                  <nz-form-label>LSL (规格下限)</nz-form-label>
+                  <nz-form-control [ngClass]="getItemValidationClass('lsl', itemGroup)">
+                    <nz-input-number formControlName="lsl" [nzStep]="0.01" nzStyle="width: 100%;" (ngModelChange)="validateItemValues(itemGroup)"></nz-input-number>
+                    <div *ngIf="getItemValidationMessage('lsl', itemGroup)" class="validation-message">
+                      {{ getItemValidationMessage('lsl', itemGroup) }}
+                    </div>
                   </nz-form-control>
                 </nz-form-item>
               </div>

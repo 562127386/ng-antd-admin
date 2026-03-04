@@ -53,5 +53,11 @@ export default [
     title: '供应商管理',
     data: { key: 'suppliers' },
     loadComponent: () => import('./suppliers/suppliers.component').then(m => m.SuppliersComponent)
+  },
+  {
+    path: 'non-conformings',
+    title: '不合格品处理',
+    data: { key: 'non-conformings' },
+    loadComponent: () => import('./non-conformings/non-conformings.component').then(m => m.NonConformingsComponent)
   }
 ] satisfies Route[];

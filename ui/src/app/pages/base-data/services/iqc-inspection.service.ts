@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { IqcInspectionOrderDto, CreateUpdateIqcInspectionOrderDto, GetIqcInspectionOrderListDto } from '../models/iqc-inspection.model';
+import { IqcInspectionOrderDto, CreateUpdateIqcInspectionOrderDto, GetIqcInspectionOrderListDto, IqcInspectionRecordDto, CreateUpdateIqcInspectionRecordDto } from '../models/iqc-inspection.model';
 import { PagedResultDto } from '../models/aql-config.model';
 
 @Injectable({
@@ -48,5 +48,13 @@ export class IqcInspectionService {
 
   cancel(id: string): Observable<IqcInspectionOrderDto> {
     return this.http.put<IqcInspectionOrderDto>(`${this.apiUrl}/${id}/cancel`, {});
+  }
+
+  updateInspectionRecord(orderId: string, recordId: string, input: CreateUpdateIqcInspectionRecordDto): Observable<IqcInspectionRecordDto> {
+    return this.http.put<IqcInspectionRecordDto>(`${this.apiUrl}/${orderId}/records/${recordId}`, input);
+  }
+
+  submit(id: string): Observable<IqcInspectionOrderDto> {
+    return this.http.put<IqcInspectionOrderDto>(`${this.apiUrl}/${id}/submit`, {});
   }
 }

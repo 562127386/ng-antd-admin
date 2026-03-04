@@ -16,16 +16,19 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { IqcInspectionOrderDto, CreateUpdateIqcInspectionOrderDto, GetIqcInspectionOrderListDto } from '../models/iqc-inspection.model';
 import { IqcInspectionService } from '../services/iqc-inspection.service';
 import { SamplingSchemeDto } from '../models/sampling-scheme.model';
 import { SamplingSchemeService } from '../services/sampling-scheme.service';
 import { InspectionStandardSelectorComponent } from '../components/inspection-standard-selector/inspection-standard-selector.component';
 import { InspectionStandardDto } from '../models/inspection-standard.model';
+import { InspectionStandardService } from '../services/inspection-standard.service';
 import { MaterialSelectorComponent } from '../components/material-selector/material-selector.component';
 import { SupplierSelectorComponent } from '../components/supplier-selector/supplier-selector.component';
 import { MaterialDto } from '../models/material.model';
 import { SupplierDto } from '../models/supplier.model';
+import { NonConformingService } from '../services/non-conforming.service';
 
 @Component({
   selector: 'app-iqc-inspections',
@@ -48,6 +51,7 @@ import { SupplierDto } from '../models/supplier.model';
     NzIconModule,
     NzTagModule,
     NzInputNumberModule,
+    NzDividerModule,
     InspectionStandardSelectorComponent,
     MaterialSelectorComponent,
     SupplierSelectorComponent
@@ -58,6 +62,8 @@ import { SupplierDto } from '../models/supplier.model';
 export class IqcInspectionsComponent implements OnInit {
   private iqcInspectionService = inject(IqcInspectionService);
   private samplingSchemeService = inject(SamplingSchemeService);
+  private inspectionStandardService = inject(InspectionStandardService);
+  private nonConformingService = inject(NonConformingService);
   private fb = inject(FormBuilder);
   private messageService = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
@@ -76,9 +82,12 @@ export class IqcInspectionsComponent implements OnInit {
   isStandardSelectorVisible = false;
   isMaterialSelectorVisible = false;
   isSupplierSelectorVisible = false;
+  isExecutionVisible = false;
   selectedStandard?: InspectionStandardDto;
   selectedMaterial?: MaterialDto;
   selectedSupplier?: SupplierDto;
+  selectedOrder?: IqcInspectionOrderDto;
+  viewingOrder?: IqcInspectionOrderDto;
   samplingSchemes: SamplingSchemeDto[] = [];
 
   statusOptions = [
@@ -121,6 +130,7 @@ export class IqcInspectionsComponent implements OnInit {
       purchaseOrderNo: [''],
       arrivalDate: [null, [Validators.required]],
       samplingSchemeId: [null],
+      inspectionStandardId: [null],
       remark: ['']
     });
   }
@@ -188,21 +198,7 @@ export class IqcInspectionsComponent implements OnInit {
     this.isEdit = false;
     this.isViewMode = true;
     this.editId = item.id;
-    
-    if (item.inspectionStandardId) {
-      this.selectedStandard = {
-        id: item.inspectionStandardId,
-        code: '',
-        version: '',
-        effectiveDate: new Date(),
-        inspectionType: 1,
-        samplingSchemeType: 1,
-        status: 2,
-        creationTime: new Date()
-      } as unknown as InspectionStandardDto;
-    } else {
-      this.selectedStandard = undefined;
-    }
+    this.viewingOrder = item;
     
     if (item.materialId && item.materialCode && item.materialName) {
       this.selectedMaterial = {
@@ -247,7 +243,33 @@ export class IqcInspectionsComponent implements OnInit {
       samplingSchemeId: item.samplingSchemeId,
       remark: item.remark
     });
+    
+    if (item.inspectionStandardId) {
+      this.loadInspectionStandard(item.inspectionStandardId);
+    } else {
+      this.selectedStandard = undefined;
+    }
+    
     this.isModalVisible = true;
+  }
+
+  getJudgmentText(judgment?: number): string {
+    if (judgment === undefined || judgment === null) return '待判定';
+    switch (judgment) {
+      case 0: return '待判定';
+      case 1: return '合格';
+      case 2: return '不合格';
+      default: return '待判定';
+    }
+  }
+
+  getJudgmentColor(judgment?: number): string {
+    if (judgment === undefined || judgment === null) return 'default';
+    switch (judgment) {
+      case 1: return 'success';
+      case 2: return 'error';
+      default: return 'default';
+    }
   }
 
   showEditModal(item: IqcInspectionOrderDto): void {
@@ -259,21 +281,6 @@ export class IqcInspectionsComponent implements OnInit {
     this.isViewMode = false;
     this.editId = item.id;
     
-    if (item.inspectionStandardId) {
-      this.selectedStandard = {
-        id: item.inspectionStandardId,
-        code: '',
-        version: '',
-        effectiveDate: new Date(),
-        inspectionType: 1,
-        samplingSchemeType: 1,
-        status: 2,
-        creationTime: new Date()
-      } as unknown as InspectionStandardDto;
-    } else {
-      this.selectedStandard = undefined;
-    }
-    
     if (item.materialId && item.materialCode && item.materialName) {
       this.selectedMaterial = {
         id: item.materialId,
@@ -317,17 +324,40 @@ export class IqcInspectionsComponent implements OnInit {
       samplingSchemeId: item.samplingSchemeId,
       remark: item.remark
     });
+    
+    if (item.inspectionStandardId) {
+      this.loadInspectionStandard(item.inspectionStandardId);
+    } else {
+      this.selectedStandard = undefined;
+    }
+    
     this.isModalVisible = true;
+  }
+
+  loadInspectionStandard(id: string): void {
+    this.inspectionStandardService.get(id).subscribe({
+      next: (standard) => {
+        this.selectedStandard = standard;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.messageService.error('加载检验标准失败');
+        this.selectedStandard = undefined;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   handleCancel(): void {
     this.isModalVisible = false;
+    this.viewingOrder = undefined;
     this.cdr.markForCheck();
   }
 
   handleOk(): void {
     if (this.isViewMode) {
       this.isModalVisible = false;
+      this.viewingOrder = undefined;
       this.cdr.markForCheck();
       return;
     }
@@ -461,6 +491,31 @@ export class IqcInspectionsComponent implements OnInit {
     return status !== 4;
   }
 
+  canExecuteInspection(status: number): boolean {
+    return status === 2;
+  }
+
+  canSubmit(status: number): boolean {
+    return status === 0;
+  }
+
+  submitInspection(id: string): void {
+    this.iqcInspectionService.submit(id).subscribe({
+      next: () => {
+        this.messageService.success('提交成功');
+        this.loadData();
+      },
+      error: () => {
+        this.messageService.error('提交失败');
+      }
+    });
+  }
+
+  openExecutionModal(item: IqcInspectionOrderDto): void {
+    this.selectedOrder = item;
+    this.isExecutionVisible = true;
+  }
+
   openStandardSelector(): void {
     this.isStandardSelectorVisible = true;
   }
@@ -478,6 +533,7 @@ export class IqcInspectionsComponent implements OnInit {
     this.createForm.patchValue({
       inspectionStandardId: null
     });
+    this.cdr.markForCheck();
   }
 
   loadSamplingSchemes(): void {
@@ -534,5 +590,128 @@ export class IqcInspectionsComponent implements OnInit {
       supplierId: null,
       supplierName: ''
     });
+  }
+
+  autoJudge(record: any): void {
+    if (!record.actualValue) {
+      record.judgment = 0;
+      return;
+    }
+
+    const actualValue = parseFloat(record.actualValue);
+    if (isNaN(actualValue)) {
+      record.judgment = 0;
+      return;
+    }
+
+    let isPass = true;
+
+    if (record.standardValue) {
+      const standardValue = parseFloat(record.standardValue);
+      if (!isNaN(standardValue)) {
+        if (record.usl) {
+          const usl = parseFloat(record.usl);
+          if (!isNaN(usl) && actualValue > usl) {
+            isPass = false;
+          }
+        }
+        if (record.lsl) {
+          const lsl = parseFloat(record.lsl);
+          if (!isNaN(lsl) && actualValue < lsl) {
+            isPass = false;
+          }
+        }
+        if (record.ucl) {
+          const ucl = parseFloat(record.ucl);
+          if (!isNaN(ucl) && actualValue > ucl) {
+            isPass = false;
+          }
+        }
+        if (record.lcl) {
+          const lcl = parseFloat(record.lcl);
+          if (!isNaN(lcl) && actualValue < lcl) {
+            isPass = false;
+          }
+        }
+      }
+    }
+
+    record.judgment = isPass ? 1 : 2;
+  }
+
+  getRecordClass(record: any): string {
+    if (!record.actualValue || record.judgment === 0) {
+      return '';
+    }
+    return record.judgment === 1 ? 'record-pass' : 'record-fail';
+  }
+
+  getActualValueClass(record: any): string {
+    if (!record.actualValue || record.judgment === 0) {
+      return '';
+    }
+    return record.judgment === 1 ? 'actual-value-pass' : 'actual-value-fail';
+  }
+
+  saveRecord(record: any): void {
+    if (!this.selectedOrder) return;
+    
+    const input = {
+      id: record.id,
+      inspectionItemId: record.inspectionItemId,
+      itemCode: record.itemCode,
+      itemName: record.itemName,
+      standardValue: record.standardValue,
+      usl: record.usl,
+      ucl: record.ucl,
+      lcl: record.lcl,
+      lsl: record.lsl,
+      actualValue: record.actualValue,
+      judgment: record.judgment,
+      defectId: record.defectId,
+      defectCode: record.defectCode,
+      defectDescription: record.defectDescription,
+      improvementDescription: record.improvementDescription,
+      defectCount: record.defectCount || 0,
+      remark: record.remark
+    };
+
+    this.iqcInspectionService.updateInspectionRecord(this.selectedOrder.id, record.id, input).subscribe({
+      next: () => {
+        this.messageService.success('保存检验记录成功');
+        this.loadData();
+      },
+      error: () => {
+        this.messageService.error('保存检验记录失败');
+      }
+    });
+  }
+
+  completeFromExecution(id: string): void {
+    this.iqcInspectionService.completeInspection(id, 1).subscribe({
+      next: () => {
+        this.messageService.success('完成检验成功');
+        this.isExecutionVisible = false;
+        this.loadData();
+      },
+      error: () => {
+        this.messageService.error('完成检验失败');
+      }
+    });
+  }
+
+  createNonConforming(item: IqcInspectionOrderDto): void {
+    this.nonConformingService.createFromIqcInspection(item.id).subscribe({
+      next: (result) => {
+        this.messageService.success('创建不合格品处理单成功，单号：' + result.orderNo);
+      },
+      error: () => {
+        this.messageService.error('创建不合格品处理单失败');
+      }
+    });
+  }
+
+  canCreateNonConforming(status: number, result?: number): boolean {
+    return status === 3 && result === 2;
   }
 }

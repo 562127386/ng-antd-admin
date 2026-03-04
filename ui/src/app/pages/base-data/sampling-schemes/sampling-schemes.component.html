@@ -104,16 +104,22 @@
         <div nz-col nzSpan="12">
           <nz-form-item>
             <nz-form-label nzRequired>编码</nz-form-label>
-            <nz-form-control>
-              <input nz-input formControlName="code" placeholder="请输入编码" />
+            <nz-form-control [ngClass]="getFieldValidationClass('code')">
+              <input nz-input formControlName="code" placeholder="请输入编码（仅允许字母、数字、下划线和连字符）" />
+              <div *ngIf="getFieldValidationMessage('code')" class="validation-message error">
+                {{ getFieldValidationMessage('code') }}
+              </div>
             </nz-form-control>
           </nz-form-item>
         </div>
         <div nz-col nzSpan="12">
           <nz-form-item>
             <nz-form-label nzRequired>名称</nz-form-label>
-            <nz-form-control>
+            <nz-form-control [ngClass]="getFieldValidationClass('name')">
               <input nz-input formControlName="name" placeholder="请输入名称" />
+              <div *ngIf="getFieldValidationMessage('name')" class="validation-message error">
+                {{ getFieldValidationMessage('name') }}
+              </div>
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -122,26 +128,33 @@
         <div nz-col nzSpan="12">
           <nz-form-item>
             <nz-form-label nzRequired>抽样类型</nz-form-label>
-            <nz-form-control>
+            <nz-form-control [ngClass]="getFieldValidationClass('schemeType')">
               <nz-select formControlName="schemeType" nzPlaceHolder="请选择抽样类型">
                 <nz-option *ngFor="let option of schemeTypeOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
               </nz-select>
+              <div *ngIf="getFieldValidationMessage('schemeType')" class="validation-message error">
+                {{ getFieldValidationMessage('schemeType') }}
+              </div>
             </nz-form-control>
           </nz-form-item>
         </div>
         <div nz-col nzSpan="12">
           <nz-form-item>
             <nz-form-label>排序</nz-form-label>
-            <nz-form-control>
+            <nz-form-control [ngClass]="getFieldValidationClass('sortOrder')">
               <nz-input-number formControlName="sortOrder" [nzMin]="0" nzPlaceHolder="请输入排序" style="width: 100%;"></nz-input-number>
+              <div *ngIf="getFieldValidationMessage('sortOrder')" class="validation-message error">
+                {{ getFieldValidationMessage('sortOrder') }}
+              </div>
             </nz-form-control>
           </nz-form-item>
         </div>
       </div>
-      <div nz-row [nzGutter]="16">
-        <div nz-col nzSpan="12" *ngIf="searchForm.get('schemeType')?.value === 1">
+      <nz-divider nzText="抽样参数配置"></nz-divider>
+      <div nz-row [nzGutter]="16" *ngIf="searchForm.get('schemeType')?.value === 1">
+        <div nz-col nzSpan="12">
           <nz-form-item>
-            <nz-form-label>AQL配置</nz-form-label>
+            <nz-form-label nzRequired>AQL配置</nz-form-label>
             <nz-form-control>
               <nz-select formControlName="aqlConfigId" nzPlaceHolder="请选择AQL配置" [nzAllowClear]="true" style="width: 100%;">
                 <nz-option *ngFor="let option of aqlConfigOptions" [nzLabel]="option.code + ' - AQL:' + option.aqlValue + ' - ' + getInspectionLevelText(option.inspectionLevel)" [nzValue]="option.id"></nz-option>
@@ -149,45 +162,65 @@
             </nz-form-control>
           </nz-form-item>
         </div>
-        <div nz-col nzSpan="12" *ngIf="searchForm.get('schemeType')?.value === 2">
-          <nz-form-item>
-            <nz-form-label>固定样本量</nz-form-label>
-            <nz-form-control>
-              <nz-input-number formControlName="fixedSampleSize" [nzMin]="0" nzPlaceHolder="请输入固定样本量" style="width: 100%;"></nz-input-number>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-        <div nz-col nzSpan="12" *ngIf="searchForm.get('schemeType')?.value === 4">
-          <nz-form-item>
-            <nz-form-label>抽样百分比(%)</nz-form-label>
-            <nz-form-control>
-              <nz-input-number formControlName="samplePercentage" [nzMin]="0" [nzMax]="100" nzPlaceHolder="请输入抽样百分比" style="width: 100%;"></nz-input-number>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
       </div>
       <div nz-row [nzGutter]="16" *ngIf="searchForm.get('schemeType')?.value === 2">
         <div nz-col nzSpan="12">
           <nz-form-item>
-            <nz-form-label>接收数(Ac)</nz-form-label>
-            <nz-form-control>
-              <nz-input-number formControlName="acceptanceNumber" [nzMin]="0" nzPlaceHolder="请输入接收数" style="width: 100%;"></nz-input-number>
+            <nz-form-label nzRequired>固定样本量</nz-form-label>
+            <nz-form-control [ngClass]="getFieldValidationClass('fixedSampleSize')">
+              <nz-input-number formControlName="fixedSampleSize" [nzMin]="0" nzPlaceHolder="请输入固定样本量" style="width: 100%;"></nz-input-number>
+              <div *ngIf="getFieldValidationMessage('fixedSampleSize')" class="validation-message error">
+                {{ getFieldValidationMessage('fixedSampleSize') }}
+              </div>
             </nz-form-control>
           </nz-form-item>
         </div>
         <div nz-col nzSpan="12">
           <nz-form-item>
-            <nz-form-label>拒收数(Re)</nz-form-label>
-            <nz-form-control>
+            <nz-form-label nzRequired>接收数(Ac)</nz-form-label>
+            <nz-form-control [ngClass]="getFieldValidationClass('acceptanceNumber')">
+              <nz-input-number formControlName="acceptanceNumber" [nzMin]="0" nzPlaceHolder="请输入接收数" style="width: 100%;"></nz-input-number>
+              <div *ngIf="getFieldValidationMessage('acceptanceNumber')" class="validation-message error">
+                {{ getFieldValidationMessage('acceptanceNumber') }}
+              </div>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>拒收数(Re)</nz-form-label>
+            <nz-form-control [ngClass]="getFieldValidationClass('rejectionNumber')">
               <nz-input-number formControlName="rejectionNumber" [nzMin]="0" nzPlaceHolder="请输入拒收数" style="width: 100%;"></nz-input-number>
+              <div *ngIf="getC0ValidationMessage()" class="validation-message error">
+                {{ getC0ValidationMessage() }}
+              </div>
+              <div *ngIf="getFieldValidationMessage('rejectionNumber') && !getC0ValidationMessage()" class="validation-message error">
+                {{ getFieldValidationMessage('rejectionNumber') }}
+              </div>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="16" *ngIf="searchForm.get('schemeType')?.value === 4">
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>抽样百分比(%)</nz-form-label>
+            <nz-form-control [ngClass]="getFieldValidationClass('samplePercentage')">
+              <nz-input-number formControlName="samplePercentage" [nzMin]="0" [nzMax]="100" nzPlaceHolder="请输入抽样百分比" style="width: 100%;"></nz-input-number>
+              <div *ngIf="getFieldValidationMessage('samplePercentage')" class="validation-message error">
+                {{ getFieldValidationMessage('samplePercentage') }}
+              </div>
             </nz-form-control>
           </nz-form-item>
         </div>
       </div>
       <nz-form-item>
         <nz-form-label>描述</nz-form-label>
-        <nz-form-control>
+        <nz-form-control [ngClass]="getFieldValidationClass('description')">
           <textarea nz-input formControlName="description" placeholder="请输入描述" nzAutosize></textarea>
+          <div *ngIf="getFieldValidationMessage('description')" class="validation-message error">
+            {{ getFieldValidationMessage('description') }}
+          </div>
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
