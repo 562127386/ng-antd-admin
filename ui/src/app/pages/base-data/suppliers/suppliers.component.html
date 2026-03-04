@@ -1,0 +1,168 @@
+<nz-card>
+  <form nz-form [formGroup]="filterForm" class="filter-form">
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="8">
+        <nz-form-item>
+          <nz-form-label>关键词</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="filter" placeholder="请输入编码或名称" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="8">
+        <nz-form-item>
+          <nz-form-label>状态</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="isEnabled" nzPlaceHolder="请选择状态" [nzAllowClear]="true">
+              <nz-option *ngFor="let option of statusOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="24" class="button-group">
+        <button nz-button nzType="primary" (click)="onSearch()">搜索</button>
+        <button nz-button (click)="onReset()">重置</button>
+      </div>
+    </div>
+    <div class="add-button">
+      <button nz-button nzType="primary" (click)="showAddModal()">
+        <span nz-icon nzType="plus"></span>
+        新增供应商
+      </button>
+    </div>
+  </form>
+</nz-card>
+
+<nz-card style="margin-top: 16px;">
+  <nz-table
+    #supplierTable
+    nzShowSizeChanger
+    [nzData]="data"
+    [nzLoading]="loading"
+    [nzPageIndex]="pageIndex"
+    [nzPageSize]="pageSize"
+    [nzTotal]="total"
+    [nzFrontPagination]="false"
+    (nzPageIndexChange)="onPageIndexChange($event)"
+    (nzPageSizeChange)="onPageSizeChange($event)"
+  >
+    <thead>
+      <tr>
+        <th>编码</th>
+        <th>名称</th>
+        <th>联系人</th>
+        <th>联系电话</th>
+        <th>邮箱</th>
+        <th>排序</th>
+        <th>状态</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let data of supplierTable.data">
+        <td>{{ data.code }}</td>
+        <td>{{ data.name }}</td>
+        <td>{{ data.contactPerson }}</td>
+        <td>{{ data.contactPhone }}</td>
+        <td>{{ data.email }}</td>
+        <td>{{ data.sortOrder }}</td>
+        <td>
+          <nz-switch [ngModel]="data.isEnabled" (ngModelChange)="toggleEnabled(data)"></nz-switch>
+        </td>
+        <td>
+          <nz-space>
+            <a (click)="showEditModal(data)">编辑</a>
+            <a nz-popconfirm nzPopconfirmTitle="确定删除?" (nzOnConfirm)="showDeleteConfirm(data.id)" nzPopconfirmOkText="确定" nzPopconfirmCancelText="取消">删除</a>
+          </nz-space>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+</nz-card>
+
+<nz-modal
+  [(nzVisible)]="isModalVisible"
+  nzTitle="{{ isEdit ? '编辑供应商' : '新增供应商' }}"
+  (nzOnCancel)="handleCancel()"
+  (nzOnOk)="handleOk()"
+  [nzWidth]="800"
+>
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="searchForm">
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>编码</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="code" placeholder="请输入编码" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>名称</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="name" placeholder="请输入名称" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label>联系人</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="contactPerson" placeholder="请输入联系人" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label>联系电话</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="contactPhone" placeholder="请输入联系电话" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label>邮箱</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="email" placeholder="请输入邮箱" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label>排序</nz-form-label>
+            <nz-form-control>
+              <nz-input-number formControlName="sortOrder" [nzMin]="0" nzPlaceHolder="请输入排序" style="width: 100%;"></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <nz-form-item>
+        <nz-form-label>地址</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="address" placeholder="请输入地址" nzAutosize></textarea>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>备注</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="remark" placeholder="请输入备注" nzAutosize></textarea>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>状态</nz-form-label>
+        <nz-form-control>
+          <nz-switch formControlName="isEnabled" nzCheckedChildren="启用" nzUnCheckedChildren="禁用"></nz-switch>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>

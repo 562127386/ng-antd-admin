@@ -1,3 +1,9 @@
+export enum InspectionStandardStatus {
+  Draft = 1,
+  Active = 2,
+  Inactive = 3
+}
+
 export interface InspectionItemDto {
   id: string;
   standardId: string;
@@ -68,6 +74,7 @@ export interface CreateUpdateInspectionStandardDto {
 export interface GetInspectionStandardListDto {
   filter?: string;
   status?: number;
+  inspectionType?: number;
   sorting?: string;
   skipCount?: number;
   maxResultCount?: number;

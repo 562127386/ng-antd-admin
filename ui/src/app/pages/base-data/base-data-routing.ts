@@ -35,5 +35,23 @@ export default [
     title: 'AQL配置管理',
     data: { key: 'aql-configs' },
     loadComponent: () => import('./aql-configs/aql-configs.component').then(m => m.AqlConfigsComponent)
+  },
+  {
+    path: 'sampling-schemes',
+    title: '抽样方案配置',
+    data: { key: 'sampling-schemes' },
+    loadComponent: () => import('./sampling-schemes/sampling-schemes.component').then(m => m.SamplingSchemesComponent)
+  },
+  {
+    path: 'iqc-inspections',
+    title: 'IQC来料检验',
+    data: { key: 'iqc-inspections' },
+    loadComponent: () => import('./iqc-inspections/iqc-inspections.component').then(m => m.IqcInspectionsComponent)
+  },
+  {
+    path: 'suppliers',
+    title: '供应商管理',
+    data: { key: 'suppliers' },
+    loadComponent: () => import('./suppliers/suppliers.component').then(m => m.SuppliersComponent)
   }
 ] satisfies Route[];

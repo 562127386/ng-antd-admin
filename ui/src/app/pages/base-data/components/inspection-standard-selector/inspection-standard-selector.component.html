@@ -1,0 +1,93 @@
+<nz-modal
+  [(nzVisible)]="visible"
+  nzTitle="选择检验标准"
+  (nzOnCancel)="handleCancel()"
+  [nzFooter]="null"
+  nzWidth="1000px"
+>
+  <ng-container *nzModalContent>
+    <nz-card nzSize="small">
+      <form nz-form [formGroup]="filterForm" class="filter-form">
+        <div nz-row [nzGutter]="16">
+          <div nz-col nzSpan="8">
+            <nz-form-item>
+              <nz-form-label>关键词</nz-form-label>
+              <nz-form-control>
+                <input nz-input formControlName="filter" placeholder="请输入标准编号或版本" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col nzSpan="6">
+            <nz-form-item>
+              <nz-form-label>检验类型</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="inspectionType" nzPlaceHolder="请选择检验类型" [nzAllowClear]="true">
+                  <nz-option *ngFor="let option of inspectionTypeOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col nzSpan="6">
+            <nz-form-item>
+              <nz-form-label>状态</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="status" nzPlaceHolder="请选择状态" [nzAllowClear]="true">
+                  <nz-option *ngFor="let option of statusOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col nzSpan="4" class="button-group">
+            <button nz-button nzType="primary" (click)="onSearch()">搜索</button>
+            <button nz-button (click)="onReset()">重置</button>
+          </div>
+        </div>
+      </form>
+    </nz-card>
+
+    <nz-card nzSize="small" style="margin-top: 16px;">
+      <nz-table
+        #inspectionStandardTable
+        nzShowSizeChanger
+        [nzData]="data"
+        [nzLoading]="loading"
+        [nzPageIndex]="pageIndex"
+        [nzPageSize]="pageSize"
+        [nzTotal]="total"
+        [nzFrontPagination]="false"
+        (nzPageIndexChange)="onPageIndexChange($event)"
+        (nzPageSizeChange)="onPageSizeChange($event)"
+        nzSize="small"
+      >
+        <thead>
+          <tr>
+            <th>标准编号</th>
+            <th>版本</th>
+            <th>检验类型</th>
+            <th>抽样方案</th>
+            <th>生效日期</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let data of inspectionStandardTable.data">
+            <td>{{ data.code }}</td>
+            <td>{{ data.version }}</td>
+            <td>{{ getInspectionTypeText(data.inspectionType) }}</td>
+            <td>{{ data.samplingSchemeType }}</td>
+            <td>{{ data.effectiveDate | date:'yyyy-MM-dd' }}</td>
+            <td>
+              <nz-tag [nzColor]="getStatusColor(data.status)">
+                {{ getStatusText(data.status) }}
+              </nz-tag>
+            </td>
+            <td>
+              <a (click)="selectStandard(data)">选择</a>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </nz-card>
+  </ng-container>
+</nz-modal>

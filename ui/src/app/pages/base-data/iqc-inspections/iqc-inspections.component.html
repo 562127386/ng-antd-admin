@@ -1,0 +1,261 @@
+<nz-card>
+  <form nz-form [formGroup]="filterForm" class="filter-form">
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>关键词</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="filter" placeholder="请输入单号或批次号" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>状态</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="status" nzPlaceHolder="请选择状态" [nzAllowClear]="true">
+              <nz-option *ngFor="let option of statusOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>检验结果</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="result" nzPlaceHolder="请选择检验结果" [nzAllowClear]="true">
+              <nz-option *ngFor="let option of resultOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+    </div>
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="24" class="button-group">
+        <button nz-button nzType="primary" (click)="onSearch()">搜索</button>
+        <button nz-button (click)="onReset()">重置</button>
+      </div>
+    </div>
+    <div class="add-button">
+      <button nz-button nzType="primary" (click)="showAddModal()">
+        <span nz-icon nzType="plus"></span>
+        新增检验单
+      </button>
+    </div>
+  </form>
+</nz-card>
+
+<nz-card style="margin-top: 16px;">
+  <nz-table
+    #iqcInspectionTable
+    nzShowSizeChanger
+    [nzData]="data"
+    [nzLoading]="loading"
+    [nzPageIndex]="pageIndex"
+    [nzPageSize]="pageSize"
+    [nzTotal]="total"
+    [nzFrontPagination]="false"
+    (nzPageIndexChange)="onPageIndexChange($event)"
+    (nzPageSizeChange)="onPageSizeChange($event)"
+  >
+    <thead>
+      <tr>
+        <th>单号</th>
+        <th>物料</th>
+        <th>批次号</th>
+        <th>批量</th>
+        <th>供应商</th>
+        <th>到货日期</th>
+        <th>状态</th>
+        <th>检验结果</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let data of iqcInspectionTable.data">
+        <td>{{ data.orderNo }}</td>
+        <td>{{ data.materialCode }} {{ data.materialName }}</td>
+        <td>{{ data.batchNo }}</td>
+        <td>{{ data.lotSize }}</td>
+        <td>{{ data.supplierName }}</td>
+        <td>{{ data.arrivalDate | date: 'yyyy-MM-dd' }}</td>
+        <td>
+          <nz-tag [nzColor]="getStatusColor(data.status)">{{ getStatusText(data.status) }}</nz-tag>
+        </td>
+        <td>
+          <nz-tag [nzColor]="getResultColor(data.result)" *ngIf="data.result !== null && data.result !== undefined">{{ getResultText(data.result) }}</nz-tag>
+          <span *ngIf="data.result === null || data.result === undefined">-</span>
+        </td>
+        <td>
+          <nz-space>
+            <a (click)="showViewModal(data)">查看</a>
+            <a (click)="showEditModal(data)" *ngIf="canEdit(data.status)">编辑</a>
+            <a (click)="startInspection(data.id)" *ngIf="canStartInspection(data.status)">开始检验</a>
+            <a (click)="completeInspection(data.id)" *ngIf="canCompleteInspection(data.status)">完成检验</a>
+            <a (click)="cancelInspection(data.id)" *ngIf="canCancel(data.status)">取消</a>
+            <a nz-popconfirm nzPopconfirmTitle="确定删除?" (nzOnConfirm)="showDeleteConfirm(data.id)" nzPopconfirmOkText="确定" nzPopconfirmCancelText="取消" *ngIf="canDelete(data.status)">删除</a>
+          </nz-space>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+</nz-card>
+
+<nz-modal
+  [(nzVisible)]="isModalVisible"
+  nzTitle="{{ isViewMode ? '查看检验单' : (isEdit ? '编辑检验单' : '新增检验单') }}"
+  (nzOnCancel)="handleCancel()"
+  (nzOnOk)="handleOk()"
+  [nzWidth]="800"
+>
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="createForm">
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>单号</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="orderNo" placeholder="请输入单号" [disabled]="isViewMode" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>批次号</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="batchNo" placeholder="请输入批次号" [disabled]="isViewMode" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>物料</nz-form-label>
+            <nz-form-control>
+              <div class="material-selector" *ngIf="!createForm.get('materialId')?.value; else selectedMaterialDisplay">
+                <button nz-button (click)="openMaterialSelector()" [disabled]="isViewMode" style="width: 100%;">
+                  <span nz-icon nzType="search"></span>
+                  选择物料
+                </button>
+              </div>
+              <ng-template #selectedMaterialDisplay>
+                <div class="selected-material">
+                  <nz-tag nzColor="blue">{{ createForm.get('materialCode')?.value }} {{ createForm.get('materialName')?.value }}</nz-tag>
+                  <button nz-button nzType="text" nzDanger (click)="clearMaterial()" *ngIf="!isViewMode">
+                    <span nz-icon nzType="close"></span>
+                  </button>
+                </div>
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>供应商</nz-form-label>
+            <nz-form-control>
+              <div class="supplier-selector" *ngIf="!createForm.get('supplierId')?.value; else selectedSupplierDisplay">
+                <button nz-button (click)="openSupplierSelector()" [disabled]="isViewMode" style="width: 100%;">
+                  <span nz-icon nzType="search"></span>
+                  选择供应商
+                </button>
+              </div>
+              <ng-template #selectedSupplierDisplay>
+                <div class="selected-supplier">
+                  <nz-tag nzColor="blue">{{ createForm.get('supplierName')?.value }}</nz-tag>
+                  <button nz-button nzType="text" nzDanger (click)="clearSupplier()" *ngIf="!isViewMode">
+                    <span nz-icon nzType="close"></span>
+                  </button>
+                </div>
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>批量</nz-form-label>
+            <nz-form-control>
+              <nz-input-number formControlName="lotSize" [nzMin]="1" nzPlaceHolder="请输入批量" style="width: 100%;" [nzDisabled]="isViewMode"></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>到货日期</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker formControlName="arrivalDate" style="width: 100%;" [nzDisabled]="isViewMode"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label>采购单号</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="purchaseOrderNo" placeholder="请输入采购单号" [disabled]="isViewMode" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label>检验标准</nz-form-label>
+            <nz-form-control>
+              <div class="standard-selector" *ngIf="!createForm.get('inspectionStandardId')?.value; else selectedStandardDisplay">
+                <button nz-button (click)="openStandardSelector()" [disabled]="isViewMode" style="width: 100%;">
+                  <span nz-icon nzType="search"></span>
+                  选择检验标准
+                </button>
+              </div>
+              <ng-template #selectedStandardDisplay>
+                <div class="selected-standard">
+                  <nz-tag nzColor="blue">已选择检验标准</nz-tag>
+                  <button nz-button nzType="text" nzDanger (click)="clearStandard()" *ngIf="!isViewMode">
+                    <span nz-icon nzType="close"></span>
+                  </button>
+                </div>
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label>抽样方案</nz-form-label>
+            <nz-form-control>
+              <nz-select formControlName="samplingSchemeId" nzPlaceHolder="请选择抽样方案" [nzAllowClear]="true" [nzDisabled]="isViewMode" style="width: 100%;">
+                <nz-option *ngFor="let scheme of samplingSchemes" [nzLabel]="scheme.name" [nzValue]="scheme.id"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <nz-form-item>
+        <nz-form-label>备注</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="remark" placeholder="请输入备注" nzAutosize [disabled]="isViewMode"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>
+
+<app-inspection-standard-selector
+  [(visible)]="isStandardSelectorVisible"
+  [inspectionType]="1"
+  (selected)="onStandardSelected($event)">
+</app-inspection-standard-selector>
+
+<app-material-selector
+  [(visible)]="isMaterialSelectorVisible"
+  (selected)="onMaterialSelected($event)">
+</app-material-selector>
+
+<app-supplier-selector
+  [(visible)]="isSupplierSelectorVisible"
+  (selected)="onSupplierSelected($event)">
+</app-supplier-selector>

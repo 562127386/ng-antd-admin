@@ -151,7 +151,10 @@
       <nz-form-item>
         <nz-form-label>抽样方案配置</nz-form-label>
         <nz-form-control>
-          <textarea nz-input formControlName="samplingSchemeConfig" rows="3" placeholder="请输入抽样方案配置(JSON)"></textarea>
+          <app-sampling-scheme-config 
+            [config]="searchForm.get('samplingSchemeConfig')?.value" 
+            (configChange)="searchForm.patchValue({ samplingSchemeConfig: $event })">
+          </app-sampling-scheme-config>
         </nz-form-control>
       </nz-form-item>
 

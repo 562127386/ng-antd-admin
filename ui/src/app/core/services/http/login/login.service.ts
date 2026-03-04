@@ -138,6 +138,55 @@ export class LoginService {
             open: false,
             code: 'AqlConfigs',
             children: []
+          },
+          {
+            id: 26,
+            fatherId: 2,
+            menuName: '抽样方案配置',
+            menuType: 'C',
+            icon: 'filter',
+            path: '/default/base-data/sampling-schemes',
+            selected: false,
+            open: false,
+            code: 'SamplingSchemes',
+            children: []
+          },
+          {
+            id: 27,
+            fatherId: 2,
+            menuName: '供应商管理',
+            menuType: 'C',
+            icon: 'team',
+            path: '/default/base-data/suppliers',
+            selected: false,
+            open: false,
+            code: 'Suppliers',
+            children: []
+          }
+        ]
+      },
+      {
+        id: 3,
+        fatherId: 0,
+        menuName: '检验服务',
+        menuType: 'C',
+        icon: 'audit',
+        path: '/default/inspection',
+        selected: false,
+        open: false,
+        code: 'InspectionService',
+        children: [
+          {
+            id: 31,
+            fatherId: 3,
+            menuName: 'IQC来料检验',
+            menuType: 'C',
+            icon: 'file-done',
+            path: '/default/base-data/iqc-inspections',
+            selected: false,
+            open: false,
+            code: 'IqcInspections',
+            children: []
           }
         ]
       }

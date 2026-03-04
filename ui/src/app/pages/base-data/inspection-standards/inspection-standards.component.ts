@@ -22,9 +22,11 @@ import {
   InspectionStandardDto, 
   CreateUpdateInspectionStandardDto, 
   GetInspectionStandardListDto,
-  CreateUpdateInspectionItemDto
+  CreateUpdateInspectionItemDto,
+  InspectionStandardStatus
 } from '../models/inspection-standard.model';
 import { InspectionStandardService } from '../services/inspection-standard.service';
+import { SamplingSchemeConfigComponent } from '../components/sampling-scheme-config/sampling-scheme-config.component';
 
 @Component({
   selector: 'app-inspection-standards',
@@ -48,7 +50,8 @@ import { InspectionStandardService } from '../services/inspection-standard.servi
     NzCardModule,
     NzIconModule,
     NzInputNumberModule,
-    NzDividerModule
+    NzDividerModule,
+    SamplingSchemeConfigComponent
   ],
   templateUrl: './inspection-standards.component.html',
   styleUrls: ['./inspection-standards.component.less']

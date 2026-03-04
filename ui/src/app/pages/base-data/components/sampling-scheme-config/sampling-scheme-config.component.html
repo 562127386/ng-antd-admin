@@ -1,0 +1,126 @@
+<nz-card>
+  <form nz-form [formGroup]="configForm">
+    <nz-form-item>
+      <nz-form-label nzRequired>抽样类型</nz-form-label>
+      <nz-form-control>
+        <nz-select formControlName="schemeType" nzPlaceHolder="请选择抽样类型">
+          <nz-option *ngFor="let option of schemeTypeOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-divider nzText="AQL抽样配置" *ngIf="currentSchemeType === 1"></nz-divider>
+    <ng-container *ngIf="currentSchemeType === 1" formGroupName="aqlConfig">
+      <nz-form-item>
+        <nz-form-label>AQL配置</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="aqlConfigId" nzPlaceHolder="请选择AQL配置" [nzAllowClear]="true" style="width: 100%;">
+            <nz-option *ngFor="let option of aqlConfigOptions" [nzLabel]="option.code + ' - AQL:' + option.aqlValue + ' - ' + getInspectionLevelText(option.inspectionLevel)" [nzValue]="option.id"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>检验水平</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="inspectionLevel" nzPlaceHolder="请选择检验水平" [nzAllowClear]="true">
+            <nz-option *ngFor="let option of inspectionLevelOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>AQL值</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="aqlValue" [nzMin]="0" nzPlaceHolder="请输入AQL值" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+    </ng-container>
+
+    <nz-divider nzText="C=0抽样配置" *ngIf="currentSchemeType === 2"></nz-divider>
+    <ng-container *ngIf="currentSchemeType === 2" formGroupName="cZeroConfig">
+      <nz-form-item>
+        <nz-form-label>固定样本量</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="fixedSampleSize" [nzMin]="0" nzPlaceHolder="请输入固定样本量" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>接收数(Ac)</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="acceptanceNumber" [nzMin]="0" nzPlaceHolder="请输入接收数" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>拒收数(Re)</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="rejectionNumber" [nzMin]="0" nzPlaceHolder="请输入拒收数" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+    </ng-container>
+
+    <nz-divider nzText="计量抽样配置" *ngIf="currentSchemeType === 3"></nz-divider>
+    <ng-container *ngIf="currentSchemeType === 3" formGroupName="variableConfig">
+      <nz-form-item>
+        <nz-form-label>样本量</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="sampleSize" [nzMin]="0" nzPlaceHolder="请输入样本量" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>K值</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="kValue" [nzMin]="0" nzPlaceHolder="请输入K值" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>σ已知</nz-form-label>
+        <nz-form-control>
+          <nz-switch formControlName="sigmaKnown" nzCheckedChildren="是" nzUnCheckedChildren="否"></nz-switch>
+        </nz-form-control>
+      </nz-form-item>
+    </ng-container>
+
+    <nz-divider nzText="连续抽样配置" *ngIf="currentSchemeType === 4"></nz-divider>
+    <ng-container *ngIf="currentSchemeType === 4" formGroupName="continuousConfig">
+      <nz-form-item>
+        <nz-form-label>质量水平(i)</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="iQualityLevel" [nzMin]="0" nzPlaceHolder="请输入质量水平" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>抽样百分比(%)</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="samplePercentage" [nzMin]="0" [nzMax]="100" nzPlaceHolder="请输入抽样百分比" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>频率(f)</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="fFrequency" [nzMin]="0" nzPlaceHolder="请输入频率" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+    </ng-container>
+
+    <nz-divider nzText="跳批抽样配置" *ngIf="currentSchemeType === 5"></nz-divider>
+    <ng-container *ngIf="currentSchemeType === 5" formGroupName="skipLotConfig">
+      <nz-form-item>
+        <nz-form-label>跳批数</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="skipLotNumber" [nzMin]="0" nzPlaceHolder="请输入跳批数" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>质量水平(i)</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="iQualityLevel" [nzMin]="0" nzPlaceHolder="请输入质量水平" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>批量</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="lotSize" [nzMin]="0" nzPlaceHolder="请输入批量" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+    </ng-container>
+  </form>
+</nz-card>
