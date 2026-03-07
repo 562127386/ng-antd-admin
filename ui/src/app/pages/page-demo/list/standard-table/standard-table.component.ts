@@ -95,7 +95,7 @@ export class StandardTableComponent {
     },
     {
       id: 4,
-      name: 'TQMS Pro',
+      name: 'TTQMS 质量检验',
       desc: '城镇中有那么多的酒馆，她却偏偏走进了我的酒馆',
       avatar: 'https://gw.alipayobjects.com/zos/rmsportal/sfjbOqnsXXJgNCjCzDBL.png',
       owner: '周星星',

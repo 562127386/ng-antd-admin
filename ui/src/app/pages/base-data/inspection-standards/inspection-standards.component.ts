@@ -26,6 +26,8 @@ import {
   InspectionStandardStatus
 } from '../models/inspection-standard.model';
 import { InspectionStandardService } from '../services/inspection-standard.service';
+import { GeneralInspectionItemService } from '../services/general-inspection-item.service';
+import { GeneralInspectionItemDto } from '../models/general-inspection-item.model';
 import { SamplingSchemeConfigComponent } from '../components/sampling-scheme-config/sampling-scheme-config.component';
 
 @Component({
@@ -58,10 +60,14 @@ import { SamplingSchemeConfigComponent } from '../components/sampling-scheme-con
 })
 export class InspectionStandardsComponent implements OnInit {
   private inspectionStandardService = inject(InspectionStandardService);
+  private generalInspectionItemService = inject(GeneralInspectionItemService);
   private fb = inject(FormBuilder);
   private modalService = inject(NzModalService);
   private messageService = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
+
+  generalInspectionItems: GeneralInspectionItemDto[] = [];
+  isGeneralItemsLoading = false;
 
   loading = false;
   data: InspectionStandardDto[] = [];
@@ -197,6 +203,88 @@ export class InspectionStandardsComponent implements OnInit {
   ngOnInit(): void {
     this.initForms();
     this.loadData();
+    this.loadGeneralInspectionItems();
+  }
+
+  loadGeneralInspectionItems(): void {
+    this.isGeneralItemsLoading = true;
+    this.generalInspectionItemService.getAllItems().subscribe({
+      next: (items: GeneralInspectionItemDto[]) => {
+        this.generalInspectionItems = items;
+        this.isGeneralItemsLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isGeneralItemsLoading = false;
+        this.messageService.error('加载通用检查项目失败');
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  showGeneralItemsModal(): void {
+    this.modalService.create({
+      nzTitle: '选择通用检查项目',
+      nzWidth: 800,
+      nzContent: `
+        <nz-table
+          #generalItemsTable
+          [nzData]="generalInspectionItems"
+          [nzLoading]="isGeneralItemsLoading"
+          nzShowPagination="true"
+          [nzPageSize]="10"
+        >
+          <thead>
+            <tr>
+              <th>检查内容</th>
+              <th>检查项目</th>
+              <th>不良项目</th>
+              <th>不良状态</th>
+              <th>不良判定</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of generalItemsTable.data">
+              <td>{{ item.inspectionContent }}</td>
+              <td>{{ item.inspectionItemName }}</td>
+              <td>{{ item.defectItem }}</td>
+              <td>{{ item.defectStatus }}</td>
+              <td>
+                <nz-space>
+                  <nz-tag *ngIf="item.isCritical" nzColor="error">CR</nz-tag>
+                  <nz-tag *ngIf="item.isMajor" nzColor="warning">MAJ</nz-tag>
+                  <nz-tag *ngIf="item.isMinor" nzColor="success">MIN</nz-tag>
+                </nz-space>
+              </td>
+              <td>
+                <button nz-button nzSize="small" (click)="addFromGeneralItem(item)">添加</button>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      `,
+      nzFooter: [
+        { 
+          label: '关闭', 
+          onClick: (modalInstance: any) => modalInstance.destroy() 
+        }
+      ]
+    });
+  }
+
+  addFromGeneralItem(item: GeneralInspectionItemDto): void {
+    const itemGroup = this.createItemFormGroup();
+    itemGroup.patchValue({
+      code: item.inspectionItemName.replace(/\s+/g, '_').toUpperCase(),
+      name: item.inspectionItemName,
+      inspectionMethod: 2, // 计数
+      isCritical: item.isCritical,
+      sortOrder: this.itemsFormArray.length
+    });
+    this.itemsFormArray.push(itemGroup);
+    this.modalService.closeAll();
+    this.messageService.success('已添加通用检查项目');
   }
 
   initForms(): void {

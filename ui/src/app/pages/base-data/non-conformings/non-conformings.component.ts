@@ -20,6 +20,7 @@ import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NonConformingDto, CreateUpdateNonConformingDto, GetNonConformingListDto, CompleteReviewInput, CompleteDisposalInput } from '../models/non-conforming.model';
 import { NonConformingService } from '../services/non-conforming.service';
+import { NonConformingStatus, ReviewResult, DefectSeverity, InspectionType, InspectionResult } from '../models/enums';
 
 @Component({
   selector: 'app-non-conformings',
@@ -72,39 +73,39 @@ export class NonConformingsComponent implements OnInit {
   viewingItem?: NonConformingDto;
 
   statusOptions = [
-    { label: '待审核', value: 1, color: 'default' },
-    { label: '审核中', value: 2, color: 'processing' },
-    { label: '待处理', value: 3, color: 'warning' },
-    { label: '处理中', value: 4, color: 'processing' },
-    { label: '已完成', value: 5, color: 'success' }
+    { label: '待审核', value: NonConformingStatus.PendingReview, color: 'default' },
+    { label: '审核中', value: NonConformingStatus.Reviewing, color: 'processing' },
+    { label: '待处理', value: NonConformingStatus.PendingDisposal, color: 'warning' },
+    { label: '处理中', value: NonConformingStatus.Disposing, color: 'processing' },
+    { label: '已完成', value: NonConformingStatus.Completed, color: 'success' }
   ];
 
   sourceModuleOptions = [
-    { label: 'IQC', value: 1 },
-    { label: 'IPQC', value: 2 },
-    { label: 'FQC', value: 3 },
-    { label: 'OQC', value: 4 }
+    { label: 'IQC', value: InspectionType.IQC },
+    { label: 'IPQC', value: InspectionType.IPQC },
+    { label: 'FQC', value: InspectionType.FQC },
+    { label: 'OQC', value: InspectionType.OQC }
   ];
 
   severityOptions = [
-    { label: '轻微', value: 1, color: 'default' },
-    { label: '一般', value: 2, color: 'warning' },
-    { label: '严重', value: 3, color: 'error' },
-    { label: '致命', value: 4, color: 'red' }
+    { label: '轻微', value: DefectSeverity.Minor, color: 'default' },
+    { label: '一般', value: DefectSeverity.Moderate, color: 'warning' },
+    { label: '严重', value: DefectSeverity.Major, color: 'error' },
+    { label: '致命', value: DefectSeverity.Critical, color: 'red' }
   ];
 
   reviewResultOptions = [
-    { label: '返工', value: 1 },
-    { label: '返修', value: 2 },
-    { label: '让步', value: 3 },
-    { label: '报废', value: 4 }
+    { label: '返工', value: ReviewResult.Rework },
+    { label: '返修', value: ReviewResult.Repair },
+    { label: '让步', value: ReviewResult.Concession },
+    { label: '报废', value: ReviewResult.Scrap }
   ];
 
   inspectionResultOptions = [
     { label: '待判定', value: 0 },
-    { label: '合格', value: 1 },
-    { label: '不合格', value: 2 },
-    { label: '特采', value: 3 }
+    { label: '合格', value: InspectionResult.Accepted },
+    { label: '不合格', value: InspectionResult.Rejected },
+    { label: '特采', value: InspectionResult.Concession }
   ];
 
   ngOnInit(): void {
@@ -206,7 +207,7 @@ export class NonConformingsComponent implements OnInit {
   }
 
   showEditModal(item: NonConformingDto): void {
-    if (item.status !== 1) {
+    if (item.status !== NonConformingStatus.PendingReview) {
       this.messageService.warning('只有待审核状态的单据可以编辑');
       return;
     }
@@ -241,7 +242,7 @@ export class NonConformingsComponent implements OnInit {
   }
 
   showReviewModal(item: NonConformingDto): void {
-    if (item.status !== 1) {
+    if (item.status !== NonConformingStatus.PendingReview) {
       this.messageService.warning('只有待审核状态的单据可以开始审核');
       return;
     }
@@ -256,7 +257,7 @@ export class NonConformingsComponent implements OnInit {
   }
 
   showDisposalModal(item: NonConformingDto): void {
-    if (item.status !== 3) {
+    if (item.status !== NonConformingStatus.PendingDisposal) {
       this.messageService.warning('只有待处理状态的单据可以开始处理');
       return;
     }
@@ -337,7 +338,7 @@ export class NonConformingsComponent implements OnInit {
   handleReview(): void {
     if (!this.editId) return;
 
-    if (this.viewingItem?.status === 1) {
+    if (this.viewingItem?.status === NonConformingStatus.PendingReview) {
       this.nonConformingService.startReview(this.editId).subscribe({
         next: () => {
           this.messageService.success('开始审核成功');
@@ -375,7 +376,7 @@ export class NonConformingsComponent implements OnInit {
   handleDisposal(): void {
     if (!this.editId) return;
 
-    if (this.viewingItem?.status === 3) {
+    if (this.viewingItem?.status === NonConformingStatus.PendingDisposal) {
       this.nonConformingService.startDisposal(this.editId).subscribe({
         next: () => {
           this.messageService.success('开始处理成功');
@@ -453,18 +454,18 @@ export class NonConformingsComponent implements OnInit {
   }
 
   canEdit(status: number): boolean {
-    return status === 1;
+    return status === NonConformingStatus.PendingReview;
   }
 
   canDelete(status: number): boolean {
-    return status === 1;
+    return status === NonConformingStatus.PendingReview;
   }
 
   canReview(status: number): boolean {
-    return status === 1 || status === 2;
+    return status === NonConformingStatus.PendingReview || status === NonConformingStatus.Reviewing;
   }
 
   canDispose(status: number): boolean {
-    return status === 3 || status === 4;
+    return status === NonConformingStatus.PendingDisposal || status === NonConformingStatus.Disposing;
   }
 }

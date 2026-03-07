@@ -1,0 +1,96 @@
+<div class="complete-inspection-modal">
+  <nz-card nzSize="small">
+    <nz-descriptions [nzColumn]="2" nzBordered nzSize="small">
+      <nz-descriptions-item nzTitle="检验单号">
+        {{ inspectionOrder.orderNo }}
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="物料">
+        <nz-tag nzColor="blue">{{ inspectionOrder.materialCode }} {{ inspectionOrder.materialName }}</nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="批次号">
+        {{ inspectionOrder.batchNo || '-' }}
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="批量">
+        {{ inspectionOrder.lotSize }}
+      </nz-descriptions-item>
+    </nz-descriptions>
+
+    <nz-divider nzText="检验项目统计"></nz-divider>
+
+    <nz-descriptions [nzColumn]="4" nzBordered nzSize="small">
+      <nz-descriptions-item nzTitle="总项目数">
+        <nz-tag nzColor="default">{{ totalCount }}</nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="合格">
+        <nz-tag nzColor="success">{{ okCount }}</nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="不合格">
+        <nz-tag nzColor="error">{{ ngCount }}</nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="待判定">
+        <nz-tag nzColor="warning">{{ pendingCount }}</nz-tag>
+      </nz-descriptions-item>
+    </nz-descriptions>
+
+    <nz-alert 
+      *ngIf="ngCount > 0" 
+      nzType="error" 
+      nzMessage="存在不合格检验项目，建议选择不合格或特采"
+      style="margin-top: 16px;">
+    </nz-alert>
+    
+    <nz-alert 
+      *ngIf="pendingCount > 0" 
+      nzType="warning" 
+      nzMessage="存在待判定检验项目，请确认是否继续"
+      style="margin-top: 16px;">
+    </nz-alert>
+
+    <nz-alert 
+      *ngIf="ngCount === 0 && pendingCount === 0" 
+      nzType="success" 
+      nzMessage="所有检验项目均已合格，建议选择合格"
+      style="margin-top: 16px;">
+    </nz-alert>
+
+    <nz-divider nzText="选择检验结果"></nz-divider>
+
+    <form nz-form [formGroup]="completeForm" nzLayout="vertical">
+      <nz-form-item>
+        <nz-form-label nzRequired>最终检验结果</nz-form-label>
+        <nz-form-control nzErrorTip="请选择最终检验结果">
+          <nz-select formControlName="result" nzPlaceHolder="请选择最终检验结果">
+            <nz-option 
+              *ngFor="let option of resultOptions" 
+              [nzLabel]="option.label" 
+              [nzValue]="option.value">
+              <nz-tag [nzColor]="option.color">{{ option.label }}</nz-tag>
+              <span *ngIf="option.value === suggestedResult" style="margin-left: 8px; color: #faad14;">
+                <span nz-icon nzType="star"></span> 推荐
+              </span>
+            </nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>备注</nz-form-label>
+        <nz-form-control>
+          <textarea 
+            nz-input 
+            formControlName="remark" 
+            placeholder="请输入备注信息"
+            rows="3"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+
+    <div *ngIf="completeForm.get('result')?.value" style="margin-top: 16px;">
+      <nz-alert 
+        [nzType]="getResultColor(completeForm.get('result')?.value) === 'success' ? 'success' : 
+                  getResultColor(completeForm.get('result')?.value) === 'error' ? 'error' : 
+                  getResultColor(completeForm.get('result')?.value) === 'warning' ? 'warning' : 'info'"
+        [nzMessage]="'您选择的最终结果为: ' + getResultText(completeForm.get('result')?.value)">
+      </nz-alert>
+    </div>
+  </nz-card>
+</div>

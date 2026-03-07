@@ -1,0 +1,62 @@
+.drawer-content {
+  padding: 0;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.material-selector,
+.supplier-selector,
+.standard-selector {
+  width: 100%;
+}
+
+.selected-material,
+.selected-supplier,
+.selected-standard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.row-warning {
+  background-color: #fff1f0;
+  
+  td {
+    background-color: #fff1f0;
+  }
+}
+
+.row-success {
+  background-color: #f6ffed;
+  
+  td {
+    background-color: #f6ffed;
+  }
+}
+
+.highlight-cell {
+  background-color: #e6f7ff;
+  font-weight: 500;
+}
+
+.input-error {
+  border-color: #ff4d4f !important;
+  
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2) !important;
+  }
+}
+
+.input-success {
+  border-color: #52c41a !important;
+  
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.2) !important;
+  }
+}

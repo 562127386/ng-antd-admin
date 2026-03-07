@@ -29,7 +29,14 @@
           </nz-form-control>
         </nz-form-item>
       </div>
-
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>日期范围</nz-form-label>
+          <nz-form-control>
+            <nz-range-picker formControlName="dateRange" nzPlaceHolder="请选择日期范围"></nz-range-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
     </div>
     <div nz-row [nzGutter]="16">
       <div nz-col nzSpan="24" class="button-group">
@@ -37,27 +44,72 @@
         <button nz-button (click)="onReset()">重置</button>
       </div>
     </div>
-    <div class="add-button">
-      <button nz-button nzType="primary" (click)="showAddModal()">
-        <span nz-icon nzType="plus"></span>
-        新增检验单
-      </button>
-    </div>
   </form>
 </nz-card>
 
 <nz-card style="margin-top: 16px;">
+  <nz-row [nzGutter]="16">
+    <nz-col nzSpan="6">
+      <nz-statistic
+        [nzValue]="totalInspections"
+        [nzValueStyle]="{ color: '#1890ff' }"
+        nzTitle="总检验单"
+        [nzPrefix]="prefixFileText"
+      ></nz-statistic>
+      <ng-template #prefixFileText><span nz-icon nzType="file-text"></span></ng-template>
+    </nz-col>
+    <nz-col nzSpan="6">
+      <nz-statistic
+        [nzValue]="passCount"
+        [nzValueStyle]="{ color: '#52c41a' }"
+        nzTitle="合格"
+        [nzPrefix]="prefixCheckCircle"
+      ></nz-statistic>
+      <ng-template #prefixCheckCircle><span nz-icon nzType="check-circle"></span></ng-template>
+    </nz-col>
+    <nz-col nzSpan="6">
+      <nz-statistic
+        [nzValue]="failCount"
+        [nzValueStyle]="{ color: '#ff4d4f' }"
+        nzTitle="不合格"
+        [nzPrefix]="prefixCloseCircle"
+      ></nz-statistic>
+      <ng-template #prefixCloseCircle><span nz-icon nzType="close-circle"></span></ng-template>
+    </nz-col>
+    <nz-col nzSpan="6">
+      <nz-statistic
+        [nzValue]="passRate"
+        [nzSuffix]="'%'"
+        [nzValueStyle]="{ color: '#faad14' }"
+        nzTitle="合格率"
+        [nzPrefix]="prefixThunderbolt"
+      ></nz-statistic>
+      <ng-template #prefixThunderbolt><span nz-icon nzType="thunderbolt"></span></ng-template>
+    </nz-col>
+  </nz-row>
+</nz-card>
+
+<nz-card style="margin-top: 16px;">
+  <nz-tabs>
+    <nz-tab nzTitle="检测结果分析">
+      <div echarts [options]="resultPieChartOptions" class="chart-container"></div>
+    </nz-tab>
+    <nz-tab nzTitle="趋势分析">
+      <div echarts [options]="trendChartOptions" class="chart-container"></div>
+    </nz-tab>
+    <nz-tab nzTitle="检测项目合格率">
+      <div echarts [options]="itemPassRateChartOptions" class="chart-container"></div>
+    </nz-tab>
+  </nz-tabs>
+</nz-card>
+
+<nz-card style="margin-top: 16px;" nzTitle="检验单详情">
   <nz-table
-    #iqcInspectionTable
+    #reportTable
     nzShowSizeChanger
-    [nzData]="data"
+    [nzData]="inspections"
     [nzLoading]="loading"
-    [nzPageIndex]="pageIndex"
-    [nzPageSize]="pageSize"
-    [nzTotal]="total"
-    [nzFrontPagination]="false"
-    (nzPageIndexChange)="onPageIndexChange($event)"
-    (nzPageSizeChange)="onPageSizeChange($event)"
+    [nzPageSize]="10"
   >
     <thead>
       <tr>
@@ -67,37 +119,26 @@
         <th>批量</th>
         <th>供应商</th>
         <th>到货日期</th>
+        <th>检验日期</th>
         <th>状态</th>
         <th>检验结果</th>
-        <th>操作</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let data of iqcInspectionTable.data">
+      <tr *ngFor="let data of reportTable.data">
         <td>{{ data.orderNo }}</td>
         <td>{{ data.materialCode }} {{ data.materialName }}</td>
         <td>{{ data.batchNo }}</td>
         <td>{{ data.lotSize }}</td>
         <td>{{ data.supplierName }}</td>
         <td>{{ data.arrivalDate | date: 'yyyy-MM-dd' }}</td>
+        <td>{{ data.inspectionDate | date: 'yyyy-MM-dd' }}</td>
         <td>
           <nz-tag [nzColor]="getStatusColor(data.status)">{{ getStatusText(data.status) }}</nz-tag>
         </td>
         <td>
           <nz-tag [nzColor]="getResultColor(data.result)" *ngIf="data.result !== null && data.result !== undefined">{{ getResultText(data.result) }}</nz-tag>
           <span *ngIf="data.result === null || data.result === undefined">-</span>
-        </td>
-        <td>
-          <nz-space>
-            <a (click)="showViewModal(data)">查看</a>
-            <a (click)="showEditModal(data)" *ngIf="canEdit(data.status)">编辑</a>
-            <a (click)="submitInspection(data.id)" *ngIf="canSubmit(data.status)">提交</a>
-            <a (click)="startInspection(data.id)" *ngIf="canStartInspection(data.status)">开始检验</a>
-            <a (click)="completeInspection(data)" *ngIf="canCompleteInspection(data.status)">完成检验</a>
-            <a (click)="cancelInspection(data.id)" *ngIf="canCancel(data.status)">取消</a>
-            <a (click)="createNonConforming(data)" *ngIf="canCreateNonConforming(data.status, data.result)">创建不合格处理单</a>
-            <a nz-popconfirm nzPopconfirmTitle="确定删除?" (nzOnConfirm)="showDeleteConfirm(data.id)" nzPopconfirmOkText="确定" nzPopconfirmCancelText="取消" *ngIf="canDelete(data.status)">删除</a>
-          </nz-space>
         </td>
       </tr>
     </tbody>

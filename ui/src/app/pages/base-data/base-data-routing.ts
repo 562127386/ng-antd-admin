@@ -59,5 +59,17 @@ export default [
     title: '不合格品处理',
     data: { key: 'non-conformings' },
     loadComponent: () => import('./non-conformings/non-conformings.component').then(m => m.NonConformingsComponent)
+  },
+  {
+    path: 'quality-reports',
+    title: '质量报告',
+    data: { key: 'quality-reports' },
+    loadComponent: () => import('./quality-reports/quality-reports.component').then(m => m.QualityReportsComponent)
+  },
+  {
+    path: 'general-inspection-items',
+    title: '通用检查项目',
+    data: { key: 'general-inspection-items' },
+    loadComponent: () => import('./general-inspection-items/general-inspection-items.component').then(m => m.GeneralInspectionItemsComponent)
   }
 ] satisfies Route[];

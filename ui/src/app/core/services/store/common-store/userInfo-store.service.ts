@@ -41,8 +41,9 @@ export class UserInfoStoreService {
   }
 
   getUserAuthCodeByUserId(userId: number | string): Observable<string[]> {
-    return of(['Dashboard', 'BaseData', 'Defects', 'Materials', 'Processes','InspectionStandards','AqlConfigs','SamplingSchemes','Suppliers',
-      'InspectionService','IqcInspections'
+    return of(['Dashboard', 'BaseData', 'Defects', 'Materials', 'Processes','InspectionStandards','AqlConfigs','SamplingSchemes','Suppliers','QualityReports','GeneralInspectionItems',
+      'InspectionService','IqcInspections',
+      'Exception','NonConformings'
     ]);
   }
 }

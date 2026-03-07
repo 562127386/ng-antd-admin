@@ -162,6 +162,30 @@ export class LoginService {
             open: false,
             code: 'Suppliers',
             children: []
+          },
+          {
+            id: 28,
+            fatherId: 2,
+            menuName: '质量报告',
+            menuType: 'C',
+            icon: 'bar-chart',
+            path: '/default/base-data/quality-reports',
+            selected: false,
+            open: false,
+            code: 'QualityReports',
+            children: []
+          },
+          {
+            id: 29,
+            fatherId: 2,
+            menuName: '通用检查项目',
+            menuType: 'C',
+            icon: 'check-square',
+            path: '/default/base-data/general-inspection-items',
+            selected: false,
+            open: false,
+            code: 'GeneralInspectionItems',
+            children: []
           }
         ]
       },
@@ -186,6 +210,31 @@ export class LoginService {
             selected: false,
             open: false,
             code: 'IqcInspections',
+            children: []
+          }
+        ]
+      },
+      {
+        id: 4,
+        fatherId: 0,
+        menuName: '异常处理',
+        menuType: 'C',
+        icon: 'exception',
+        path: '/default/exception',
+        selected: false,
+        open: false,
+        code: 'Exception',
+        children: [
+          {
+            id: 41,
+            fatherId: 4,
+            menuName: '不合格品处理',
+            menuType: 'C',
+            icon: 'close-circle',
+            path: '/default/base-data/non-conformings',
+            selected: false,
+            open: false,
+            code: 'NonConformings',
             children: []
           }
         ]
