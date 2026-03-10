@@ -37,9 +37,9 @@
   }
 
   <nz-form-item>
-    <nz-form-label nzFor="code" nzRequired [nzSm]="6" [nzXs]="24">权限码</nz-form-label>
+    <nz-form-label nzFor="permission" nzRequired [nzSm]="6" [nzXs]="24">权限码</nz-form-label>
     <nz-form-control [nzErrorTip]="combineTpl" [nzSm]="14" [nzXs]="24">
-      <input id="code" formControlName="code" nz-input placeholder="权限码" />
+      <input id="permission" formControlName="permission" nz-input placeholder="权限码" />
     </nz-form-control>
   </nz-form-item>
   @if (menuType === 'C') {
@@ -58,9 +58,9 @@
   </nz-form-item>
   @if (menuType === 'C') {
     <nz-form-item>
-      <nz-form-label nzFor="visible" nzRequired [nzSm]="6" [nzXs]="24">展示</nz-form-label>
+      <nz-form-label nzFor="IsExternal" [nzSm]="6" [nzXs]="24">外部链接</nz-form-label>
       <nz-form-control [nzErrorTip]="combineTpl" [nzSm]="14" [nzXs]="24">
-        <nz-radio-group formControlName="visible">
+        <nz-radio-group formControlName="IsExternal">
           <label nz-radio [nzValue]="true">是</label>
           <label nz-radio [nzValue]="false">否</label>
         </nz-radio-group>
@@ -68,19 +68,35 @@
     </nz-form-item>
   }
   <nz-form-item>
-    <nz-form-label nzFor="status" nzRequired [nzSm]="6" [nzXs]="24">状态</nz-form-label>
+    <nz-form-label nzFor="IsDisabled" [nzSm]="6" [nzXs]="24">状态</nz-form-label>
     <nz-form-control [nzErrorTip]="combineTpl" [nzSm]="14" [nzXs]="24">
-      <nz-switch formControlName="status" nzCheckedChildren="可用" nzUnCheckedChildren="禁用"></nz-switch>
+      <nz-switch formControlName="IsDisabled" nzCheckedChildren="禁用" nzUnCheckedChildren="可用"></nz-switch>
     </nz-form-control>
   </nz-form-item>
   @if (menuType === 'C') {
     <nz-form-item>
-      <nz-form-label nzFor="newLinkFlag" [nzSm]="6" [nzXs]="24">外链</nz-form-label>
+      <nz-form-label nzFor="newLinkFlag" [nzSm]="6" [nzXs]="24">新页面打开</nz-form-label>
       <nz-form-control [nzSm]="14" [nzXs]="24">
         <nz-radio-group formControlName="newLinkFlag">
-          <label nz-radio [nzValue]="true">是</label>
-          <label nz-radio [nzValue]="false">否</label>
+          <label nz-radio [nzValue]="1">是</label>
+          <label nz-radio [nzValue]="0">否</label>
         </nz-radio-group>
+      </nz-form-control>
+    </nz-form-item>
+  }
+  @if (menuType === 'C') {
+    <nz-form-item>
+      <nz-form-label nzFor="ExternalUrl" [nzSm]="6" [nzXs]="24">外部链接地址</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24">
+        <input id="ExternalUrl" formControlName="ExternalUrl" nz-input placeholder="外部链接地址" />
+      </nz-form-control>
+    </nz-form-item>
+  }
+  @if (menuType === 'C') {
+    <nz-form-item>
+      <nz-form-label nzFor="Component" [nzSm]="6" [nzXs]="24">组件路径</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24">
+        <input id="Component" formControlName="Component" nz-input placeholder="组件路径" />
       </nz-form-control>
     </nz-form-item>
   }

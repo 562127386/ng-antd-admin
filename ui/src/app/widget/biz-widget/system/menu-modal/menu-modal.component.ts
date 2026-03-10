@@ -45,15 +45,17 @@ export class MenuModalComponent extends BasicConfirmModalComponent implements On
   initForm(): void {
     this.validateForm = this.fb.group({
       menuName: [null, [Validators.required]],
-      code: [null, [Validators.required]],
+      permission: [null, [Validators.required]],
       orderNum: [1],
       menuType: ['C'],
       path: [null, [Validators.required]],
-      visible: [true],
-      status: [true],
+      IsExternal: [false],
+      IsDisabled: [false],
       newLinkFlag: [false],
       icon: [null],
-      alIcon: [null]
+      alIcon: [null],
+      ExternalUrl: [null],
+      Component: [null]
     });
   }
 
@@ -65,8 +67,10 @@ export class MenuModalComponent extends BasicConfirmModalComponent implements On
     this.validateForm.get('newLinkFlag')?.[methodName]();
     this.validateForm.get('icon')?.[methodName]();
     this.validateForm.get('alIcon')?.[methodName]();
-    this.validateForm.get('visible')?.[methodName]();
+    this.validateForm.get('IsExternal')?.[methodName]();
     this.validateForm.get('path')?.[methodName]();
+    this.validateForm.get('ExternalUrl')?.[methodName]();
+    this.validateForm.get('Component')?.[methodName]();
   }
 
   // 修改菜单type

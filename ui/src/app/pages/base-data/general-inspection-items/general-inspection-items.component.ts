@@ -15,6 +15,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { GeneralInspectionItemDto, CreateUpdateGeneralInspectionItemDto } from '../models/general-inspection-item.model';
 import { GeneralInspectionItemService } from '../services/general-inspection-item.service';
 
@@ -37,7 +38,8 @@ import { GeneralInspectionItemService } from '../services/general-inspection-ite
     NzIconModule,
     NzTagModule,
     NzModalModule,
-    NzCheckboxModule
+    NzCheckboxModule,
+    NzSwitchModule
   ],
   templateUrl: './general-inspection-items.component.html',
   styleUrls: ['./general-inspection-items.component.less']
@@ -59,7 +61,7 @@ export class GeneralInspectionItemsComponent implements OnInit {
   isModalVisible = false;
   currentItem: GeneralInspectionItemDto | null = null;
 
-  inspectionContents = [
+  indicatorCategories = [
     { label: '包装', value: '包装' },
     { label: '标示', value: '标示' },
     { label: '外观', value: '外观' },
@@ -67,6 +69,14 @@ export class GeneralInspectionItemsComponent implements OnInit {
     { label: '丝印', value: '丝印' },
     { label: '尺寸', value: '尺寸' },
     { label: '部品', value: '部品' }
+  ];
+
+  inspectionTypes = [
+    { label: '外观检验', value: '外观检验' },
+    { label: '尺寸检验', value: '尺寸检验' },
+    { label: '功能检验', value: '功能检验' },
+    { label: '性能检验', value: '性能检验' },
+    { label: '可靠性检验', value: '可靠性检验' }
   ];
 
   ngOnInit(): void {
@@ -80,13 +90,16 @@ export class GeneralInspectionItemsComponent implements OnInit {
     });
 
     this.modalForm = this.fb.group({
-      inspectionContent: ['', Validators.required],
+      code: ['', Validators.required],
+      indicatorCategory: ['', Validators.required],
       inspectionItemName: ['', Validators.required],
+      inspectionType: ['', Validators.required],
       defectItem: ['', Validators.required],
       defectStatus: ['', Validators.required],
       isCritical: [false],
       isMajor: [false],
       isMinor: [false],
+      isEnabled: [true],
       remark: [''],
       sortOrder: [0]
     });
@@ -102,7 +115,26 @@ export class GeneralInspectionItemsComponent implements OnInit {
       sorting: 'sortOrder asc'
     }).subscribe({
       next: (result: { items: any[]; totalCount: number }) => {
-        this.data = result.items;
+        // 转换字段名，将大写开头的字段名转换为小写开头的字段名
+        this.data = result.items.map(item => ({
+          id: item.id || item.Id,
+          code: item.code || item.Code,
+          indicatorCategory: item.indicatorCategory || item.IndicatorCategory,
+          inspectionItemName: item.inspectionItemName || item.InspectionItemName,
+          inspectionType: item.inspectionType || item.InspectionType,
+          defectItem: item.defectItem || item.DefectItem,
+          defectStatus: item.defectStatus || item.DefectStatus,
+          isCritical: item.isCritical || item.IsCritical,
+          isMajor: item.isMajor || item.IsMajor,
+          isMinor: item.isMinor || item.IsMinor,
+          isEnabled: item.isEnabled || item.IsEnabled,
+          remark: item.remark || item.Remark,
+          sortOrder: item.sortOrder || item.SortOrder,
+          creationTime: item.creationTime || item.CreationTime,
+          creatorId: item.creatorId || item.CreatorId,
+          lastModificationTime: item.lastModificationTime || item.LastModificationTime,
+          lastModifierId: item.lastModifierId || item.LastModifierId
+        }));
         this.total = result.totalCount;
         this.loading = false;
         this.cdr.markForCheck();
@@ -140,31 +172,37 @@ export class GeneralInspectionItemsComponent implements OnInit {
   showAddModal(): void {
     this.currentItem = null;
     this.modalForm.reset({
-      inspectionContent: '',
+      code: '',
+      indicatorCategory: '',
       inspectionItemName: '',
+      inspectionType: '',
       defectItem: '',
       defectStatus: '',
       isCritical: false,
       isMajor: false,
       isMinor: false,
+      isEnabled: true,
       remark: '',
       sortOrder: 0
     });
     this.isModalVisible = true;
   }
 
-  showEditModal(item: GeneralInspectionItemDto): void {
+  showEditModal(item: any): void {
     this.currentItem = item;
     this.modalForm.patchValue({
-      inspectionContent: item.inspectionContent,
-      inspectionItemName: item.inspectionItemName,
-      defectItem: item.defectItem,
-      defectStatus: item.defectStatus,
-      isCritical: item.isCritical,
-      isMajor: item.isMajor,
-      isMinor: item.isMinor,
-      remark: item.remark,
-      sortOrder: item.sortOrder
+      code: item.code || item.Code,
+      indicatorCategory: item.indicatorCategory || item.IndicatorCategory,
+      inspectionItemName: item.inspectionItemName || item.InspectionItemName,
+      inspectionType: item.inspectionType || item.InspectionType,
+      defectItem: item.defectItem || item.DefectItem,
+      defectStatus: item.defectStatus || item.DefectStatus,
+      isCritical: item.isCritical || item.IsCritical,
+      isMajor: item.isMajor || item.IsMajor,
+      isMinor: item.isMinor || item.IsMinor,
+      isEnabled: item.isEnabled || item.IsEnabled,
+      remark: item.remark || item.Remark,
+      sortOrder: item.sortOrder || item.SortOrder
     });
     this.isModalVisible = true;
   }

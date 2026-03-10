@@ -1,12 +1,15 @@
 export interface GeneralInspectionItemDto {
   id: string;
-  inspectionContent: string;
+  code: string;
+  indicatorCategory: string;
   inspectionItemName: string;
+  inspectionType: string;
   defectItem: string;
   defectStatus: string;
   isCritical: boolean;
   isMajor: boolean;
   isMinor: boolean;
+  isEnabled: boolean;
   remark?: string;
   sortOrder: number;
   creationTime: string;
@@ -16,13 +19,16 @@ export interface GeneralInspectionItemDto {
 }
 
 export interface CreateUpdateGeneralInspectionItemDto {
-  inspectionContent: string;
+  code: string;
+  indicatorCategory: string;
   inspectionItemName: string;
+  inspectionType: string;
   defectItem: string;
   defectStatus: string;
   isCritical: boolean;
   isMajor: boolean;
   isMinor: boolean;
+  isEnabled: boolean;
   remark?: string;
   sortOrder: number;
 }

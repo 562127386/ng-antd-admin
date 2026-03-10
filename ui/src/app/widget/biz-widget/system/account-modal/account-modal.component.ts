@@ -57,11 +57,11 @@ export class AccountModalComponent extends BasicConfirmModalComponent implements
 
   getRoleList(): Promise<void> {
     return new Promise<void>(resolve => {
-      this.roleService.getRoles({ pageIndex: 0, pageSize: 0 }).subscribe(({ list }) => {
+      this.roleService.getRoles({ pageIndex: 0, MaxResultCount: 1000 }).subscribe(({ list }) => {
         this.roleOptions = [];
-        list.forEach(({ id, roleName }) => {
+        list.forEach(({ id, name }) => {
           const obj: OptionsInterface = {
-            label: roleName,
+            label: name,
             value: id!
           };
           this.roleOptions.push(obj);
@@ -73,7 +73,7 @@ export class AccountModalComponent extends BasicConfirmModalComponent implements
 
   getDeptList(): Promise<void> {
     return new Promise<void>(resolve => {
-      this.deptService.getDepts({ pageIndex: 0, pageSize: 0 }).subscribe(({ list }) => {
+      this.deptService.getDepts({ pageIndex: 0, MaxResultCount: 1000 }).subscribe(({ list }) => {
         list.forEach(item => {
           // @ts-ignore
           item.title = item.departmentName;
@@ -90,10 +90,10 @@ export class AccountModalComponent extends BasicConfirmModalComponent implements
     this.addEditForm = this.fb.group({
       userName: [null, [Validators.required]],
       password: ['a123456', [Validators.required, this.validatorsService.passwordValidator()]],
-      sex: [1],
-      available: [true],
-      telephone: [null, [this.validatorsService.telephoneValidator()]],
-      mobile: [null, [this.validatorsService.mobileValidator()]],
+      name: [null, [Validators.required]],
+      surname: [null],
+      isActive: [true],
+      phoneNumber: [null, [this.validatorsService.mobileValidator()]],
       email: [null, [this.validatorsService.emailValidator()]],
       roleId: [null, [Validators.required]],
       departmentId: [null, [Validators.required]]

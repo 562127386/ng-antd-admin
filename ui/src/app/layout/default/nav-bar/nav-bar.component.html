@@ -147,7 +147,7 @@
   <ul nz-menu nzMode="horizontal" nzTheme="dark">
     @for (menu of menus(); track menu.path; let i = $index) {
       <!--权限1（不需要时删除此ng-container节点）-->
-      <ng-container *appAuth="menu.code">
+      <ng-container *appAuth="menu.code || ''">
         @if (!menu.children || menu.children.length === 0) {
           <li nz-menu-item [nzSelected]="menu.selected">
             <a [routerLink]="[menu.path]">

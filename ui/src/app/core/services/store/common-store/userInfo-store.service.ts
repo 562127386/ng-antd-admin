@@ -1,8 +1,11 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { AccountService } from '@services/system/account.service';
+import { MenusService } from '../../http/system/menus.service';
+import { PageInfo, SearchCommonVO } from '../../types';
 
 export interface UserInfo {
   userName: string;
@@ -17,7 +20,7 @@ export class UserInfoStoreService {
   $userInfo = signal<UserInfo>({ userId: -1, userName: '', authCode: [] });
 
   userService = inject(AccountService);
-
+  menuService = inject(MenusService);
   parsToken(token: string): UserInfo {
     const helper = new JwtHelperService();
     try {
@@ -41,9 +44,21 @@ export class UserInfoStoreService {
   }
 
   getUserAuthCodeByUserId(userId: number | string): Observable<string[]> {
-    return of(['Dashboard', 'BaseData', 'Defects', 'Materials', 'Processes','InspectionStandards','AqlConfigs','SamplingSchemes','Suppliers','QualityReports','GeneralInspectionItems',
-      'InspectionService','IqcInspections',
-      'Exception','NonConformings'
-    ]);
+
+     const params: SearchCommonVO<any> = {
+      MaxResultCount: 1000,
+      pageIndex: 0,
+    };
+    return this.menuService
+      .getMenuList(params)
+      .pipe(
+        map((menuList: PageInfo<any>) => {
+          return menuList.list
+            .map((menu: any) => menu.permission)
+            .filter((permission: string | undefined): permission is string => permission !== undefined && permission !== null);
+        })
+      );
+
+    //return this.userService.getAccountAuthCode(userId.toString());
   }
 }

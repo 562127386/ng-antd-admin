@@ -29,9 +29,10 @@ export class DeptManageModalComponent extends BasicConfirmModalComponent impleme
 
   initForm(): void {
     this.addEditForm = this.fb.group({
-      departmentName: [null, [Validators.required]],
-      state: [true],
-      orderNum: [0]
+      displayName: [null, [Validators.required]],
+      code: [null],
+      isActive: [true],
+      order: [0]
     });
   }
 

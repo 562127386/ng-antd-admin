@@ -44,8 +44,8 @@
   <app-card-table-wrap [btnTpl]="tableBtns" [tableTitle]="'菜单列表'" (reload)="reloadTable()">
     <app-tree-table [tableConfig]="tableConfig" [tableData]="dataList" (changePageIndex)="getDataList()" (changePageSize)="changePageSize($event)"></app-tree-table>
     <ng-template #operationTpl let-fatherId="fatherId" let-id="id" let-menuType="menuType">
-      <span *appAuth="ActionCode.MenuEdit" class="operate-text" (click)="edit(id, fatherId)">编辑</span>
-      <ng-container *appAuth="ActionCode.MenuAddLowLevel">
+      <span  class="operate-text" (click)="edit(id, fatherId)">编辑</span>
+      <ng-container >
         @if (menuType === 'C') {
           <span class="operate-text" (click)="add(id)">添加下级</span>
         }
@@ -67,7 +67,7 @@
   </div>
 </ng-template>
 <ng-template #tableBtns>
-  <button class="m-r-8" nz-button nzType="primary" (click)="add(0)">
+  <button class="m-r-8" nz-button nzType="primary" (click)="add('0')">
     <i nz-icon nzType="plus"></i>
     新建
   </button>

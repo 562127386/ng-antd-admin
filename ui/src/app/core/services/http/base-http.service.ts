@@ -49,6 +49,11 @@ export class BaseHttpService {
   }
 
   get<T>(path: string, param?: NzSafeAny, config?: HttpCustomConfig): Observable<T> {
+    // 处理参数位置错误的情况
+    if (param && (param.needSuccessInfo !== undefined || param.isAbpApi !== undefined)) {
+      config = param;
+      param = undefined;
+    }
     config = config || { needSuccessInfo: false, isAbpApi: false };
     const reqPath = this.getUrl(path, config);
     const params = new HttpParams({ fromString: qs.stringify(param) });
@@ -69,6 +74,11 @@ export class BaseHttpService {
   }
 
   delete<T>(path: string, param?: NzSafeAny, config?: HttpCustomConfig): Observable<T> {
+    // 处理参数位置错误的情况
+    if (param && (param.needSuccessInfo !== undefined || param.isAbpApi !== undefined)) {
+      config = param;
+      param = undefined;
+    }
     config = config || { needSuccessInfo: false, isAbpApi: false };
     const reqPath = this.getUrl(path, config);
     const params = new HttpParams({ fromString: qs.stringify(param) });
@@ -89,6 +99,11 @@ export class BaseHttpService {
   }
 
   post<T>(path: string, param?: NzSafeAny, config?: HttpCustomConfig): Observable<T> {
+    // 处理参数位置错误的情况
+    if (param && (param.needSuccessInfo !== undefined || param.isAbpApi !== undefined)) {
+      config = param;
+      param = undefined;
+    }
     config = config || { needSuccessInfo: false, isAbpApi: false };
     const reqPath = this.getUrl(path, config);
 
@@ -108,6 +123,11 @@ export class BaseHttpService {
   }
 
   put<T>(path: string, param?: NzSafeAny, config?: HttpCustomConfig): Observable<T> {
+    // 处理参数位置错误的情况
+    if (param && (param.needSuccessInfo !== undefined || param.isAbpApi !== undefined)) {
+      config = param;
+      param = undefined;
+    }
     config = config || { needSuccessInfo: false, isAbpApi: false };
     const reqPath = this.getUrl(path, config);
 

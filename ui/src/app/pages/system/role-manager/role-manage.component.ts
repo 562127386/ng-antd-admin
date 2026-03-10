@@ -81,7 +81,7 @@ export class RoleManageComponent implements OnInit {
   getDataList(e?: { pageIndex: number }): void {
     this.tableConfig.loading = true;
     const params: SearchCommonVO<NzSafeAny> = {
-      pageSize: this.tableConfig.pageSize!,
+      MaxResultCount: this.tableConfig.pageSize!,
       pageIndex: e?.pageIndex || this.tableConfig.pageIndex!,
       filters: this.searchParam
     };
@@ -95,7 +95,7 @@ export class RoleManageComponent implements OnInit {
       )
       .subscribe(data => {
         const { list, total, pageIndex } = data;
-        this.dataList = [...list];
+        this.dataList = [...(list || [])];
         this.tableConfig.total = total!;
         this.tableConfig.pageIndex = pageIndex!;
         this.tableLoading(false);
@@ -104,7 +104,7 @@ export class RoleManageComponent implements OnInit {
   }
 
   // 设置权限
-  setRole(id: number, roleName: string): void {
+  setRole(id: string, roleName: string): void {
     this.router.navigate(['/default/system/role-manager/set-role'], { queryParams: { id, roleName } });
   }
 
@@ -147,7 +147,7 @@ export class RoleManageComponent implements OnInit {
   // 在这里做了一个示例，用于获取选中列的数据，而不通过接口，这里可以通过dataItem获取到当前列的数据，也可以通过id从dataList中找到匹配的数据
   // 推荐使用接口获取详情的方式，因为这样保证了数据的实时性
   // 修改
-  edit(id: number, dataItem: Role): void {
+  edit(id: string, dataItem: Role): void {
     this.dataService
       .getRolesDetail(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -179,8 +179,8 @@ export class RoleManageComponent implements OnInit {
       });
   }
 
-  del(id: number): void {
-    const ids: number[] = [id];
+  del(id: string): void {
+    const ids: string[] = [id];
     this.modalSrv.confirm({
       nzTitle: '确定要删除吗？',
       nzContent: '删除后不可恢复',
@@ -220,13 +220,18 @@ export class RoleManageComponent implements OnInit {
       headers: [
         {
           title: '角色名称',
-          field: 'roleName',
+          field: 'displayName',
+          width: 100
+        },
+        {
+          title: '角色编码',
+          field: 'name',
           width: 100
         },
         {
           title: '备注',
           width: 100,
-          field: 'roleDesc'
+          field: 'description'
         },
         {
           title: '操作',

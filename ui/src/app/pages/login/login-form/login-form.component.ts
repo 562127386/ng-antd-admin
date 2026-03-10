@@ -71,16 +71,17 @@ export class LoginFormComponent implements OnInit {
           })
           .finally(() => {
             this.spinService.$globalSpinStore.set(false);
-            this.notification.blank(
-              '温馨提示',
-              `
-                源码地址：<a href="https://github.com/huajian123/ng-antd-admin">在这里</a>
-            `,
-              {
-                nzPlacement: 'top',
-                nzDuration: 0
-              }
-            );
+            // 刚一进来就弹窗提示 必须要手工关闭20260310
+            // this.notification.blank(
+            //   '温馨提示',
+            //   `
+            //     源码地址：<a href="https://github.com/huajian123/T-QMS">在这里</a>
+            // `,
+            //   {
+            //     nzPlacement: 'top',
+            //     nzDuration: 0
+            //   }
+            // );
           });
       });
   }

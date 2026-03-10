@@ -6,7 +6,7 @@ import { map } from 'rxjs/operators';
 // import { MENU_TOKEN } from '@config/menu';
 import { Menu } from '@core/services/types';
 import { BaseHttpService } from '@services/base-http.service';
-// import { MenusService } from '@services/system/menus.service';
+import { MenusService } from '@services/system/menus.service';
 
 export interface UserLogin {
   userName: string;
@@ -27,6 +27,7 @@ export interface AbpTokenResponse {
 export class LoginService {
   http = inject(BaseHttpService);
   httpClient = inject(HttpClient);
+  menuService = inject(MenusService);
   // private menus = inject(MENU_TOKEN);
 
   private abpTokenUrl = '/connect/token';
@@ -55,191 +56,27 @@ export class LoginService {
   }
 
   public getMenuByUserAuthCode(userAuthCode: string[]): Observable<Menu[]> {
-    const menus: Menu[] = [
-      {
-        id: 1,
-        fatherId: 0,
-        menuName: '首页',
-        menuType: 'C',
-        icon: 'home',
-        path: '/default/dashboard/analysis',
-        selected: false,
-        open: false,
-        code: 'Dashboard',
-        children: []
-      },
-      {
-        id: 2,
-        fatherId: 0,
-        menuName: '基础数据',
-        menuType: 'C',
-        icon: 'database',
-        path: '/default/base-data',
-        selected: false,
-        open: false,
-        code: 'BaseData',
-        children: [
-          {
-            id: 21,
-            fatherId: 2,
-            menuName: '缺陷管理',
-            menuType: 'C',
-            icon: 'warning',
-            path: '/default/base-data/defects',
-            selected: false,
-            open: false,
-            code: 'Defects',
-            children: []
-          },
-          {
-            id: 22,
-            fatherId: 2,
-            menuName: '物料管理',
-            menuType: 'C',
-            icon: 'inbox',
-            path: '/default/base-data/materials',
-            selected: false,
-            open: false,
-            code: 'Materials',
-            children: []
-          },
-          {
-            id: 23,
-            fatherId: 2,
-            menuName: '工序管理',
-            menuType: 'C',
-            icon: 'project',
-            path: '/default/base-data/processes',
-            selected: false,
-            open: false,
-            code: 'Processes',
-            children: []
-          },
-          {
-            id: 24,
-            fatherId: 2,
-            menuName: '检验标准',
-            menuType: 'C',
-            icon: 'check-circle',
-            path: '/default/base-data/inspection-standards',
-            selected: false,
-            open: false,
-            code: 'InspectionStandards',
-            children: []
-          },
-          {
-            id: 25,
-            fatherId: 2,
-            menuName: 'AQL配置',
-            menuType: 'C',
-            icon: 'audit',
-            path: '/default/base-data/aql-configs',
-            selected: false,
-            open: false,
-            code: 'AqlConfigs',
-            children: []
-          },
-          {
-            id: 26,
-            fatherId: 2,
-            menuName: '抽样方案配置',
-            menuType: 'C',
-            icon: 'filter',
-            path: '/default/base-data/sampling-schemes',
-            selected: false,
-            open: false,
-            code: 'SamplingSchemes',
-            children: []
-          },
-          {
-            id: 27,
-            fatherId: 2,
-            menuName: '供应商管理',
-            menuType: 'C',
-            icon: 'team',
-            path: '/default/base-data/suppliers',
-            selected: false,
-            open: false,
-            code: 'Suppliers',
-            children: []
-          },
-          {
-            id: 28,
-            fatherId: 2,
-            menuName: '质量报告',
-            menuType: 'C',
-            icon: 'bar-chart',
-            path: '/default/base-data/quality-reports',
-            selected: false,
-            open: false,
-            code: 'QualityReports',
-            children: []
-          },
-          {
-            id: 29,
-            fatherId: 2,
-            menuName: '通用检查项目',
-            menuType: 'C',
-            icon: 'check-square',
-            path: '/default/base-data/general-inspection-items',
-            selected: false,
-            open: false,
-            code: 'GeneralInspectionItems',
-            children: []
-          }
-        ]
-      },
-      {
-        id: 3,
-        fatherId: 0,
-        menuName: '检验服务',
-        menuType: 'C',
-        icon: 'audit',
-        path: '/default/inspection',
-        selected: false,
-        open: false,
-        code: 'InspectionService',
-        children: [
-          {
-            id: 31,
-            fatherId: 3,
-            menuName: 'IQC来料检验',
-            menuType: 'C',
-            icon: 'file-done',
-            path: '/default/base-data/iqc-inspections',
-            selected: false,
-            open: false,
-            code: 'IqcInspections',
-            children: []
-          }
-        ]
-      },
-      {
-        id: 4,
-        fatherId: 0,
-        menuName: '异常处理',
-        menuType: 'C',
-        icon: 'exception',
-        path: '/default/exception',
-        selected: false,
-        open: false,
-        code: 'Exception',
-        children: [
-          {
-            id: 41,
-            fatherId: 4,
-            menuName: '不合格品处理',
-            menuType: 'C',
-            icon: 'close-circle',
-            path: '/default/base-data/non-conformings',
-            selected: false,
-            open: false,
-            code: 'NonConformings',
-            children: []
-          }
-        ]
-      }
-    ];
-    return of(menus);
+    const params = {
+      MaxResultCount: 1000,
+      pageIndex: 0
+    };
+
+    return this.menuService.getMenuList(params).pipe(
+      map((response) => {
+        // 转换后端菜单数据为前端格式
+        return response.list.map(menu => ({
+          id: menu.id,
+          fatherId: menu.parentId || 0,
+          menuName: menu.menuName,
+          menuType: 'C', // 默认为菜单类型
+          icon: menu.icon,
+          path: menu.path,
+          selected: false,
+          open: false,
+          code: menu.permission,
+          children: []
+        }));
+      })
+    );
   }
 }

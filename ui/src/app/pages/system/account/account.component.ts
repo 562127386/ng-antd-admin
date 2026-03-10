@@ -30,8 +30,9 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
 
 interface SearchParam {
   userName: string;
-  departmentId: number;
-  mobile: number;
+  departmentId: string;
+  mobile: string;
+  isActive: boolean;
   available: boolean;
 }
 
@@ -92,7 +93,7 @@ export class AccountComponent implements OnInit {
   getDataList(e?: { pageIndex: number }): void {
     this.tableConfig.loading = true;
     const params: SearchCommonVO<NzSafeAny> = {
-      pageSize: this.tableConfig.pageSize!,
+      MaxResultCount: this.tableConfig.pageSize!,
       pageIndex: e?.pageIndex || this.tableConfig.pageIndex!,
       filters: this.searchParam
     };
@@ -106,7 +107,7 @@ export class AccountComponent implements OnInit {
       )
       .subscribe(data => {
         const { list, total, pageIndex } = data;
-        this.dataList = [...list];
+        this.dataList = [...(list || [])];
         this.tableConfig.total = total!;
         this.tableConfig.pageIndex = pageIndex!;
         this.tableLoading(false);
@@ -115,7 +116,7 @@ export class AccountComponent implements OnInit {
   }
 
   // 设置权限
-  setRole(id: number | string): void {
+  setRole(id: string): void {
     this.router.navigate(['/default/system/role-manager/set-role'], { queryParams: { id: id } });
   }
 
@@ -157,7 +158,7 @@ export class AccountComponent implements OnInit {
   // 在这里做了一个示例，用于获取选中列的数据，而不通过接口，这里可以通过dataItem获取到当前列的数据，也可以通过id从dataList中找到匹配的数据
   // 推荐使用接口获取详情的方式，因为这样保证了数据的实时性
   // 修改
-  edit(id: number | string, dataItem: User): void {
+  edit(id: string, dataItem: User): void {
     console.log(dataItem);
     this.dataService
       .getAccountDetail(id)
@@ -195,11 +196,11 @@ export class AccountComponent implements OnInit {
       });
   }
 
-  changeStatus(e: boolean, id: number | string): void {
+  changeStatus(e: boolean, id: string): void {
     this.tableConfig.loading = true;
     const people: Partial<User> = {
       id,
-      available: !e
+      isActive: !e
     };
     this.dataService
       .editAccount(people as User)
@@ -216,7 +217,7 @@ export class AccountComponent implements OnInit {
 
   allDel(): void {
     if (this.checkedCashArray.length > 0) {
-      const tempArrays: (number | string)[] = [];
+      const tempArrays: string[] = [];
       this.modalSrv.confirm({
         nzTitle: '确定要删除吗？',
         nzContent: '删除后不可恢复',
@@ -248,8 +249,8 @@ export class AccountComponent implements OnInit {
     }
   }
 
-  del(id: number | string): void {
-    const ids: (number | string)[] = [id];
+  del(id: string): void {
+    const ids: string[] = [id];
     this.modalSrv.confirm({
       nzTitle: '确定要删除吗？',
       nzContent: '删除后不可恢复',
@@ -280,7 +281,7 @@ export class AccountComponent implements OnInit {
     this.tableConfig.pageSize = e;
   }
 
-  searchDeptIdUser(departmentId: number): void {
+  searchDeptIdUser(departmentId: string): void {
     this.searchParam.departmentId = departmentId;
     this.getDataList();
   }
@@ -307,19 +308,18 @@ export class AccountComponent implements OnInit {
         {
           title: '是否可用',
           width: 100,
-          field: 'available',
+          field: 'isActive',
           tdTemplate: this.availableFlag()
         },
         {
-          title: '性别',
-          width: 70,
-          field: 'sex',
-          pipe: 'sex'
+          title: '姓名',
+          width: 100,
+          field: 'name'
         },
         {
           title: '手机',
           width: 100,
-          field: 'mobile'
+          field: 'phoneNumber'
         },
         {
           title: '邮箱',
@@ -331,17 +331,6 @@ export class AccountComponent implements OnInit {
           width: 120,
           field: 'lastLoginTime',
           pipe: 'date:yyyy-MM-dd HH:mm'
-        },
-        {
-          title: '创建时间',
-          width: 100,
-          field: 'createdAt',
-          pipe: 'date:yyyy-MM-dd HH:mm'
-        },
-        {
-          title: '电话',
-          width: 100,
-          field: 'telephone'
         },
         {
           title: '所属部门',

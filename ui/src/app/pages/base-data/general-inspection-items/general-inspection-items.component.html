@@ -38,11 +38,14 @@
   >
     <thead>
       <tr>
-        <th>检查内容</th>
+        <th>编号</th>
+        <th>指标类别</th>
         <th>检查项目</th>
+        <th>检验类型</th>
         <th>不良项目</th>
         <th>不良状态</th>
         <th>不良判定</th>
+        <th>是否启用</th>
         <th>排序</th>
         <th>备注</th>
         <th>操作</th>
@@ -50,14 +53,19 @@
     </thead>
     <tbody>
       <tr *ngFor="let item of generalInspectionItemTable.data">
-        <td>{{ item.inspectionContent }}</td>
+        <td>{{ item.code }}</td>
+        <td>{{ item.indicatorCategory }}</td>
         <td>{{ item.inspectionItemName }}</td>
+        <td>{{ item.inspectionType }}</td>
         <td>{{ item.defectItem }}</td>
         <td>{{ item.defectStatus }}</td>
         <td>
           <nz-space>
             <nz-tag *ngFor="let tag of getJudgmentTags(item)" [nzColor]="getTagColor(tag)">{{ tag }}</nz-tag>
           </nz-space>
+        </td>
+        <td>
+          <nz-switch [(ngModel)]="item.isEnabled" [nzDisabled]="true"></nz-switch>
         </td>
         <td>{{ item.sortOrder }}</td>
         <td>{{ item.remark || '-' }}</td>
@@ -83,19 +91,39 @@
     <div nz-row [nzGutter]="16">
       <div nz-col nzSpan="12">
         <nz-form-item>
-          <nz-form-label nzRequired>检查内容</nz-form-label>
-          <nz-form-control nzErrorTip="请选择检查内容">
-            <nz-select formControlName="inspectionContent" nzPlaceHolder="请选择检查内容">
-              <nz-option *ngFor="let option of inspectionContents" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
-            </nz-select>
+          <nz-form-label nzRequired>编号</nz-form-label>
+          <nz-form-control nzErrorTip="请输入编号">
+            <input nz-input formControlName="code" placeholder="请输入编号" />
           </nz-form-control>
         </nz-form-item>
       </div>
       <div nz-col nzSpan="12">
         <nz-form-item>
+          <nz-form-label nzRequired>指标类别</nz-form-label>
+          <nz-form-control nzErrorTip="请选择指标类别">
+            <nz-select formControlName="indicatorCategory" nzPlaceHolder="请选择指标类别">
+              <nz-option *ngFor="let option of indicatorCategories" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="12">
+        <nz-form-item>
           <nz-form-label nzRequired>检查项目</nz-form-label>
           <nz-form-control nzErrorTip="请输入检查项目">
             <input nz-input formControlName="inspectionItemName" placeholder="请输入检查项目" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label nzRequired>检验类型</nz-form-label>
+          <nz-form-control nzErrorTip="请选择检验类型">
+            <nz-select formControlName="inspectionType" nzPlaceHolder="请选择检验类型">
+              <nz-option *ngFor="let option of inspectionTypes" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+            </nz-select>
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -135,13 +163,23 @@
     <div nz-row [nzGutter]="16">
       <div nz-col nzSpan="12">
         <nz-form-item>
+          <nz-form-label>是否启用</nz-form-label>
+          <nz-form-control>
+            <nz-switch formControlName="isEnabled"></nz-switch>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="12">
+        <nz-form-item>
           <nz-form-label>排序</nz-form-label>
           <nz-form-control>
             <input nz-input type="number" formControlName="sortOrder" placeholder="请输入排序序号" />
           </nz-form-control>
         </nz-form-item>
       </div>
-      <div nz-col nzSpan="12">
+    </div>
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="24">
         <nz-form-item>
           <nz-form-label>备注</nz-form-label>
           <nz-form-control>

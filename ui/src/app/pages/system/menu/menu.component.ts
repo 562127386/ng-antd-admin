@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 
 import { ActionCode } from '@app/config/actionCode';
-import { OptionsInterface, SearchCommonVO } from '@core/services/types';
+import { Menu, OptionsInterface, SearchCommonVO } from '@core/services/types';
 import { MenuListObj, MenusService } from '@services/system/menus.service';
 import { AntTableConfig, SortFile } from '@shared/components/ant-table/ant-table.component';
 import { CardTableWrapComponent } from '@shared/components/card-table-wrap/card-table-wrap.component';
@@ -32,7 +32,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
 interface SearchParam {
-  menuName: number;
+  menuName: string;
   visible: boolean;
 }
 
@@ -103,12 +103,12 @@ export class MenuComponent implements OnInit {
   getDataList(sortFile?: SortFile): void {
     this.tableConfig.loading = true;
     const params: SearchCommonVO<NzSafeAny> = {
-      pageSize: 0,
+      MaxResultCount: 1000,
       pageIndex: 0,
       filters: this.searchParam
     };
-    this.dataService
-      .getMenuList(params)
+    this.dataService.getMenuList(params)
+     // .getMenuTree(params)
       .pipe(
         finalize(() => {
           this.tableLoading(false);
@@ -116,7 +116,16 @@ export class MenuComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(menuList => {
-        const target = fnFlatDataHasParentToTree(menuList.list, 'fatherId');
+        // 转换parentId为fatherId，以兼容前端树构建工具
+        const convertedMenuList = menuList.list.map(menu => ({
+          ...menu,
+          fatherId: menu.parentId || 0,
+          code: menu.permission,
+          status: menu.IsDisabled,
+          CreationTime: menu.CreationTime,
+          LastModificationTime: menu.LastModificationTime
+        }));
+        const target = fnFlatDataHasParentToTree(convertedMenuList, 'fatherId');
         this.dataList = fnFlattenTreeDataByDataList(target);
         console.log(sortFile);
         // 因为前段要对后端返回的数据进行处理，所以排序这里交给了前段来做
@@ -133,7 +142,7 @@ export class MenuComponent implements OnInit {
     this.getDataList();
   }
 
-  add(fatherId: number): void {
+  add(fatherId: string): void {
     this.menuModalService
       .show({ nzTitle: '新增' })
       .pipe(
@@ -147,7 +156,7 @@ export class MenuComponent implements OnInit {
           return;
         }
         const param = { ...res.modalValue };
-        param.fatherId = fatherId;
+        param.parentId = fatherId === '0' ? null : fatherId;
         this.tableLoading(true);
         this.addEditData(param, 'addMenus');
       });
@@ -166,7 +175,7 @@ export class MenuComponent implements OnInit {
       });
   }
 
-  del(id: number): void {
+  del(id: string): void {
     this.modalSrv.confirm({
       nzTitle: '确定要删除吗？',
       nzContent: '删除后不可恢复',
@@ -193,7 +202,7 @@ export class MenuComponent implements OnInit {
   }
 
   // 修改
-  edit(id: number, fatherId: number): void {
+  edit(id: string, fatherId: string): void {
     this.dataService
       .getMenuDetail(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -211,7 +220,7 @@ export class MenuComponent implements OnInit {
               return;
             }
             modalValue.id = id;
-            modalValue.fatherId = fatherId;
+            modalValue.parentId = fatherId == '0' ? null : fatherId;
             this.tableLoading(true);
             this.addEditData(modalValue, 'editMenus');
           });
@@ -280,13 +289,13 @@ export class MenuComponent implements OnInit {
         },
         {
           title: '创建时间',
-          field: 'createdAt',
+          field: 'CreationTime',
           pipe: 'date:yyyy-MM-dd HH:mm',
           width: 180
         },
         {
           title: '更新时间',
-          field: 'updatedAt',
+          field: 'LastModificationTime',
           pipe: 'date:yyyy-MM-dd HH:mm',
           width: 180
         },

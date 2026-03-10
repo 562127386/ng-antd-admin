@@ -67,7 +67,7 @@ export class LayoutHeadRightMenuComponent {
         return;
       }
       this.user = {
-        id: this.userInfo().userId,
+        id: String(this.userInfo().userId),
         oldPassword: modalValue.oldPassword,
         newPassword: modalValue.newPassword
       };

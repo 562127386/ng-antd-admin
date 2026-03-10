@@ -1,15 +1,22 @@
 <form nz-form [formGroup]="addEditForm">
   <nz-form-item>
-    <nz-form-label nzFor="departmentName" nzRequired [nzSm]="6" [nzXs]="24">部门名称</nz-form-label>
+    <nz-form-label nzFor="displayName" nzRequired [nzSm]="6" [nzXs]="24">部门名称</nz-form-label>
     <nz-form-control [nzErrorTip]="combineTpl" [nzSm]="14" [nzXs]="24">
-      <input id="departmentName" name="departmentName" formControlName="departmentName" nz-input placeholder="请输入部门名称" />
+      <input id="displayName" name="displayName" formControlName="displayName" nz-input placeholder="请输入部门名称" />
+    </nz-form-control>
+  </nz-form-item>
+  
+  <nz-form-item>
+    <nz-form-label nzFor="code" [nzSm]="6" [nzXs]="24">部门编码</nz-form-label>
+    <nz-form-control [nzErrorTip]="combineTpl" [nzSm]="14" [nzXs]="24">
+      <input id="code" name="code" formControlName="code" nz-input placeholder="请输入部门编码" />
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item>
-    <nz-form-label nzFor="state" nzRequired [nzSm]="6" [nzXs]="24">部门状态</nz-form-label>
+    <nz-form-label nzFor="isActive" nzRequired [nzSm]="6" [nzXs]="24">部门状态</nz-form-label>
     <nz-form-control [nzErrorTip]="combineTpl" [nzSm]="14" [nzXs]="24">
-      <nz-radio-group formControlName="state">
+      <nz-radio-group formControlName="isActive">
         <label nz-radio [nzValue]="false">禁用</label>
         <label nz-radio [nzValue]="true">可用</label>
       </nz-radio-group>
@@ -17,9 +24,9 @@
   </nz-form-item>
 
   <nz-form-item>
-    <nz-form-label nzFor="orderNum" nzRequired [nzSm]="6" [nzXs]="24">排序</nz-form-label>
+    <nz-form-label nzFor="order" nzRequired [nzSm]="6" [nzXs]="24">排序</nz-form-label>
     <nz-form-control [nzErrorTip]="combineTpl" [nzSm]="14" [nzXs]="24">
-      <nz-input-number id="orderNum" formControlName="orderNum" nzMin="0" nzPlaceHolder="排序" nzStep="1" />
+      <nz-input-number id="order" formControlName="order" nzMin="0" nzPlaceHolder="排序" nzStep="1" />
     </nz-form-control>
   </nz-form-item>
 </form>

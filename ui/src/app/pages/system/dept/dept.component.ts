@@ -97,7 +97,7 @@ export class DeptComponent implements OnInit {
   getDataList(sortFile?: SortFile): void {
     this.tableConfig.loading = true;
     const params: SearchCommonVO<NzSafeAny> = {
-      pageSize: 0,
+      MaxResultCount: 1000,
       pageIndex: 0,
       filters: this.searchParam
     };
@@ -110,7 +110,7 @@ export class DeptComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(deptList => {
-        const target = fnFlatDataHasParentToTree(deptList.list);
+        const target = fnFlatDataHasParentToTree(deptList.list || []);
         this.dataList = fnFlattenTreeDataByDataList(target);
         // 因为前段要对后端返回的数据进行处理，所以排序这里交给了前段来做
         if (sortFile) {
@@ -131,7 +131,7 @@ export class DeptComponent implements OnInit {
     this.getDataList();
   }
 
-  add(fatherId: number): void {
+  add(fatherId: string | null): void {
     this.deptModalService
       .show({ nzTitle: '新增' })
       .pipe(
@@ -145,7 +145,7 @@ export class DeptComponent implements OnInit {
           return;
         }
         const param = { ...res.modalValue };
-        param.fatherId = fatherId;
+        param.parentId = fatherId;
         this.tableLoading(true);
         this.addEditData(param, 'addDepts');
       });
@@ -164,8 +164,8 @@ export class DeptComponent implements OnInit {
       });
   }
 
-  del(id: number): void {
-    const ids: number[] = [id];
+  del(id: string): void {
+    const ids: string[] = [id];
     this.modalSrv.confirm({
       nzTitle: '确定要删除吗？',
       nzContent: '删除后不可恢复',
@@ -192,7 +192,7 @@ export class DeptComponent implements OnInit {
   }
 
   // 修改
-  edit(id: number, fatherId: number): void {
+  edit(id: string, fatherId: string): void {
     this.dataService
       .getDeptsDetail(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -210,7 +210,7 @@ export class DeptComponent implements OnInit {
               return;
             }
             modalValue.id = id;
-            modalValue.fatherId = fatherId;
+            modalValue.parentId = fatherId;
             this.tableLoading(true);
             this.addEditData(modalValue, 'editDepts');
           });
@@ -232,25 +232,24 @@ export class DeptComponent implements OnInit {
         {
           title: '部门名称',
           width: 230,
-          field: 'departmentName'
+          field: 'displayName'
+        },
+        {
+          title: '部门编码',
+          field: 'code',
+          width: 100
         },
         {
           title: '部门状态',
-          field: 'state',
+          field: 'isActive',
           tdTemplate: this.state(),
           width: 100
         },
         {
           title: '排序',
-          field: 'orderNum',
+          field: 'order',
           showSort: true,
           width: 100
-        },
-        {
-          title: '创建时间',
-          field: 'createdAt',
-          pipe: 'date:yyyy-MM-dd HH:mm',
-          width: 180
         },
         {
           title: '操作',

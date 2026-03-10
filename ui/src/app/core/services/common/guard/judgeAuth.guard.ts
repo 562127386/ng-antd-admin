@@ -69,6 +69,7 @@ export class JudgeAuthGuardService {
     while (route.firstChild) {
       route = route.firstChild;
     }
+    debugger;
     // 如果有authCode，则表示是页面上点击按钮跳转到新的路由，而不是菜单中的路由
     if (route.data['authCode']) {
       return this.getResult(route.data['authCode'], this.authCodeArray());

@@ -27,8 +27,9 @@ export class RoleManageModalComponent extends BasicConfirmModalComponent impleme
 
   initForm(): void {
     this.addEditForm = this.fb.group({
-      roleName: [null, [Validators.required]],
-      roleDesc: [null]
+      name: [null, [Validators.required]],
+      displayName: [null, [Validators.required]],
+      description: [null]
     });
   }
 

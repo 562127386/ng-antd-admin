@@ -9,31 +9,34 @@ import { BaseHttpService } from '../base-http.service';
 /*
  *  权限
  * */
-export interface Permission {
+export interface permission {
   hasChildren: boolean;
   menuName: string;
   code: string;
-  fatherId: number;
-  id: number;
+  fatherId: string;
+  id: string;
   menuGrade: number; // 级别
-  permissionVo: Permission[];
+  permissionVo: permission[];
   isOpen?: boolean; // 是否折叠
   checked: boolean;
 }
 
 // 更新权限参数接口
-export interface PutPermissionParam {
+export interface PutpermissionParam {
   permCodes: string[];
-  roleId: number;
+  roleId: string;
 }
 
 /*
  * 角色
  * */
 export interface Role {
-  id?: number;
-  roleName: string;
-  roleDesc?: string;
+  id?: string;
+  name: string;
+  displayName: string;
+  description?: string;
+  isDefault?: boolean;
+  isPublic?: boolean;
 }
 
 @Injectable({
@@ -43,30 +46,52 @@ export class RoleService {
   http = inject(BaseHttpService);
 
   public getRoles(param: SearchCommonVO<Role>): Observable<PageInfo<Role>> {
-    return this.http.post('/role/list', param, { showLoading: true, loadingText: '请求中' });
+    return this.http.get('/api/identity/roles', {
+      params: {
+        skipCount: ((param.pageIndex || 1) - 1) * (param.MaxResultCount || 10),
+        maxResultCount: param.MaxResultCount || 10,
+        filter: param.filters?.name
+      },
+      showLoading: true,
+      loadingText: '请求中',
+      isAbpApi: true
+    });
   }
 
-  public getRolesDetail(id: number): Observable<Role> {
-    return this.http.get(`/role/${id}`);
+  public getRolesDetail(id: string): Observable<Role> {
+    return this.http.get(`/api/identity/roles/${id}`, { isAbpApi: true });
   }
 
   public addRoles(param: Role): Observable<void> {
-    return this.http.post('/role/create', param, { needSuccessInfo: true });
+    const data = {
+      name: param.name,
+      displayName: param.displayName,
+      description: param.description
+    };
+    return this.http.post('/api/identity/roles', data, { needSuccessInfo: true, isAbpApi: true });
   }
 
-  public delRoles(ids: number[]): Observable<void> {
-    return this.http.post('/role/del', { ids }, { needSuccessInfo: true });
+  public delRoles(ids: string[]): Observable<void> {
+    return this.http.delete(`/api/identity/roles/${ids.join(',')}`, { needSuccessInfo: true, isAbpApi: true });
   }
 
   public editRoles(param: Role): Observable<void> {
-    return this.http.put('/role/update', param, { needSuccessInfo: true });
+    const data = {
+      name: param.name,
+      displayName: param.displayName,
+      description: param.description
+    };
+    return this.http.put(`/api/identity/roles/${param.id}`, data, { needSuccessInfo: true, isAbpApi: true });
   }
 
-  public getPermissionById(id: string): Observable<string[]> {
-    return this.http.get(`/permission/list-role-resources/${id}`);
+  public getpermissionById(id: string): Observable<string[]> {
+    return this.http.get(`/api/identity/roles/${id}/permissions`, { isAbpApi: true });
   }
 
-  public updatePermission(param: PutPermissionParam): Observable<NzSafeAny> {
-    return this.http.post('/permission/assign-role-menu', param);
+  public updatepermission(param: PutpermissionParam): Observable<NzSafeAny> {
+    const data = {
+      grantedpermissionNames: param.permCodes
+    };
+    return this.http.put(`/api/identity/roles/${param.roleId}/permissions`, data, { isAbpApi: true });
   }
 }

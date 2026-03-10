@@ -23,7 +23,8 @@ export interface OptionsInterface {
 // 列表搜索
 export interface SearchCommonVO<T> {
   pageIndex: number;
-  pageSize: number;
+  //pageSize: number;
+  MaxResultCount: number;
   filters?: T;
 }
 
@@ -68,21 +69,30 @@ export interface CascaderOption {
  * */
 export interface Menu {
   id: number | string;
-  fatherId: number | string;
+  //fatherId?: number | string;
+  parentId?: string;
+  fatherId?: number | string; // 兼容旧代码
   path: string;
   orderNum?: number;
   menuName: string;
   menuType: 'C' | 'F'; // c:菜单，f按钮
   icon?: string; // 如果showIcon为false，设置这个为搜索窗口时，最左侧的icon
   alIcon?: string; // 如果showIcon为false，设置这个为搜索窗口时，最左侧的icon
-  updatedAt?: string;
-  createdAt?: string;
-  deletedAt?: string;
+  // LastModificationTime?: string;
+  // CreationTime?: string;
+  LastModificationTime?: string;
+  CreationTime?: string;
   open?: boolean;
   selected?: boolean; // 是否选中
-  status?: boolean; // 是否禁用
+  //status?: boolean; // 是否禁用
+  IsDisabled?: boolean; // 是否禁用
+  status?: boolean; // 兼容旧代码
   visible?: boolean; // 是否可见
+  IsExternal?: boolean; // 是否为外部链接
   children?: Menu[];
-  code: string; // 权限码
+  permission?: string; // 权限码
+  code?: string; // 兼容旧代码
   newLinkFlag?: 0 | 1; // 是否是新页
+  ExternalUrl?: string; // 外部链接地址
+  Component?: string; // 组件路径
 }

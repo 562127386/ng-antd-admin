@@ -200,6 +200,7 @@ export class NavBarComponent implements OnInit {
       /*添加了权限版*/
       // 获取有权限的二级菜单集合（在左侧展示的）
       currentLeftNavArray = currentLeftNavArray.filter(item => {
+        return true;//add by tca0309 临时所有权限
         return this.authCodeArray().includes(item.code!);
       });
       // 如果第一个二级菜单，没有三级菜单
