@@ -1,0 +1,386 @@
+<!--头部版块-->
+<app-page-header [pageHeaderInfo]="pageHeaderInfo" />
+
+<div class="normal-table-wrap">
+  <nz-card class="m-b-10" nzHoverable [nzBodyStyle]="{ 'padding-bottom': 0 }">
+    <form nz-form>
+      <div nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24 }">
+        <div nz-col [nzLg]="8" [nzMd]="12" [nzSm]="24" [nzXl]="8" [nzXs]="24" [nzXXl]="8">
+          <nz-form-item>
+            <nz-form-label>编码</nz-form-label>
+            <nz-form-control>
+              <input name="code" nz-input placeholder="请输入编码" [(ngModel)]="searchParam.code" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzLg]="8" [nzMd]="12" [nzSm]="24" [nzXl]="8" [nzXs]="24" [nzXXl]="8">
+          <nz-form-item>
+            <nz-form-label>名称</nz-form-label>
+            <nz-form-control>
+              <input name="name" nz-input placeholder="请输入名称" [(ngModel)]="searchParam.name" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        @if (!isCollapse) {
+          <div nz-col [nzLg]="8" [nzMd]="12" [nzSm]="24" [nzXl]="8" [nzXs]="24" [nzXXl]="8">
+            <nz-form-item>
+              <nz-form-label>指标类别</nz-form-label>
+              <nz-form-control>
+                <nz-select name="indicatorCategory" nzAllowClear nzPlaceHolder="请选择指标类别" [(ngModel)]="searchParam.indicatorCategory">
+                  @for (option of indicatorCategories; track option) {
+                    <nz-option [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+                  }
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzLg]="8" [nzMd]="12" [nzSm]="0" [nzXl]="8" [nzXs]="0" [nzXXl]="8">
+            <nz-form-item></nz-form-item>
+          </div>
+          <div nz-col [nzLg]="8" [nzMd]="12" [nzSm]="0" [nzXl]="8" [nzXs]="0" [nzXXl]="8">
+            <nz-form-item></nz-form-item>
+          </div>
+        }
+
+        <div class="text-right p-0 m-b-10" nz-col [nzLg]="8" [nzMd]="12" [nzSm]="24" [nzXl]="8" [nzXs]="24" [nzXXl]="8">
+          <button nz-button [nzType]="'primary'" (click)="onSearch()">
+            <i nz-icon nzType="search"></i>
+            搜索
+          </button>
+          <button class="m-l-15" nz-button (click)="resetForm()">
+            <i nz-icon nzTheme="outline" nzType="close-circle"></i>
+            重置
+          </button>
+          <a class="collapse operate-text" (click)="toggleCollapse()">
+            @if (isCollapse) {
+              <span>展开</span>
+            } @else {
+              <span>收起</span>
+            }
+            <i nz-icon [nzType]="isCollapse ? 'down' : 'up'"></i>
+          </a>
+        </div>
+      </div>
+    </form>
+  </nz-card>
+
+  <app-card-table-wrap [btnTpl]="tableBtns" [tableTitle]="'质检指标列表'" (reload)="reloadTable()">
+    <app-ant-table
+      [checkedCashArrayFromComment]="checkedCashArray"
+      [tableConfig]="tableConfig"
+      [tableData]="dataList"
+      (changePageIndex)="getDataList($event)"
+      (changePageSize)="changePageSize($event)"
+      (selectedChange)="selectedChecked($event)"
+    ></app-ant-table>
+    <ng-template #operationTpl let-$$dataItem="$$dataItem" let-id="id">
+      <span class="operate-text" (click)="edit(id, $$dataItem)">编辑</span>
+      <span class="operate-text" nz-popconfirm nzPopconfirmTitle="确定删除?" (nzOnConfirm)="del(id)" nzPopconfirmOkText="确定" nzPopconfirmCancelText="取消">删除</span>
+    </ng-template>
+  </app-card-table-wrap>
+</div>
+
+<ng-template #tableBtns>
+  <button class="m-r-8" nz-button nzType="primary" (click)="add()">
+    <i nz-icon nzType="plus"></i>
+    新增
+  </button>
+  <button nz-button nzType="default" (click)="allDel()">
+    <i nz-icon nzType="delete"></i>
+    批量删除
+  </button>
+</ng-template>
+
+<ng-template #enabledFlag let-isEnabled="isEnabled">
+  <nz-switch nzCheckedChildren="启用" nzUnCheckedChildren="禁用" [ngModel]="isEnabled" [nzControl]="true" [nzDisabled]="true"></nz-switch>
+</ng-template>
+
+<ng-template #judgmentTagsTpl let-$$dataItem="$$dataItem">
+  <nz-space>
+    <nz-tag *ngFor="let tag of getJudgmentTags($$dataItem)" [nzColor]="getTagColor(tag)">{{ tag }}</nz-tag>
+  </nz-space>
+</ng-template>
+
+<nz-modal
+  [(nzVisible)]="isModalVisible"
+  [nzTitle]="currentItem ? '编辑质检指标' : '新增质检指标'"
+  [nzWidth]="1000"
+  (nzOnCancel)="handleModalCancel()"
+  (nzOnOk)="handleModalOk()"
+>
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="modalForm" nzLayout="vertical">
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="6">
+          <nz-form-item>
+            <nz-form-label nzRequired>编码</nz-form-label>
+            <nz-form-control nzErrorTip="请输入编码">
+              <input nz-input formControlName="code" placeholder="请输入编码" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="6">
+          <nz-form-item>
+            <nz-form-label nzRequired>指标类别</nz-form-label>
+            <nz-form-control nzErrorTip="请选择指标类别">
+              <nz-select formControlName="indicatorCategory" nzPlaceHolder="请选择指标类别">
+                <nz-option *ngFor="let option of indicatorCategories" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="6">
+          <nz-form-item>
+            <nz-form-label nzRequired>名称</nz-form-label>
+            <nz-form-control nzErrorTip="请输入名称">
+              <input nz-input formControlName="name" placeholder="请输入名称" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="6">
+          <nz-form-item>
+            <nz-form-label nzRequired>检验类型</nz-form-label>
+            <nz-form-control nzErrorTip="请选择检验类型">
+              <nz-select formControlName="inspectionType" nzPlaceHolder="请选择检验类型">
+                <nz-option *ngFor="let option of inspectionTypes" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="6">
+          <nz-form-item>
+            <nz-form-label nzRequired>默认值</nz-form-label>
+            <nz-form-control nzErrorTip="请输入默认值">
+              <input nz-input formControlName="defaultValue" placeholder="请输入默认值" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="6">
+          <nz-form-item>
+            <nz-form-label>数据类型</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="dataType" placeholder="请输入数据类型" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="6">
+          <nz-form-item>
+            <nz-form-label>单位</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="unit" placeholder="请输入单位" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="6">
+          <nz-form-item>
+            <nz-form-label>小数位数</nz-form-label>
+            <nz-form-control>
+              <input nz-input type="number" formControlName="decimalPlaces" placeholder="请输入小数位数" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="6">
+          <nz-form-item>
+            <nz-form-label>破坏性</nz-form-label>
+            <nz-form-control>
+              <nz-switch formControlName="isCritical"></nz-switch>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="6">
+          <nz-form-item>
+            <nz-form-label>是否启用</nz-form-label>
+            <nz-form-control>
+              <nz-switch formControlName="isEnabled"></nz-switch>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="6">
+          <nz-form-item>
+            <nz-form-label>排序</nz-form-label>
+            <nz-form-control>
+              <input nz-input type="number" formControlName="sortOrder" placeholder="请输入排序序号" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="6">
+          <nz-form-item>
+            <nz-form-label>备注</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="remark" placeholder="请输入备注" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    </form>
+    
+    <nz-divider></nz-divider>
+    
+    <div *ngIf="currentItemId">
+      <app-inspection-rule [qualityIndicatorId]="currentItemId"></app-inspection-rule>
+    </div>
+    <div *ngIf="!currentItemId" class="no-rules-message">
+      <p>保存通用检查项目后，您可以在此配置其判定规则。</p>
+    </div>
+  </ng-container>
+</nz-modal>
+
+<!-- 判定规则模态框 -->
+<nz-modal
+  [(nzVisible)]="isInspectionRulesVisible"
+  [nzTitle]="'判定规则配置'"
+  [nzWidth]="1000"
+  (nzOnCancel)="handleInspectionRulesCancel()"
+>
+  <ng-container *nzModalContent>
+    <div *ngIf="currentInspectionItem">
+      <div class="mb-4">
+        <h4>通用检查项目: {{ currentInspectionItem.name }}</h4>
+      </div>
+      <div class="mb-4">
+        <button nz-button nzType="primary" (click)="showAddInspectionRuleModal()">
+          <span nz-icon nzType="plus"></span>
+          新增判定规则
+        </button>
+      </div>
+      <nz-table
+        #inspectionRuleTable
+        nzShowSizeChanger
+        [nzData]="inspectionRules"
+        [nzLoading]="inspectionRulesLoading"
+      >
+        <thead>
+          <tr>
+            <th>名称</th>
+            <th>严重等级</th>
+            <th>优先级</th>
+            <th>条件表达式</th>
+            <th>判定结果</th>
+            <th>说明</th>
+            <th>执行动作</th>
+            <th>备注</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let rule of inspectionRuleTable.data">
+            <td>{{ rule.name }}</td>
+            <td>{{ rule.severityLevel }}</td>
+            <td>{{ rule.priority }}</td>
+            <td>{{ rule.conditionExpression }}</td>
+            <td>{{ rule.judgmentResult }}</td>
+            <td>{{ rule.description }}</td>
+            <td>{{ rule.executeAction }}</td>
+            <td>{{ rule.remark || '-' }}</td>
+            <td>
+              <nz-space>
+                <a (click)="showEditInspectionRuleModal(rule)">编辑</a>
+                <a nz-popconfirm nzPopconfirmTitle="确定删除?" (nzOnConfirm)="deleteInspectionRule(rule.id)" nzPopconfirmOkText="确定" nzPopconfirmCancelText="取消">删除</a>
+              </nz-space>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </div>
+  </ng-container>
+</nz-modal>
+
+<!-- 新增/编辑判定规则模态框 -->
+<nz-modal
+  [(nzVisible)]="isInspectionRuleModalVisible"
+  [nzTitle]="currentInspectionRule ? '编辑判定规则' : '新增判定规则'"
+  [nzWidth]="800"
+  (nzOnCancel)="handleInspectionRuleModalCancel()"
+  (nzOnOk)="handleInspectionRuleModalOk()"
+>
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="inspectionRuleForm" nzLayout="vertical">
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>名称</nz-form-label>
+            <nz-form-control nzErrorTip="请输入名称">
+              <input nz-input formControlName="name" placeholder="请输入名称" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>严重等级</nz-form-label>
+            <nz-form-control nzErrorTip="请选择严重等级">
+              <nz-select formControlName="severityLevel" nzPlaceHolder="请选择严重等级">
+                <nz-option nzLabel="严重不合格(CR)" nzValue="CR"></nz-option>
+                <nz-option nzLabel="主要不合格(MAJ)" nzValue="MAJ"></nz-option>
+                <nz-option nzLabel="次要不合格(MIN)" nzValue="MIN"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>优先级</nz-form-label>
+            <nz-form-control nzErrorTip="请输入优先级">
+              <input nz-input type="number" formControlName="priority" placeholder="请输入优先级" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col nzSpan="12">
+          <nz-form-item>
+            <nz-form-label nzRequired>判定结果</nz-form-label>
+            <nz-form-control nzErrorTip="请输入判定结果">
+              <input nz-input formControlName="judgmentResult" placeholder="请输入判定结果" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="24">
+          <nz-form-item>
+            <nz-form-label nzRequired>条件表达式</nz-form-label>
+            <nz-form-control nzErrorTip="请输入条件表达式">
+              <input nz-input formControlName="conditionExpression" placeholder="请输入条件表达式" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="24">
+          <nz-form-item>
+            <nz-form-label nzRequired>说明</nz-form-label>
+            <nz-form-control nzErrorTip="请输入说明">
+              <input nz-input formControlName="description" placeholder="请输入说明" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="24">
+          <nz-form-item>
+            <nz-form-label nzRequired>执行动作</nz-form-label>
+            <nz-form-control nzErrorTip="请输入执行动作">
+              <input nz-input formControlName="executeAction" placeholder="请输入执行动作" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzSpan="24">
+          <nz-form-item>
+            <nz-form-label>备注</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="remark" placeholder="请输入备注" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    </form>
+  </ng-container>
+</nz-modal>

@@ -25,10 +25,10 @@ export default [
     loadComponent: () => import('./processes/processes.component').then(m => m.ProcessesComponent)
   },
   {
-    path: 'inspection-standards',
-    title: '检验标准管理',
-    data: { key: 'inspection-standards' },
-    loadComponent: () => import('./inspection-standards/inspection-standards.component').then(m => m.InspectionStandardsComponent)
+    path: 'quality-inspection-plans',
+    title: '质检方案管理',
+    data: { key: 'quality-inspection-plans' },
+    loadComponent: () => import('./quality-inspection-plans/quality-inspection-plans.component').then(m => m.QualityInspectionPlansComponent)
   },
   {
     path: 'aql-configs',
@@ -67,9 +67,9 @@ export default [
     loadComponent: () => import('./quality-reports/quality-reports.component').then(m => m.QualityReportsComponent)
   },
   {
-    path: 'general-inspection-items',
-    title: '通用检查项目',
-    data: { key: 'general-inspection-items' },
-    loadComponent: () => import('./general-inspection-items/general-inspection-items.component').then(m => m.GeneralInspectionItemsComponent)
+    path: 'quality-indicators',
+    title: '质检指标',
+    data: { key: 'quality-indicators' },
+    loadComponent: () => import('./quality-indicators/quality-indicators.component').then(m => m.QualityIndicatorsComponent)
   }
 ] satisfies Route[];

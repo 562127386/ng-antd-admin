@@ -22,6 +22,10 @@ export class AuthDirective implements OnInit {
       this.show(true);
       return;
     }
+    // console.warn("99999999999999999999999999");
+    // console.warn(this.codeArray());
+    // console.warn(this.appAuth());
+    //   console.warn(this.codeArray().includes(this.appAuth()));
     this.codeArray().includes(this.appAuth()) ? this.show(true) : this.show(false);
   }
 

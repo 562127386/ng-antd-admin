@@ -90,8 +90,8 @@ export class LoginFormComponent implements OnInit {
     // 只要进入登录页面，就清除各种缓存
     this.loginInOutService.loginOut();
     this.validateForm = this.fb.group({
-      userName: [null, [Validators.required]],
-      password: [null, [Validators.required]],
+      userName: ['admin', [Validators.required]],
+      password: ['1q2w3E*', [Validators.required]],
       remember: [null]
     });
   }

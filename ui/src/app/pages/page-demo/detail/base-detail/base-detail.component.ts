@@ -80,7 +80,7 @@ export class BaseDetailComponent implements OnInit {
       showCheckbox: false,
       headers: [
         {
-          title: '商品编号',
+          title: '商品编码',
           field: 'num',
           width: 150,
           tdTemplate: this.returnProductTpl()
@@ -119,7 +119,7 @@ export class BaseDetailComponent implements OnInit {
       showCheckbox: false,
       headers: [
         {
-          title: '商品编号',
+          title: '商品编码',
           field: 'num',
           width: 150,
           tdTemplate: this.returnProductTpl()

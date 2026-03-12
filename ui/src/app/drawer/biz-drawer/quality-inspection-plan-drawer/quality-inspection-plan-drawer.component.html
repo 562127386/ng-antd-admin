@@ -1,0 +1,223 @@
+<div class="quality-inspection-plan-drawer">
+  <form nz-form [formGroup]="createForm" *ngIf="!loading">
+    <div nz-row class="form-row">
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label nzRequired>方案编码</nz-form-label>
+          <nz-form-control [nzErrorTip]="createForm.get('code')?.dirty && createForm.get('code')?.hasError('required') ? '请输入方案编码' : undefined">
+            <input nz-input formControlName="code" placeholder="请输入方案编码" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label nzRequired>版本</nz-form-label>
+          <nz-form-control [nzErrorTip]="createForm.get('version')?.dirty && createForm.get('version')?.hasError('required') ? '请输入版本' : undefined">
+            <input nz-input formControlName="version" placeholder="请输入版本" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label nzRequired>检验类型</nz-form-label>
+          <nz-form-control [nzErrorTip]="createForm.get('inspectionType')?.dirty && createForm.get('inspectionType')?.hasError('required') ? '请选择检验类型' : undefined">
+            <nz-select formControlName="inspectionType" nzPlaceHolder="请选择" nzStyle="width: 100%;">
+              <nz-option *ngFor="let option of inspectionTypeOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label nzRequired>抽样方案类型</nz-form-label>
+          <nz-form-control [nzErrorTip]="createForm.get('samplingSchemeType')?.dirty && createForm.get('samplingSchemeType')?.hasError('required') ? '请选择抽样方案类型' : undefined">
+            <nz-select formControlName="samplingSchemeType" nzPlaceHolder="请选择" nzStyle="width: 100%;">
+              <nz-option *ngFor="let option of samplingSchemeTypeOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+    
+    <div nz-row class="form-row">
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label nzRequired>生效日期</nz-form-label>
+          <nz-form-control [nzErrorTip]="createForm.get('effectiveDate')?.dirty && createForm.get('effectiveDate')?.hasError('required') ? '请选择生效日期' : undefined">
+            <nz-date-picker formControlName="effectiveDate" nzShowTime nzStyle="width: 100%;"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>失效日期</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker formControlName="expiryDate" nzShowTime nzStyle="width: 100%;"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+    
+    <div nz-row class="form-row">
+      <div nz-col nzSpan="24">
+        <nz-form-item>
+          <nz-form-label>抽样方案配置</nz-form-label>
+          <nz-form-control>
+            <app-sampling-scheme-config [config]="createForm.get('samplingSchemeConfig')?.value" (configChange)="createForm.get('samplingSchemeConfig')?.setValue($event)"></app-sampling-scheme-config>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+    
+    <div class="steps-section">
+      <div class="steps-header">
+        <h3>质检步骤</h3>
+        <button nz-button nzType="primary" (click)="addStep()" [disabled]="isViewMode">
+          <span nz-icon nzType="plus"></span> 添加步骤
+        </button>
+      </div>
+      
+      <nz-collapse [nzExpandIconPosition]="'end'">
+        <nz-collapse-panel 
+          *ngFor="let stepGroup of (stepsFormArray?.controls || []); let i = index" 
+          [nzHeader]="'步骤 ' + (i + 1) + (stepGroup.get('name')?.value ? ' - ' + stepGroup.get('name')?.value : '')"
+          [nzActive]="true" [nzExtra]="extraTpl"
+        >
+          <ng-template #extraTpl>
+            <button nz-button nzType="text" nzDanger (click)="removeStep(i)">
+              <span nz-icon nzType="delete"></span> 删除步骤
+            </button>
+          </ng-template>
+          <div [formGroup]="getStepFormGroup(stepGroup)" class="step-content">
+            <div nz-row class="form-row">
+              <div nz-col nzSpan="6">
+                <nz-form-item>
+                  <nz-form-label nzRequired>步骤编码</nz-form-label>
+                  <nz-form-control [nzErrorTip]="stepGroup.get('code')?.dirty && stepGroup.get('code')?.hasError('required') ? '请输入步骤编码' : undefined">
+                    <input nz-input formControlName="code" placeholder="请输入步骤编码" />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col nzSpan="6">
+                <nz-form-item>
+                  <nz-form-label nzRequired>步骤名称</nz-form-label>
+                  <nz-form-control [nzErrorTip]="stepGroup.get('name')?.dirty && stepGroup.get('name')?.hasError('required') ? '请输入步骤名称' : undefined">
+                    <input nz-input formControlName="name" placeholder="请输入步骤名称" />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col nzSpan="6">
+                <nz-form-item>
+                  <nz-form-label nzRequired>排序</nz-form-label>
+                  <nz-form-control [nzErrorTip]="stepGroup.get('sortOrder')?.dirty && stepGroup.get('sortOrder')?.hasError('required') ? '请输入排序' : undefined">
+                    <nz-input-number formControlName="sortOrder" nzStyle="width: 100%;"></nz-input-number>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col nzSpan="6">
+                <nz-form-item>
+                  <nz-form-label>启用</nz-form-label>
+                  <nz-form-control>
+                    <nz-switch formControlName="isEnabled"></nz-switch>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+            
+            <div nz-row class="form-row">
+              <div nz-col nzSpan="24">
+                <nz-form-item>
+                  <nz-form-label>备注</nz-form-label>
+                  <nz-form-control>
+                    <input nz-input formControlName="remark" placeholder="请输入备注" />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+            
+            <div class="items-section">
+              <div class="items-header">
+                <h5>质检指标</h5>
+                <div class="items-actions">
+                  <button nz-button nzType="primary" nzSize="small" (click)="addItem(i)" [disabled]="isViewMode">
+                    <span nz-icon nzType="plus"></span> 新增
+                  </button>
+                  <button nz-button nzType="default" nzSize="small" (click)="showGeneralItemsModal(i)" [disabled]="isViewMode">
+                    <span nz-icon nzType="filter"></span> 选择指标
+                  </button>
+                </div>
+              </div>
+              
+              <nz-table
+                #itemsTable
+                [nzData]="(getItemsFormArray(i)?.controls || [])"
+                nzSize="small"
+                nzShowPagination="false"
+                nzTableLayout="fixed"
+              >
+                <thead>
+                  <tr>
+                    <th nzWidth="80px">序号</th>
+                    <th nzWidth="120px">指标编码</th>
+                    <th nzWidth="150px">指标名称</th>
+                    <th nzWidth="100px">检验方式</th>
+                    <th nzWidth="100px">标准值</th>
+                    <th nzWidth="100px">USL</th>
+                    <th nzWidth="100px">LSL</th>
+                    <th nzWidth="100px">UCL</th>
+                    <th nzWidth="100px">LCL</th>
+                    <th nzWidth="100px">排序</th>
+                    <th nzWidth="80px">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let itemGroup of (getItemsFormArray(i)?.controls || []); let j = index"  [formGroup]="getStepFormGroup(itemGroup)" [ngClass]="{'item-invalid': itemGroup && !isItemValid(itemGroup)}">
+                    <td>{{ j + 1 }}</td>
+                    <td>
+                      <input nz-input formControlName="code" placeholder="请输入指标编码" />
+                    </td>
+                    <td>
+                      <input nz-input formControlName="name" placeholder="请输入指标名称" />
+                    </td>
+                    <td>
+                      <nz-select formControlName="inspectionMethod" nzPlaceHolder="请选择" nzStyle="width: 100%;">
+                        <nz-option *ngFor="let option of inspectionMethodOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+                      </nz-select>
+                    </td>
+                    <td>
+                      <nz-input-number formControlName="standardValue" [nzStep]="0.01" nzStyle="width: 100%;" (ngModelChange)="itemGroup && validateItemValues(itemGroup)"></nz-input-number>
+                    </td>
+                    <td>
+                      <nz-input-number formControlName="usl" [nzStep]="0.01" nzStyle="width: 100%;" (ngModelChange)="itemGroup && validateItemValues(itemGroup)"></nz-input-number>
+                    </td>
+                    <td>
+                      <nz-input-number formControlName="lsl" [nzStep]="0.01" nzStyle="width: 100%;" (ngModelChange)="itemGroup && validateItemValues(itemGroup)"></nz-input-number>
+                    </td>
+                    <td>
+                      <nz-input-number formControlName="ucl" [nzStep]="0.01" nzStyle="width: 100%;" (ngModelChange)="itemGroup && validateItemValues(itemGroup)"></nz-input-number>
+                    </td>
+                    <td>
+                      <nz-input-number formControlName="lcl" [nzStep]="0.01" nzStyle="width: 100%;" (ngModelChange)="itemGroup && validateItemValues(itemGroup)"></nz-input-number>
+                    </td>
+                    <td>
+                      <nz-input-number formControlName="sortOrder" nzStyle="width: 100%;"></nz-input-number>
+                    </td>
+                    <td>
+                      <button nz-button nzType="text" nzDanger (click)="removeItem(i, j)" [disabled]="isViewMode">
+                        <span nz-icon nzType="delete"></span> 删除
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </div>
+          </div>
+        </nz-collapse-panel>
+      </nz-collapse>
+    </div>
+  </form>
+  
+  <div *ngIf="loading" class="loading-container">
+    <nz-spin nzTip="加载中..."></nz-spin>
+  </div>
+</div>

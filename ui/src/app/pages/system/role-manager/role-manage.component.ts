@@ -94,8 +94,11 @@ export class RoleManageComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(data => {
-        const { list, total, pageIndex } = data;
-        this.dataList = [...(list || [])];
+        const response = data as any;
+        const { items, totalCount, pageIndex } = response;
+        const list = items || [];
+        const total = totalCount || 0;
+        this.dataList = [...list];
         this.tableConfig.total = total!;
         this.tableConfig.pageIndex = pageIndex!;
         this.tableLoading(false);
@@ -212,6 +215,7 @@ export class RoleManageComponent implements OnInit {
 
   ngOnInit(): void {
     this.initTable();
+    this.getDataList();
   }
 
   private initTable(): void {
