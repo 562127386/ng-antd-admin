@@ -37,7 +37,7 @@ export class DrawerWrapService {
   createDrawerConfig(component: Type<NzSafeAny>, drawerOptions: NzDrawerOptions = {}, params: object = {}): NzDrawerOptions {
     const defaultOptions: NzDrawerOptions = {
       nzContent: component,
-      nzClosable: false,
+      nzClosable: true,
       nzContentParams: {
         params
       },

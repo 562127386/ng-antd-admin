@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '@env/environment';
 import { 
   InspectionStandardDto, 
   CreateUpdateInspectionStandardDto, 
@@ -12,7 +13,7 @@ import {
   providedIn: 'root',
 })
 export class InspectionStandardService {
-  private apiUrl = '/api/app/inspection-standard';
+  private apiUrl = environment.apiUrl + '/api/app/inspection-standard';
 
   constructor(private http: HttpClient) {}
 

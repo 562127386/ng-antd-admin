@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, OnDestroy, AfterViewInit, inject, D
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 
-import { ip } from '@env/environment.prod';
+import { environment } from '@env/environment';
 import { PageHeaderType, PageHeaderComponent } from '@shared/components/page-header/page-header.component';
 import { webSocket } from 'rxjs/webSocket';
 
@@ -28,7 +28,7 @@ export class WebsocketComponent implements OnDestroy, AfterViewInit {
     title: 'websocket',
     breadcrumb: ['首页', '功能', 'websocket']
   };
-  subject = webSocket(`ws://${ip}:8003/webSocket`);
+  subject = webSocket(`${environment.wsUrl}/webSocket`);
   result = signal<string[]>([]);
   msg = '';
 
@@ -39,14 +39,20 @@ export class WebsocketComponent implements OnDestroy, AfterViewInit {
 
   end(): void {
     this.subject.complete();
-    this.concate = false;
+  }
+
+  reconnect(): void {
+    this.subject = webSocket(`${environment.wsUrl}/webSocket`);
+    this.subject.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(res => {
+      const prev = this.result();
+      this.result.set([...prev, res as string]);
+    });
   }
 
   ngAfterViewInit(): void {
     this.subject.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(res => {
-      // @ts-ignore
-      this.result.update(arr => [...arr, res.message]);
-      // Signal automatically triggers change detection
+      const prev = this.result();
+      this.result.set([...prev, res as string]);
     });
   }
 

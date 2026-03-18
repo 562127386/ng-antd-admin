@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { ip } from '@env/environment.prod';
+import { environment } from '@env/environment';
 import { DownloadService } from '@services/download/download.service';
 import { PageHeaderType, PageHeaderComponent } from '@shared/components/page-header/page-header.component';
 import FileSaver from 'file-saver';
@@ -28,7 +28,7 @@ export class DownloadComponent {
 
   fileStreamDownload(): void {
     const downloadDto = {
-      downloadUrl: `http://${ip}/api/file/图纸实际材料量导入模板.xlsx`
+      downloadUrl: `${environment.apiUrl}/api/file/图纸实际材料量导入模板.xlsx`
     };
     this.downloadService
       .fileStreamDownload(downloadDto)

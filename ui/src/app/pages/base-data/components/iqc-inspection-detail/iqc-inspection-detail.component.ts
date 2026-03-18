@@ -96,7 +96,8 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
     { label: '待判定', value: 0, color: 'default' },
     { label: '合格', value: InspectionResult.Accepted, color: 'success' },
     { label: '不合格', value: InspectionResult.Rejected, color: 'error' },
-    { label: '特采', value: InspectionResult.Concession, color: 'warning' }
+    { label: '特采', value: InspectionResult.Concession, color: 'warning' },
+    { label: '挑选', value: InspectionResult.Sorting, color: 'processing' }
   ];
 
   ngOnInit(): void {

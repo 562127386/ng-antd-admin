@@ -26,19 +26,29 @@ export class UploadComponent implements OnInit {
     breadcrumb: ['首页', '功能', '文件上传'],
     desc: '简单弄一下，返回的都是服务器统一返回的文件'
   };
-  uploadUrl = environment.production ? '/api/file/test/upload/document/' : '/site/api/file/test/upload/document/';
+  uploadUrl = environment.apiUrl + '/api/file/test/upload/document/';
   fileList: NzUploadFile[] = [];
   fileFormList: NzUploadFile[] = [];
   validateForm!: FormGroup;
   private message = inject(NzMessageService);
   private fb = inject(FormBuilder);
 
-  handleChange(info: NzUploadChangeParam): void {
-    if (info.type === 'success') {
-      if (info.file.response.code === 0) {
-        this.message.success(`服务器上返回的文件路径：${info.file.response.data.data}`);
-      }
+  ngOnInit(): void {
+    this.validateForm = this.fb.group({
+      userName: [null, [Validators.required]],
+      password: [null, [Validators.required]]
+    });
+  }
+
+  submitForm(): void {
+    if (!fnCheckForm(this.validateForm)) {
+      return;
     }
+    this.message.success('提交成功');
+  }
+
+  resetForm(): void {
+    this.validateForm.reset();
   }
 
   uploadFn(e: NzUploadChangeParam): void {
@@ -49,24 +59,11 @@ export class UploadComponent implements OnInit {
     }
   }
 
-  resetForm(): void {
-    this.validateForm.reset();
-    this.fileFormList = [];
-  }
-
-  submitForm(): void {
-    if (!fnCheckForm(this.validateForm)) {
-      return;
+  handleChange(info: NzUploadChangeParam): void {
+    if (info.file.status === 'done') {
+      this.message.success(`${info.file.name} 文件上传成功`);
+    } else if (info.file.status === 'error') {
+      this.message.error(`${info.file.name} 文件上传失败`);
     }
-  }
-
-  initForm(): void {
-    this.validateForm = this.fb.group({
-      file: [null, [Validators.required]]
-    });
-  }
-
-  ngOnInit(): void {
-    this.initForm();
   }
 }

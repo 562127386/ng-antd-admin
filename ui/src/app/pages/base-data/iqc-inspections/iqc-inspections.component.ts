@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, DestroyRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, DestroyRef, ViewChild, TemplateRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
@@ -72,10 +72,11 @@ export class IqcInspectionsComponent implements OnInit {
   ];
 
   resultOptions = [
-    { label: '待判定', value: 0, color: 'default' },
+   // { label: '待判定', value: 0, color: 'default' },
     { label: '合格', value: InspectionResult.Accepted, color: 'success' },
     { label: '不合格', value: InspectionResult.Rejected, color: 'error' },
-    { label: '特采', value: InspectionResult.Concession, color: 'warning' }
+    { label: '特采', value: InspectionResult.Concession, color: 'warning' },
+    { label: '挑选', value: InspectionResult.Sorting, color: 'processing' }
   ];
 
   ngOnInit(): void {
@@ -141,7 +142,7 @@ export class IqcInspectionsComponent implements OnInit {
 
   showAddModal(): void {
     const defaultOptions: NzDrawerOptions = {
-      nzWidth: '80%',
+      nzWidth: '85%',
       nzTitle: '新增检验单'
     };
     this.drawerWrapService
@@ -155,12 +156,24 @@ export class IqcInspectionsComponent implements OnInit {
       });
   }
 
+  // 获取页脚模板引用
+  @ViewChild('cancelTpl') cancelTpl!: TemplateRef<any>;
+   // 页脚-取消按钮回调
+  onDrawerCancel(): void {
+    console.log('点击了抽屉取消按钮');
+    this.drawerWrapService.cancel();
+  }
+
   showViewModal(item: IqcInspectionOrderDto): void {
     const isInProgress = item.status === InspectionStatus.InProgress;
     const defaultOptions: NzDrawerOptions = {
       nzWidth: isInProgress ? '85%' : '80%',
-      nzTitle: isInProgress ? '检验执行' : '查看检验单'
+      nzTitle: isInProgress ? '检验执行' : '查看检验单',
+      nzFooter: this.cancelTpl
     };
+    // if (!isInProgress) {
+    //   defaultOptions.nzFooter = this.cancelTpl;
+    // }
     this.drawerWrapService
       .show(IqcInspectionDrawerComponent, defaultOptions, { mode: isInProgress ? 'inspect' : 'view', id: item.id })
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -177,7 +190,7 @@ export class IqcInspectionsComponent implements OnInit {
       return;
     }
     const defaultOptions: NzDrawerOptions = {
-      nzWidth: '80%',
+      nzWidth: '85%',
       nzTitle: '编辑检验单'
     };
     this.drawerWrapService

@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '@env/environment';
 import { DefectDto, CreateUpdateDefectDto, GetDefectListDto, PagedResultDto } from '../models/defect.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class DefectService {
-  private apiUrl = '/api/defects';
+  private apiUrl = environment.apiUrl + '/api/defects';
 
   constructor(private http: HttpClient) {}
 

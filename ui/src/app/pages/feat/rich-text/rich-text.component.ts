@@ -23,8 +23,7 @@ export class RichTextComponent {
     title: '富文本，人们总是喜欢用花里胡哨的文字，表达自己空虚的情感',
     breadcrumb: ['首页', '扩展功能', '富文本']
   };
-  localUrl = 'http://139.9.225.248:8088';
-  uploadRichFileUrl = environment.production ? `${this.localUrl}/rich-upload` : '/site/rich-upload';
+  uploadRichFileUrl = environment.apiUrl + '/rich-upload';
   validateForm = this.fb.group({
     detail: ['', [Validators.required]]
   });
@@ -33,26 +32,39 @@ export class RichTextComponent {
   // http://tinymce.ax-z.cn/configure/editor-appearance.php
   editInit = {
     // automatic_uploads: false,
-    images_upload_url: this.uploadRichFileUrl,
-    branding: false, // 隐藏右下角技术支持
-    height: 500,
-    convert_urls: false, // 上传的图片路径不转成相对路径
-    menubar: false,
-    plugins: ['image'],
-    fontsize_formats: '12px 14px 16px 18px 24px 36px 48px 56px 72px',
     language: 'zh_CN',
-    // images_upload_handler: function (blobInfo: NzSafeAny, success: (arg0: string) => void, failure: any) {
-    //   console.log(blobInfo);
-    //   console.log(success);
-    //   /* no matter what you upload, we will turn it into TinyMCE logo :)*/
-    //   // success('http://moxiecode.cachefly.net/tinymce/v9/images/logo.png');
-    // },
-    toolbar: '|bold|fontselect|fontsizeselect|styleselect|removeformat|aligncenter  alignright alignjustify | image'
-
-    // image_caption: true,
-    // paset 插件允许粘贴图片
-    // paste_data_images: true,
-    // image_advtab: true,
-    // imagetools_toolbar: 'rotateleft rotateright | flipv fliph | editimage imageoptions',
+    language_url: '/tinymce/langs/zh_CN.js',
+    skin: 'oxide',
+    // skin_url: '/assets/tinymce/skins/ui/oxide',
+    // content_css: '/assets/tinymce/skins/content/default/',
+    base_url: '/tinymce',
+    suffix: '.min',
+    height: 600,
+    toolbar_mode: 'none',
+    plugins: [
+      'advlist', 'anchor', 'autolink', 'autosave', 'axupimgs', 'charmap', 'code', 'codesample', 'directionality',
+      'emoticons', 'fullscreen', 'help', 'hr', 'image', 'imagetools', 'importcss', 'indent2em', 'insertdatetime',
+      'link', 'lists', 'media', 'nonbreaking', 'pagebreak', 'paste', 'preview', 'print', 'quickbars', 'save',
+      'searchreplace', 'tabfocus', 'table', 'template', 'textpattern', 'toc', 'visualblocks', 'visualchars', 'wordcount',
+      'table'
+    ],
+    // Toolbar
+    toolbar: 'fullscreen preview code | undo redo | formatselect | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | outdent indent | numlist bullist | forecolor backcolor removeformat | charmap | link media image | insertdatetime | hr table | ltr rtl | bullist numlist indent | subscript superscript | toc',
+    // Quickbars
+    quickbars_insert_toolbar: 'quicklink image table',
+    quickbars_selection_toolbar: 'bold italic | quicklink h2 h3 blockquote',
+    // menubar: false,
+    // statusbar: false,
+    content_style: `
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+          'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+          'Noto Color Emoji';
+      }
+    `
   };
+
+  fnHandleChange(e: Event): void {
+    // console.log(e);
+  }
 }

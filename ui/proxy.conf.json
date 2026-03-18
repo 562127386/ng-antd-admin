@@ -1,29 +1,21 @@
 {
-  "/site/api": {
-    "target": "http://localhost:3001/",
-    "secure": false,
-    "changeOrigin": true,
-    "pathRewrite": {
-      "^/site/api": ""
-    }
-  },
   "/api": {
-    "target": "https://localhost:44312/",
+    "target": "http://192.168.31.244:44312/",
     "secure": false,
     "changeOrigin": true
   },
   "/.well-known": {
-    "target": "https://localhost:44312/",
+    "target": "http://192.168.31.244:44312/",
     "secure": false,
     "changeOrigin": true
   },
   "/connect": {
-    "target": "https://localhost:44312/",
+    "target": "http://192.168.31.244:44312/",
     "secure": false,
     "changeOrigin": true
   },
   "/Account": {
-    "target": "https://localhost:44312/",
+    "target": "http://192.168.31.244:44312/",
     "secure": false,
     "changeOrigin": true
   }

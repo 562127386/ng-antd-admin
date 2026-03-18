@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '@env/environment';
 import { 
   QualityInspectionPlanDto, 
   CreateUpdateQualityInspectionPlanDto, 
@@ -12,7 +13,7 @@ import {
   providedIn: 'root',
 })
 export class QualityInspectionPlanService {
-  private apiUrl = '/api/app/quality-inspection-plan';
+  private apiUrl = environment.apiUrl + '/api/app/quality-inspection-plan';
 
   constructor(private http: HttpClient) {}
 

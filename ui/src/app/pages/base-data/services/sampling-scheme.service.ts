@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '@env/environment';
 import { SamplingSchemeDto, CreateUpdateSamplingSchemeDto, GetSamplingSchemeListDto } from '../models/sampling-scheme.model';
 import { PagedResultDto } from '../models/aql-config.model';
 
@@ -8,7 +9,7 @@ import { PagedResultDto } from '../models/aql-config.model';
   providedIn: 'root',
 })
 export class SamplingSchemeService {
-  private apiUrl = '/api/sampling-schemes';
+  private apiUrl = environment.apiUrl + '/api/sampling-schemes';
 
   constructor(private http: HttpClient) {}
 

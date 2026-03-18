@@ -79,13 +79,12 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
 
   params: { mode: 'view' | 'edit' | 'create' | 'inspect'; id?: string } = { mode: 'create' };
 
-  loading = false;
+  isLoading = false;
   viewingOrder?: IqcInspectionOrderDto;
   createForm!: FormGroup;
   isEdit = false;
   isViewMode = false;
   isInspectMode = false;
-  inspectLoading = false;
   selectedPlan?: QualityInspectionPlanDto;
   planStepGroups: { stepCode: string; stepName: string; indicators: any[] }[] = [];
   selectedMaterial?: MaterialDto;
@@ -116,7 +115,8 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
     { label: '待判定', value: 0, color: 'default' },
     { label: '合格', value: InspectionResult.Accepted, color: 'success' },
     { label: '不合格', value: InspectionResult.Rejected, color: 'error' },
-    { label: '特采', value: InspectionResult.Concession, color: 'warning' }
+    { label: '特采', value: InspectionResult.Concession, color: 'warning' },
+    { label: '挑选', value: InspectionResult.Sorting, color: 'processing' }
   ];
 
   ngOnInit(): void {
@@ -125,6 +125,10 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
     this.isViewMode = this.params.mode === 'view';
     this.isEdit = this.params.mode === 'edit';
     this.isInspectMode = this.params.mode === 'inspect';
+    
+    if (this.params.mode === 'view' || this.params.mode === 'edit' || this.params.mode === 'inspect') {
+      this.isLoading = true;
+    }
     
     forkJoin([
       this.samplingSchemeService.getList({ isEnabled: true, maxResultCount: 1000 }),
@@ -137,6 +141,7 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
         if ((this.params.mode === 'view' || this.params.mode === 'edit' || this.params.mode === 'inspect') && this.params.id) {
           this.loadInspection(this.params.id);
         } else {
+          this.isLoading = false;
           this.resetForm();
         }
         
@@ -144,6 +149,7 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: () => {
+        this.isLoading = false;
         this.messageService.error('加载数据失败');
       }
     });
@@ -177,11 +183,6 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
   }
 
   loadInspection(id: string): void {
-    if (this.isInspectMode) {
-      this.inspectLoading = true;
-    } else {
-      this.loading = true;
-    }
     this.cdr.markForCheck();
     this.iqcInspectionService.get(id).subscribe({
       next: (detail) => {
@@ -243,19 +244,11 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
           
         }
 
-        if (this.isInspectMode) {
-          this.inspectLoading = false;
-        } else {
-          this.loading = false;
-        }
+        this.isLoading = false;
         this.cdr.markForCheck();
       },
       error: () => {
-        if (this.isInspectMode) {
-          this.inspectLoading = false;
-        } else {
-          this.loading = false;
-        }
+        this.isLoading = false;
         this.messageService.error('加载检验单失败');
         this.cdr.markForCheck();
       }
@@ -801,11 +794,34 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       this.iqcInspectionService.evaluateRule(record.originalRulesJson, record.actualValue).subscribe({
         next: (results) => {
           if (results && results.length > 0) {
-            const allPassed = results.every((r: any) => (r.isPassed || r.IsPassed) && r.JudgmentResult ==="不合格");
-            record.judgment = allPassed ? 2 : 1;
+            //const allPassed = results.every((r: any) => (r.isPassed || r.IsPassed) && r.JudgmentResult ==="不合格");
+            const allPassed = results.some((r: any) => {
+    // 兼容大小写字段，强制转布尔
+    const isPassed = !!r.isPassed || !!r.IsPassed;
+    // 兼容大小写字段 + 去空格 + 转字符串
+    const judgmentResult = String(r.JudgmentResult || r.judgmentResult || '').trim();
+    // 条件：通过 并且 是不合格/NG
+    return isPassed && (judgmentResult === "不合格" || judgmentResult === "NG");
+});
+            if(allPassed)record.judgment = ItemJudgment.NG;// 有一个条件触发不合格 就不合格
+            else //
+            {
+                const okPassed = results.some((r: any) => {
+                  // 统一取 isPassed（兼容大小写、空值）
+                  const isPassed = !!r.isPassed || !!r.IsPassed;
+                  // 统一取结果（兼容大小写、空值、去空格、转字符串）
+                  const judgmentResult = String(r.JudgmentResult || r.judgmentResult || '').trim();
+                  // 核心条件：必须全部满足
+                  return isPassed && (judgmentResult === '合格' || judgmentResult === 'OK');
+                });
+                if(okPassed)record.judgment = ItemJudgment.OK;// 有一个条件触发合格 就合格
+                else record.judgment = ItemJudgment.Pending;//带判定
+            }
+            
             record.ruleEvaluationResultJson = JSON.stringify(results);
           }
           //this.saveRecord(record); 先不保存
+            this.cdr.markForCheck();
         },
         error: () => {
           this.messageService.error('规则评估失败');
@@ -818,6 +834,11 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
 
   saveRecord(record: any): void {
     if (!this.viewingOrder?.id) {
+      return;
+    }
+
+    if (record.judgment === 2 && !record.defectDescription) {
+      this.messageService.error('判定为不合格时，缺陷描述不能为空');
       return;
     }
 

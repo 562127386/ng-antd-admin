@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '@env/environment';
 import { ProcessDto, CreateUpdateProcessDto, GetProcessListDto } from '../models/process.model';
 import { PagedResultDto } from '../models/defect.model';
 
@@ -8,7 +9,7 @@ import { PagedResultDto } from '../models/defect.model';
   providedIn: 'root',
 })
 export class ProcessService {
-  private apiUrl = '/api/processes';
+  private apiUrl = environment.apiUrl + '/api/processes';
 
   constructor(private http: HttpClient) {}
 

@@ -115,11 +115,14 @@ export class QualityIndicatorsComponent implements OnInit {
   ];
 
   inspectionTypes = [
-    { label: '外观检验', value: '外观检验' },
-    { label: '尺寸检验', value: '尺寸检验' },
-    { label: '功能检验', value: '功能检验' },
-    { label: '性能检验', value: '性能检验' },
-    { label: '可靠性检验', value: '可靠性检验' }
+     { label: '计数', value: '计数' },
+     { label: '计量', value: '计量' }
+
+    // { label: '外观检验', value: '外观检验' },
+    // { label: '尺寸检验', value: '尺寸检验' },
+    // { label: '功能检验', value: '功能检验' },
+    // { label: '性能检验', value: '性能检验' },
+    // { label: '可靠性检验', value: '可靠性检验' }
   ];
 
   ngOnInit(): void {

@@ -105,7 +105,8 @@ export class NonConformingsComponent implements OnInit {
     { label: '待判定', value: 0 },
     { label: '合格', value: InspectionResult.Accepted },
     { label: '不合格', value: InspectionResult.Rejected },
-    { label: '特采', value: InspectionResult.Concession }
+    { label: '特采', value: InspectionResult.Concession },
+    { label: '挑选', value: InspectionResult.Sorting, color: 'processing' }
   ];
 
   ngOnInit(): void {

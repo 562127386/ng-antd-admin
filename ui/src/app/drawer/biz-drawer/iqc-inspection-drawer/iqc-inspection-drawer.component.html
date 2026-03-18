@@ -1,6 +1,11 @@
 <div class="drawer-content">
+  <!-- 加载中状态 -->
+  <div *ngIf="isLoading" style="display: flex; justify-content: center; align-items: center; height: 100%; min-height: 200px;">
+    <nz-spin nzTip="加载中..."></nz-spin>
+  </div>
+
   <!-- 创建/编辑模式 -->
-  <form *ngIf="!isViewMode && !isInspectMode && createForm" nz-form [formGroup]="createForm">
+  <form *ngIf="!isLoading && !isViewMode && !isInspectMode && createForm" nz-form [formGroup]="createForm">
     <div nz-row [nzGutter]="16">
       <div nz-col nzSpan="12">
         <nz-form-item>
@@ -227,10 +232,20 @@
               <td>{{ indicator.unit }}</td> 
 
               <td>
-                <app-judgment-rules-display 
+                <!-- <app-judgment-rules-display 
                   [rules]="indicator.rules || []"
                   [expanded]="false">
-                </app-judgment-rules-display>
+                </app-judgment-rules-display> 
+                
+                规则名称：{{ rule.name }} -->
+
+
+                <div *ngFor="let rule of indicator.rules ">
+          <nz-tag  [nzColor]="(rule.judgmentResult === 'OK') ? 'success' : 'error'" nzMode="default">
+             判定表达式：{{rule.conditionExpression}} 时，判定结果为：{{rule.judgmentResult}}
+            </nz-tag> 
+          </div>
+
               </td>
             </tr>
           </tbody>
@@ -297,13 +312,8 @@
   </div>
  -->
 
-  <!-- 加载中状态 -->
-  <div *ngIf="!isViewMode && !isInspectMode && !createForm" style="padding: 40px; text-align: center;">
-    <nz-spin nzTip="加载中..."></nz-spin>
-  </div>
-
   <!-- 视图模式 -->
-  <div *ngIf="isViewMode && !isInspectMode && viewingOrder">
+  <div *ngIf="!isLoading && isViewMode && !isInspectMode && viewingOrder">
     <nz-descriptions [nzColumn]="2" nzBordered>
       <nz-descriptions-item nzTitle="单号">{{ viewingOrder.orderNo }}</nz-descriptions-item>
       <nz-descriptions-item nzTitle="批次号">{{ viewingOrder.batchNo }}</nz-descriptions-item>
@@ -395,6 +405,12 @@
                     [rules]="parseRuleEvaluationResult(record.ruleEvaluationResultJson??record.originalRulesJson)"
                     [expanded]="false">
                   </app-judgment-rules-display>
+
+
+                   
+
+
+
                 </td>
                 <td>
                   <nz-tag [nzColor]="getJudgmentColor(record.judgment)">
@@ -470,11 +486,7 @@
   
   <!-- 检验模式 -->
   <div *ngIf="isInspectMode">
-    <div *ngIf="inspectLoading" class="loading-container">
-      <nz-spin nzSize="large" [nzTip]="'加载中...'"></nz-spin>
-    </div>
-    
-    <div *ngIf="!inspectLoading && viewingOrder">
+    <div *ngIf="!isLoading && viewingOrder">
       <nz-descriptions [nzColumn]="2" nzBordered>
         <nz-descriptions-item nzTitle="单号">{{ viewingOrder.orderNo }}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="批次号">{{ viewingOrder.batchNo }}</nz-descriptions-item>
@@ -584,7 +596,11 @@
                   </nz-select>
                 </td>
                 <td>
-                  <input nz-input [(ngModel)]="record.defectDescription" placeholder="缺陷描述" style="width: 100%;" />
+                  <input nz-input 
+                         [(ngModel)]="record.defectDescription" 
+                         [placeholder]="record.judgment === 2 ? '缺陷描述（必填）' : '缺陷描述'"
+                         [style.border-color]="record.judgment === 2 && !record.defectDescription ? '#ff4d4f' : ''"
+                         style="width: 100%;" />
                 </td>
                 <td>
                   <input nz-input [(ngModel)]="record.improvementDescription" placeholder="改进说明" style="width: 100%;" />

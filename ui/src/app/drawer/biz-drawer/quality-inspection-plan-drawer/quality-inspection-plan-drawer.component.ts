@@ -350,7 +350,7 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
           unit: item.unit,
           decimalPlaces: item.decimalPlaces,
           remark: item.remark,
-          isEnabled: item.isEnabled
+          isEnabled: true //item.isEnabled
         });
         if (this.isViewMode) {
           Object.values(itemGroup.controls).forEach((control) => {

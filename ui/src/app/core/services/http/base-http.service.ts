@@ -4,7 +4,6 @@ import { Observable } from 'rxjs';
 import { filter, map, finalize } from 'rxjs/operators';
 
 import { environment } from '@env/environment';
-import { localUrl } from '@env/environment.prod';
 import { TokenKey, TokenPre } from '@config/constant';
 import { WindowService } from '@core/services/common/window.service';
 import * as qs from 'qs';
@@ -36,7 +35,7 @@ export class BaseHttpService {
   windowServe = inject(WindowService);
 
   protected constructor() {
-    this.uri = environment.production ? localUrl : '/site/api';
+    this.uri = environment.apiUrl;
   }
 
   private getAuthHeaders(): HttpHeaders {
@@ -162,13 +161,13 @@ export class BaseHttpService {
   }
 
   getUrl(path: string, config: HttpCustomConfig): string {
+    if (config.otherUrl) {
+      return path;
+    }
     if (config.isAbpApi) {
-      return path.startsWith('/') ? path : '/' + path;
+      return this.uri + path;
     }
     let reqPath = this.uri + path;
-    if (config.otherUrl) {
-      reqPath = path;
-    }
     return reqPath;
   }
 

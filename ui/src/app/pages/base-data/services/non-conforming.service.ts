@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '@env/environment';
 import { NonConformingDto, CreateUpdateNonConformingDto, GetNonConformingListDto, CompleteReviewInput, CompleteDisposalInput } from '../models/non-conforming.model';
 import { PagedResultDto } from '../models/aql-config.model';
 
@@ -8,7 +9,7 @@ import { PagedResultDto } from '../models/aql-config.model';
   providedIn: 'root',
 })
 export class NonConformingService {
-  private apiUrl = '/api/non-conformings';
+  private apiUrl = environment.apiUrl + '/api/non-conformings';
 
   constructor(private http: HttpClient) {}
 

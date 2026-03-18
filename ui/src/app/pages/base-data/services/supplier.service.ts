@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '@env/environment';
 import { SupplierDto, CreateUpdateSupplierDto, GetSupplierListDto } from '../models/supplier.model';
 import { PagedResultDto } from '../models/aql-config.model';
 
@@ -8,7 +9,7 @@ import { PagedResultDto } from '../models/aql-config.model';
   providedIn: 'root',
 })
 export class SupplierService {
-  private apiUrl = '/api/suppliers';
+  private apiUrl = environment.apiUrl + '/api/suppliers';
 
   constructor(private http: HttpClient) {}
 

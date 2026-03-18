@@ -3,6 +3,8 @@ import { Observable, of } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { map } from 'rxjs/operators';
 
+import { environment } from '@env/environment';
+
 // import { MENU_TOKEN } from '@config/menu';
 import { Menu } from '@core/services/types';
 import { BaseHttpService } from '@services/base-http.service';
@@ -30,7 +32,10 @@ export class LoginService {
   menuService = inject(MenusService);
   // private menus = inject(MENU_TOKEN);
 
-  private abpTokenUrl = '/connect/token';
+  private getTokenUrl(): string {
+    return environment.apiUrl + '/connect/token';
+  }
+
   private clientId = 'TQMS_App';
   private scope = 'TQMS';
 
@@ -46,7 +51,7 @@ export class LoginService {
       'Content-Type': 'application/x-www-form-urlencoded'
     });
 
-    return this.httpClient.post<AbpTokenResponse>(this.abpTokenUrl, body.toString(), { headers }).pipe(
+    return this.httpClient.post<AbpTokenResponse>(this.getTokenUrl(), body.toString(), { headers }).pipe(
       map(response => response.access_token)
     );
   }

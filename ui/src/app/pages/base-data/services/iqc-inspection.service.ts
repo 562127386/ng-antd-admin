@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '@env/environment';
 import { IqcInspectionOrderDto, CreateUpdateIqcInspectionOrderDto, GetIqcInspectionOrderListDto, IqcInspectionRecordDto, CreateUpdateIqcInspectionRecordDto } from '../models/iqc-inspection.model';
 import { PagedResultDto } from '../models/aql-config.model';
 import { RuleEvaluationResult } from '../components/judgment-rules-display/judgment-rules-display.component';
@@ -9,7 +10,7 @@ import { RuleEvaluationResult } from '../components/judgment-rules-display/judgm
   providedIn: 'root',
 })
 export class IqcInspectionService {
-  private apiUrl = '/api/iqc-inspections';
+  private apiUrl = environment.apiUrl + '/api/iqc-inspections';
 
   constructor(private http: HttpClient) {}
 
@@ -60,10 +61,11 @@ export class IqcInspectionService {
   }
 
   evaluateRule(rulesJson: string | null, actualValue: string | null): Observable<RuleEvaluationResult[]> {
-   let params = new HttpParams();
-  if (rulesJson) params = params.set('rulesJson', rulesJson);
-  if (actualValue) params = params.set('actualValue', actualValue);
- 
-  return this.http.post<RuleEvaluationResult[]>(`/api/app/iqc-inspection-order/evaluate-rule`, {}, { params });
+    let params = new HttpParams();
+    if (rulesJson) params = params.set('rulesJson', rulesJson);
+    if (actualValue) params = params.set('actualValue', actualValue);
+    
+    const evaluateRuleUrl = environment.apiUrl + '/api/app/iqc-inspection-order/evaluate-rule';
+    return this.http.post<RuleEvaluationResult[]>(evaluateRuleUrl, {}, { params });
   }
 }
