@@ -161,12 +161,19 @@
                     <th nzWidth="120px">指标编码</th>
                     <th nzWidth="150px">指标名称</th>
                     <th nzWidth="100px">检验方式</th>
-                    <th nzWidth="100px">标准值</th>
+                    <!-- <th nzWidth="100px">标准值</th>
                     <th nzWidth="100px">USL</th>
                     <th nzWidth="100px">LSL</th>
                     <th nzWidth="100px">UCL</th>
-                    <th nzWidth="100px">LCL</th>
+                    <th nzWidth="100px">LCL</th> -->
                     <th nzWidth="100px">排序</th>
+                    <th nzWidth="80px">指标类别</th>
+                    <th nzWidth="80px">数据类型</th>
+                    <th nzWidth="60px">单位</th>
+                    <th nzWidth="60px">小数位</th>
+                    <th nzWidth="60px">破坏性</th>
+                    <th nzWidth="60px">启用</th>
+                    <th nzWidth="100px">判定规则</th>
                     <th nzWidth="80px">操作</th>
                   </tr>
                 </thead>
@@ -180,11 +187,18 @@
                       <input nz-input formControlName="name" placeholder="请输入指标名称" />
                     </td>
                     <td>
+                      <nz-select formControlName="inspectionType" nzPlaceHolder="请选择" nzStyle="width: 100%;">
+                        <nz-option *ngFor="let option of inspectionMethodOptions" [nzLabel]="option.label" [nzValue]="option.label"></nz-option>
+                      </nz-select>
+                    </td>
+                    <!--
+                    <td>
                       <nz-select formControlName="inspectionMethod" nzPlaceHolder="请选择" nzStyle="width: 100%;">
                         <nz-option *ngFor="let option of inspectionMethodOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
                       </nz-select>
                     </td>
-                    <td>
+                    
+                     <td>
                       <nz-input-number formControlName="standardValue" [nzStep]="0.01" nzStyle="width: 100%;" (ngModelChange)="itemGroup && validateItemValues(itemGroup)"></nz-input-number>
                     </td>
                     <td>
@@ -198,9 +212,35 @@
                     </td>
                     <td>
                       <nz-input-number formControlName="lcl" [nzStep]="0.01" nzStyle="width: 100%;" (ngModelChange)="itemGroup && validateItemValues(itemGroup)"></nz-input-number>
-                    </td>
+                    </td> -->
                     <td>
                       <nz-input-number formControlName="sortOrder" nzStyle="width: 100%;"></nz-input-number>
+                    </td>
+                    <td>
+                      <input nz-input formControlName="indicatorCategory" placeholder="类别" />
+                    </td>
+                    <td>
+                      <input nz-input formControlName="dataType" placeholder="数据类型" />
+                    </td>
+                    <td>
+                      <input nz-input formControlName="unit" placeholder="单位" />
+                    </td>
+                    <td>
+                      <nz-input-number formControlName="decimalPlaces" [nzMin]="0" [nzMax]="10" nzStyle="width: 100%;"></nz-input-number>
+                    </td>
+                    <td>
+                      <nz-switch formControlName="isCritical"></nz-switch>
+                    </td>
+                    <td>
+                      <nz-switch formControlName="isEnabled"></nz-switch>
+                    </td>
+                    <td>
+                      <nz-tag [nzColor]="(getRulesFormArray(j, i)?.length || 0) > 0 ? 'success' : 'default'">
+                        {{ (getRulesFormArray(j, i)?.length || 0) }} 条
+                      </nz-tag>
+                      <button nz-button nzType="link" nzSize="small" (click)="showRuleModal(j, i)" [disabled]="isViewMode">
+                        <span nz-icon nzType="setting"></span>
+                      </button>
                     </td>
                     <td>
                       <button nz-button nzType="text" nzDanger (click)="removeItem(i, j)" [disabled]="isViewMode">
@@ -221,3 +261,76 @@
     <nz-spin nzTip="加载中..."></nz-spin>
   </div>
 </div>
+
+<!-- 判定规则模态框 -->
+<nz-modal
+  [(nzVisible)]="isRuleModalVisible"
+  nzTitle="判定规则配置"
+  [nzWidth]="800"
+  (nzOnCancel)="handleRuleModalCancel()"
+  (nzOnOk)="handleRuleModalOk()"
+  [nzOkDisabled]="ruleForm?.invalid"
+>
+  <ng-container *nzModalContent>
+    <div class="rule-modal-content">
+      <div class="rule-form-container">
+        <button nz-button nzType="primary" (click)="addNewRule()" [disabled]="isViewMode" style="margin-bottom: 16px;">
+          <span nz-icon nzType="plus"></span> 添加判定规则
+        </button>
+        
+        <nz-table
+          #ruleTable
+          [nzData]="(rulesFormArray?.controls || [])"
+          nzSize="small"
+          nzShowPagination="false"
+        >
+          <thead>
+            <tr>
+              <th nzWidth="120px">规则名称</th>
+              <th nzWidth="100px">严重等级</th>
+              <th nzWidth="80px">优先级</th>
+              <th nzWidth="150px">条件表达式</th>
+              <th nzWidth="100px">判定结果</th>
+              <th nzWidth="80px">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ruleGroup of (rulesFormArray?.controls || []); let k = index" [formGroup]="getRuleFormGroup(ruleGroup)">
+              <td>
+                <input nz-input formControlName="name" placeholder="规则名称" />
+              </td>
+              <td>
+                <nz-select formControlName="severityLevel" nzPlaceHolder="请选择" nzStyle="width: 100%;">
+                  <nz-option nzLabel="严重" nzValue="严重"></nz-option>
+                  <nz-option nzLabel="一般" nzValue="一般"></nz-option>
+                  <nz-option nzLabel="轻微" nzValue="轻微"></nz-option>
+                </nz-select>
+              </td>
+              <td>
+                <nz-input-number formControlName="priority" nzStyle="width: 100%;"></nz-input-number>
+              </td>
+              <td>
+                <input nz-input formControlName="conditionExpression" placeholder="条件表达式" />
+              </td>
+              <td>
+                <nz-select formControlName="judgmentResult" nzPlaceHolder="判定结果" style="width: 100%;">
+                  <nz-option nzLabel="合格" nzValue="OK"></nz-option>
+                  <nz-option nzLabel="不合格" nzValue="NG"></nz-option>
+                </nz-select>
+              </td>
+              <td>
+                <button nz-button nzType="text" nzDanger (click)="removeRuleFromModal(k)" [disabled]="isViewMode">
+                  <span nz-icon nzType="delete"></span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+        
+        <div *ngIf="(rulesFormArray?.length || 0) === 0" style="text-align: center; padding: 20px; color: #999;">
+          暂无判定规则，请点击"添加判定规则"按钮添加
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</nz-modal>

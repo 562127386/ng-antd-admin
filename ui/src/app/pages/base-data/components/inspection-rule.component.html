@@ -39,7 +39,11 @@
             </td>
             <td>{{ rule.priority }}</td>
             <td>{{ rule.conditionExpression }}</td>
-            <td>{{ rule.judgmentResult }}</td>
+            <td>
+              <nz-tag [nzColor]="rule.judgmentResult === 'OK' ? 'success' : 'error'">
+                {{ rule.judgmentResult === 'OK' ? '合格' : '不合格' }}
+              </nz-tag>
+            </td>
             <td>{{ rule.description }}</td>
             <td>{{ rule.executeAction }}</td>
             <td>{{ rule.remark || '-' }}</td>
@@ -109,7 +113,10 @@
             <nz-form-item>
               <nz-form-label nzRequired>判定结果</nz-form-label>
               <nz-form-control>
-                <input nz-input formControlName="judgmentResult" placeholder="请输入判定结果" />
+                <nz-select formControlName="judgmentResult" nzPlaceHolder="请选择判定结果">
+                  <nz-option nzLabel="合格" nzValue="OK"></nz-option>
+                  <nz-option nzLabel="不合格" nzValue="NG"></nz-option>
+                </nz-select>
               </nz-form-control>
             </nz-form-item>
           </div>
@@ -142,7 +149,13 @@
             <nz-form-item>
               <nz-form-label nzRequired>执行动作</nz-form-label>
               <nz-form-control>
-                <input nz-input formControlName="executeAction" placeholder="请输入执行动作" />
+                <nz-select formControlName="executeAction" nzPlaceHolder="请选择执行动作">
+                  <nz-option nzLabel="拍照" nzValue="拍照"></nz-option>
+                  <nz-option nzLabel="短信" nzValue="短信"></nz-option>
+                  <nz-option nzLabel="邮件" nzValue="邮件"></nz-option>
+                  <nz-option nzLabel="钉钉" nzValue="钉钉"></nz-option>
+                  <nz-option nzLabel="企业微信" nzValue="企业微信"></nz-option>
+                </nz-select>
               </nz-form-control>
             </nz-form-item>
           </div>

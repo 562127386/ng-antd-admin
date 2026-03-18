@@ -19,6 +19,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 import { Observable, of, forkJoin } from 'rxjs';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 
@@ -58,6 +59,7 @@ import { QualityIndicatorSelectorService } from '@app/components/quality-indicat
     NzGridModule,
     NzSwitchModule,
     NzCollapseModule,
+    NzTagModule,
     SamplingSchemeConfigComponent
   ],
   templateUrl: './quality-inspection-plan-drawer.component.html',
@@ -76,6 +78,12 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
 
   loading = false;
   currentStepIndex: number = -1;
+  currentItemIndex: number = -1;
+  
+  // 判定规则模态框相关
+  isRuleModalVisible = false;
+  rulesFormArray?: FormArray;
+  ruleForm!: FormGroup;
 
   createForm!: FormGroup;
   isEdit = false;
@@ -150,6 +158,7 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
 
   createStepFormGroup(): FormGroup {
     return this.fb.group({
+      id: [''],
       code: ['', [Validators.required]],
       name: ['', [Validators.required]],
       sortOrder: [0, [Validators.required]],
@@ -162,22 +171,109 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
   createItemFormGroup(): FormGroup {
     return this.fb.group({
       id: [''],
+      indicatorId: [null],
       code: ['', [Validators.required]],
       name: ['', [Validators.required]],
-      inspectionMethod: [null, [Validators.required]],
-      standardValue: [null],
-      usl: [null],
-      ucl: [null],
-      lcl: [null],
-      lsl: [null],
-      tool: [''],
+      // inspectionMethod: [null, [Validators.required]],
+      // standardValue: [null],
+      // usl: [null],
+      // ucl: [null],
+      // lcl: [null],
+      // lsl: [null],
+      // tool: [''],
       methodDescription: [''],
       frequency: [''],
       isCritical: [false],
       defectSeverity: [null],
       defectCode: [''],
-      sortOrder: [0, [Validators.required]]
+      sortOrder: [0, [Validators.required]],
+      // 添加QualityIndicator的其他字段
+      indicatorCategory: [''],
+      inspectionType: [''],
+      dataType: [''],
+      unit: [''],
+      decimalPlaces: [0],
+      remark: [''],
+      isEnabled: [true],
+      // 判定规则列表
+      rules: this.fb.array([])
     });
+  }
+
+  createRuleFormGroup(): FormGroup {
+    return this.fb.group({
+      id: [''],
+      originalRuleId: [''],
+      name: ['', [Validators.required]],
+      severityLevel: ['', [Validators.required]],
+      priority: [0, [Validators.required]],
+      conditionExpression: ['', [Validators.required]],
+      judgmentResult: ['', [Validators.required]],
+      description: [''],
+      executeAction: [''],
+      remark: ['']
+    });
+  }
+
+  getRulesFormArray(itemIndex: number, stepIndex: number): FormArray {
+    const stepsFormArray = this.stepsFormArray;
+    const stepGroup = stepsFormArray.at(stepIndex) as FormGroup;
+    const itemsFormArray = stepGroup.get('items') as FormArray;
+    const itemGroup = itemsFormArray.at(itemIndex) as FormGroup;
+    return itemGroup.get('rules') as FormArray;
+  }
+
+  addRule(stepIndex: number, itemIndex: number): void {
+    const rulesFormArray = this.getRulesFormArray(itemIndex, stepIndex);
+    const ruleGroup = this.createRuleFormGroup();
+    if (this.isViewMode) {
+      Object.values(ruleGroup.controls).forEach((control) => {
+        control.disable();
+      });
+    }
+    rulesFormArray.push(ruleGroup);
+  }
+
+  removeRule(stepIndex: number, itemIndex: number, ruleIndex: number): void {
+    const rulesFormArray = this.getRulesFormArray(itemIndex, stepIndex);
+    rulesFormArray.removeAt(ruleIndex);
+  }
+
+  // 判定规则模态框相关方法
+  showRuleModal(itemIndex: number, stepIndex: number): void {
+    this.currentItemIndex = itemIndex;
+    this.currentStepIndex = stepIndex;
+    this.rulesFormArray = this.getRulesFormArray(itemIndex, stepIndex);
+    this.isRuleModalVisible = true;
+  }
+
+  handleRuleModalCancel(): void {
+    this.isRuleModalVisible = false;
+    this.currentItemIndex = -1;
+    this.currentStepIndex = -1;
+  }
+
+  handleRuleModalOk(): void {
+    this.isRuleModalVisible = false;
+    this.currentItemIndex = -1;
+    this.currentStepIndex = -1;
+  }
+
+  addNewRule(): void {
+    if (this.rulesFormArray) {
+      const ruleGroup = this.createRuleFormGroup();
+      this.rulesFormArray.push(ruleGroup);
+    }
+  }
+
+  removeRuleFromModal(ruleIndex: number): void {
+    if (this.rulesFormArray) {
+      this.rulesFormArray.removeAt(ruleIndex);
+    }
+  }
+
+  getRuleFormGroup(ruleGroup: AbstractControl): FormGroup {
+    return ruleGroup as FormGroup;
   }
 
   addStep(): void {
@@ -220,7 +316,7 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
   showGeneralItemsModal(stepIndex: number): void {
     this.currentStepIndex = stepIndex;
     
-    this.qualityIndicatorSelectorService.openSelector().subscribe(selectedItems => {
+    this.qualityIndicatorSelectorService.openSelector().subscribe(async selectedItems => {
       if (selectedItems.length === 0) {
         return;
       }
@@ -230,23 +326,64 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
         return;
       }
 
+      for (const item of selectedItems) {
+        const rules = await this.qualityIndicatorService.getInspectionRules(item.id).toPromise();
+        item.inspectionRules = rules || [];
+      }
+
       const itemsFormArray = this.getItemsFormArray(this.currentStepIndex);
       selectedItems.forEach((item, index) => {
         const itemGroup = this.createItemFormGroup();
         itemGroup.patchValue({
-          id: item.id,
+          indicatorId: item.id,
           code: item.code,
           name: item.name,
-          inspectionMethod: 2, // 计数
-          standardValue: item.defaultValue,//标准值
+          // inspectionMethod: item.inspectionType, // 计数
+          // standardValue: item.defaultValue,//标准值
           isCritical: item.isCritical,
-          sortOrder: itemsFormArray.length + index
+          sortOrder: itemsFormArray.length + index,
+          // 添加QualityIndicator的其他字段
+          defaultValue: item.defaultValue,
+          indicatorCategory: item.indicatorCategory,
+          inspectionType: item.inspectionType,
+          dataType: item.dataType,
+          unit: item.unit,
+          decimalPlaces: item.decimalPlaces,
+          remark: item.remark,
+          isEnabled: item.isEnabled
         });
         if (this.isViewMode) {
           Object.values(itemGroup.controls).forEach((control) => {
             control.disable();
           });
         }
+        
+        // 如果选中的指标有判定规则，自动添加到rules FormArray
+        if (item.inspectionRules && item.inspectionRules.length > 0) {
+          const rulesFormArray = itemGroup.get('rules') as FormArray;
+          item.inspectionRules.forEach((rule: any) => {
+            const ruleGroup = this.createRuleFormGroup();
+            ruleGroup.patchValue({
+              //id: rule.id || '',  这个id不能把规则的id值搞过来
+              originalRuleId: rule.id || '',
+              name: rule.name,
+              severityLevel: rule.severityLevel,
+              priority: rule.priority || 0,
+              conditionExpression: rule.conditionExpression,
+              judgmentResult: rule.judgmentResult,
+              description: rule.description || '',
+              executeAction: rule.executeAction || '',
+              remark: rule.remark || ''
+            });
+            if (this.isViewMode) {
+              Object.values(ruleGroup.controls).forEach((control) => {
+                control.disable();
+              });
+            }
+            rulesFormArray.push(ruleGroup);
+          });
+        }
+        
         itemsFormArray.push(itemGroup);
       });
       this.cdr.markForCheck();
@@ -283,6 +420,17 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
               indicators.forEach((i: any) => {
                 const itemGroup = this.createItemFormGroup();
                 itemGroup.patchValue(i);
+                
+                // 加载判定规则
+                if (i.rules && i.rules.length > 0) {
+                  const rulesFormArray = itemGroup.get('rules') as FormArray;
+                  i.rules.forEach((rule: any) => {
+                    const ruleGroup = this.createRuleFormGroup();
+                    ruleGroup.patchValue(rule);
+                    rulesFormArray.push(ruleGroup);
+                  });
+                }
+                
                 itemsFormArray.push(itemGroup);
               });
             }
@@ -296,6 +444,14 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
                 const itemGroup = itemControl as FormGroup;
                 Object.values(itemGroup.controls).forEach((control) => {
                   control.disable();
+                });
+                // 禁用判定规则
+                const rulesFormArray = itemGroup.get('rules') as FormArray;
+                rulesFormArray.controls.forEach((ruleControl) => {
+                  const ruleGroup = ruleControl as FormGroup;
+                  Object.values(ruleGroup.controls).forEach((control) => {
+                    control.disable();
+                  });
                 });
               });
             }
@@ -325,6 +481,7 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
   }
 
   validateItemValues(itemGroup: any): void {
+    return;//目前不校验 这些字段都被规则表达式替换   这个地方可以增加规则表达式校验20260314
     const group = itemGroup as FormGroup;
     const standardValue = group.get('standardValue')?.value;
     const usl = group.get('usl')?.value;
@@ -460,9 +617,17 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
     const input: CreateUpdateQualityInspectionPlanDto = {
       ...formValue,
       steps: formValue.steps?.map((step: any) => ({
-        ...step,
+        id: step.id,
+        code: step.code,
+        name: step.name,
+        sortOrder: step.sortOrder,
+        isEnabled: step.isEnabled,
+        remark: step.remark,
         indicatorIds: step.items?.map((item: any) => item.id) || [],
-        items: step.items //指标会备份一份到检验项目  质检时最终还是按照检验项目检验
+        items: step.items?.map((item: any) => ({
+          ...item,
+          rules: item.rules || [] // 确保判定规则被传递
+        }))
       }))
     };
 

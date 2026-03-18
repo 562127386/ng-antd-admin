@@ -13,9 +13,9 @@
       <nz-descriptions-item nzTitle="批量">{{ viewingOrder.lotSize }}</nz-descriptions-item>
       <nz-descriptions-item nzTitle="到货日期">{{ viewingOrder.arrivalDate | date:'yyyy-MM-dd' }}</nz-descriptions-item>
       <nz-descriptions-item nzTitle="采购单号">{{ viewingOrder.purchaseOrderNo || '-' }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="检验标准">
-        <nz-tag nzColor="blue" *ngIf="selectedStandard">{{ selectedStandard.code }} v{{ selectedStandard.version }}</nz-tag>
-        <span *ngIf="!selectedStandard">-</span>
+      <nz-descriptions-item nzTitle="检验方案">
+        <nz-tag nzColor="blue" *ngIf="selectedPlan || viewingOrder?.qualityInspectionPlanName">{{ viewingOrder?.qualityInspectionPlanName || (selectedPlan?.code + ' v' + selectedPlan?.version) }}</nz-tag>
+        <span *ngIf="!selectedPlan && !viewingOrder?.qualityInspectionPlanName">-</span>
       </nz-descriptions-item>
       <nz-descriptions-item nzTitle="抽样方案">
         <span *ngIf="viewingOrder.samplingSchemeId">{{ getSamplingSchemeName(viewingOrder.samplingSchemeId) }}</span>
@@ -175,18 +175,18 @@
       </div>
       <div nz-col nzSpan="12">
         <nz-form-item>
-          <nz-form-label>检验标准</nz-form-label>
+          <nz-form-label>检验方案</nz-form-label>
           <nz-form-control>
-            <div class="standard-selector" *ngIf="!selectedStandard; else selectedStandardDisplay">
-              <button nz-button (click)="openStandardSelector()" style="width: 100%;">
+            <div class="plan-selector" *ngIf="!selectedPlan; else selectedPlanDisplay">
+              <button nz-button (click)="openPlanSelector()" style="width: 100%;">
                 <span nz-icon nzType="search"></span>
-                选择检验标准
+                选择检验方案
               </button>
             </div>
-            <ng-template #selectedStandardDisplay>
-              <div class="selected-standard">
-                <nz-tag nzColor="blue">{{ selectedStandard?.code || '已选择' }} v{{ selectedStandard?.version || '1.0' }}</nz-tag>
-                <button nz-button nzType="text" nzDanger (click)="clearStandard()">
+            <ng-template #selectedPlanDisplay>
+              <div class="selected-plan">
+                <nz-tag nzColor="blue">{{ selectedPlan?.code || '已选择' }} v{{ selectedPlan?.version || '1.0' }}</nz-tag>
+                <button nz-button nzType="text" nzDanger (click)="clearPlan()">
                   <span nz-icon nzType="close"></span>
                 </button>
               </div>
@@ -221,11 +221,11 @@
   <button *ngIf="!isViewMode" nz-button nzType="primary" (click)="handleOk()" style="margin-left: 8px;">确定</button>
 </div>
 
-<app-inspection-standard-selector
-  [(visible)]="isStandardSelectorVisible"
+<app-quality-inspection-plan-selector
+  [(visible)]="isPlanSelectorVisible"
   [inspectionType]="1"
-  (selected)="onStandardSelected($event)">
-</app-inspection-standard-selector>
+  (selected)="onPlanSelected($event)">
+</app-quality-inspection-plan-selector>
 
 <app-material-selector
   [(visible)]="isMaterialSelectorVisible"

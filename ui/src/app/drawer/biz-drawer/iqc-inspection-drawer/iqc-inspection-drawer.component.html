@@ -1,201 +1,6 @@
 <div class="drawer-content">
-  
-  <div *ngIf="isViewMode && viewingOrder">
-    <nz-descriptions [nzColumn]="2" nzBordered>
-      <nz-descriptions-item nzTitle="单号">{{ viewingOrder.orderNo }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="批次号">{{ viewingOrder.batchNo }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="物料">
-        <nz-tag nzColor="blue">{{ viewingOrder.materialCode }} {{ viewingOrder.materialName }}</nz-tag>
-      </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="供应商">
-        <nz-tag nzColor="blue">{{ viewingOrder.supplierName }}</nz-tag>
-      </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="批量">{{ viewingOrder.lotSize }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="到货日期">{{ viewingOrder.arrivalDate | date:'yyyy-MM-dd' }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="采购单号">{{ viewingOrder.purchaseOrderNo || '-' }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="检验标准">
-        <nz-tag nzColor="blue" *ngIf="selectedStandard">{{ selectedStandard.code }} v{{ selectedStandard.version }}</nz-tag>
-        <span *ngIf="!selectedStandard">-</span>
-      </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="抽样方案">
-        <span *ngIf="viewingOrder.samplingSchemeId">{{ getSamplingSchemeName(viewingOrder.samplingSchemeId) }}</span>
-        <span *ngIf="!viewingOrder.samplingSchemeId">-</span>
-      </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="状态">
-        <nz-tag [nzColor]="getStatusColor(viewingOrder.status)">{{ getStatusText(viewingOrder.status) }}</nz-tag>
-      </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="检验结果" [nzSpan]="2">
-        <nz-tag [nzColor]="getResultColor(viewingOrder.result)" *ngIf="viewingOrder.result !== null && viewingOrder.result !== undefined">{{ getResultText(viewingOrder.result) }}</nz-tag>
-        <span *ngIf="viewingOrder.result === null || viewingOrder.result === undefined">-</span>
-      </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="备注" [nzSpan]="2">{{ viewingOrder.remark || '-' }}</nz-descriptions-item>
-    </nz-descriptions>
-    
-    <div *ngIf="viewingOrder.records && viewingOrder.records.length > 0" style="margin-top: 24px;">
-      <nz-divider nzText="检验记录"></nz-divider>
-      <nz-table
-        #viewRecordTable
-        [nzData]="viewingOrder.records || []"
-        nzSize="small"
-        [nzScroll]="{ y: '300px' }"
-        [nzPageSize]="100"
-        [nzFrontPagination]="false"
-      >
-        <thead>
-          <tr>
-            <th>检验项目</th>
-            <th>标准值</th>
-            <th>USL</th>
-            <th>UCL</th>
-            <th>LCL</th>
-            <th>LSL</th>
-            <th>实际值</th>
-            <th>判定</th>
-            <th>缺陷描述</th>
-            <th>改进情况说明</th>
-            <th>备注</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let record of viewRecordTable.data">
-            <td>{{ record.itemCode }} {{ record.itemName }}</td>
-            <td>{{ record.standardValue || '-' }}</td>
-            <td>{{ record.usl || '-' }}</td>
-            <td>{{ record.ucl || '-' }}</td>
-            <td>{{ record.lcl || '-' }}</td>
-            <td>{{ record.lsl || '-' }}</td>
-            <td>
-              <nz-tag [nzColor]="getJudgmentColor(record.judgment)">
-                {{ record.actualValue || '-' }}
-              </nz-tag>
-            </td>
-            <td>
-              <nz-tag [nzColor]="getJudgmentColor(record.judgment)">
-                {{ getJudgmentText(record.judgment) }}
-              </nz-tag>
-            </td>
-            <td>{{ record.defectDescription || '-' }}</td>
-            <td>{{ record.improvementDescription || '-' }}</td>
-            <td>{{ record.remark || '-' }}</td>
-          </tr>
-        </tbody>
-      </nz-table>
-    </div>
-  </div>
-  
-  <div *ngIf="isInspectMode">
-    <div *ngIf="inspectLoading" class="loading-container">
-      <nz-spin nzSize="large" [nzTip]="'加载中...'"></nz-spin>
-    </div>
-    
-    <div *ngIf="!inspectLoading && viewingOrder">
-      <nz-descriptions [nzColumn]="2" nzBordered>
-      <nz-descriptions-item nzTitle="单号">{{ viewingOrder.orderNo }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="批次号">{{ viewingOrder.batchNo }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="物料">
-        <nz-tag nzColor="blue">{{ viewingOrder.materialCode }} {{ viewingOrder.materialName }}</nz-tag>
-      </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="供应商">
-        <nz-tag nzColor="blue">{{ viewingOrder.supplierName }}</nz-tag>
-      </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="批量">{{ viewingOrder.lotSize }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="到货日期">{{ viewingOrder.arrivalDate | date:'yyyy-MM-dd' }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="采购单号">{{ viewingOrder.purchaseOrderNo || '-' }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="检验标准">
-        <nz-tag nzColor="blue" *ngIf="selectedStandard">{{ selectedStandard.code }} v{{ selectedStandard.version }}</nz-tag>
-        <span *ngIf="!selectedStandard">-</span>
-      </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="抽样方案">
-        <span *ngIf="viewingOrder.samplingSchemeId">{{ getSamplingSchemeName(viewingOrder.samplingSchemeId) }}</span>
-        <span *ngIf="!viewingOrder.samplingSchemeId">-</span>
-      </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="状态">
-        <nz-tag [nzColor]="getStatusColor(viewingOrder.status)">{{ getStatusText(viewingOrder.status) }}</nz-tag>
-      </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="备注" [nzSpan]="2">{{ viewingOrder.remark || '-' }}</nz-descriptions-item>
-    </nz-descriptions>
-    
-    <div *ngIf="viewingOrder.records && viewingOrder.records.length > 0" style="margin-top: 24px;">
-      <nz-divider nzText="检验记录"></nz-divider>
-      <nz-table
-        #inspectRecordTable
-        [nzData]="viewingOrder.records || []"
-        nzSize="small"
-        [nzScroll]="{ y: '400px' }"
-        [nzPageSize]="100"
-        [nzFrontPagination]="false"
-      >
-        <thead>
-          <tr>
-            <th>检验项目</th>
-            <th>标准值</th>
-            <th>USL</th>
-            <th>UCL</th>
-            <th>LCL</th>
-            <th>LSL</th>
-            <th>实际值</th>
-            <th>判定</th>
-            <th>缺陷描述</th>
-            <th>改进情况说明</th>
-            <th>备注</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let record of inspectRecordTable.data" 
-              [ngClass]="{'row-warning': record.judgment === 2, 'row-success': record.judgment === 1}">
-            <td>{{ record.itemCode }} {{ record.itemName }}</td>
-            <td [ngClass]="{'highlight-cell': record.standardValue}">{{ record.standardValue || '-' }}</td>
-            <td [ngClass]="{'highlight-cell': record.usl}">{{ record.usl || '-' }}</td>
-            <td [ngClass]="{'highlight-cell': record.ucl}">{{ record.ucl || '-' }}</td>
-            <td [ngClass]="{'highlight-cell': record.lcl}">{{ record.lcl || '-' }}</td>
-            <td [ngClass]="{'highlight-cell': record.lsl}">{{ record.lsl || '-' }}</td>
-            <td>
-              <input nz-input 
-                     [(ngModel)]="record.actualValue" 
-                     (input)="onActualValueChange(record)"
-                     (blur)="autoJudge(record)"
-                     placeholder="请输入实际值" 
-                     style="width: 100%;"
-                     [ngClass]="{'input-error': isValueOutOfRange(record), 'input-success': isValueInRange(record)}" />
-              <div *ngIf="record.actualValue && isValueOutOfRange(record)" style="color: #ff4d4f; font-size: 12px; margin-top: 4px;">
-                <span nz-icon nzType="warning"></span>
-                超出规格范围
-              </div>
-              <div *ngIf="record.actualValue && isValueInRange(record) && record.judgment !== 2" style="color: #52c41a; font-size: 12px; margin-top: 4px;">
-                <span nz-icon nzType="check-circle"></span>
-                在规格范围内
-              </div>
-            </td>
-            <td>
-              <nz-select [(ngModel)]="record.judgment" 
-                         style="width: 100%;"
-                         (ngModelChange)="onJudgmentChange(record)">
-                <nz-option [nzLabel]="'待判定'" [nzValue]="0"></nz-option>
-                <nz-option [nzLabel]="'合格'" [nzValue]="1"></nz-option>
-                <nz-option [nzLabel]="'不合格'" [nzValue]="2"></nz-option>
-              </nz-select>
-            </td>
-            <td>
-              <input nz-input [(ngModel)]="record.defectDescription" placeholder="缺陷描述" style="width: 100%;" />
-            </td>
-            <td>
-              <input nz-input [(ngModel)]="record.improvementDescription" placeholder="改进说明" style="width: 100%;" />
-            </td>
-            <td>
-              <input nz-input [(ngModel)]="record.remark" placeholder="备注" style="width: 100%;" />
-            </td>
-            <td>
-              <button nz-button nzType="primary" nzSize="small" (click)="saveRecord(record)">保存</button>
-            </td>
-          </tr>
-        </tbody>
-      </nz-table>
-    </div>
-    </div>
-  </div>
-  
-  <form *ngIf="!isViewMode && !isInspectMode" nz-form [formGroup]="createForm">
+  <!-- 创建/编辑模式 -->
+  <form *ngIf="!isViewMode && !isInspectMode && createForm" nz-form [formGroup]="createForm">
     <div nz-row [nzGutter]="16">
       <div nz-col nzSpan="12">
         <nz-form-item>
@@ -259,25 +64,23 @@
       </div>
     </div>
     <div nz-row [nzGutter]="16">
-      <div nz-col nzSpan="12">
+      <div nz-col nzSpan="8">
         <nz-form-item>
           <nz-form-label nzRequired>批量</nz-form-label>
           <nz-form-control>
-            <nz-input-number formControlName="lotSize" [nzMin]="1" nzPlaceHolder="请输入批量" style="width: 100%;"></nz-input-number>
+            <nz-input-number formControlName="lotSize" [nzMin]="1" style="width: 100%;"></nz-input-number>
           </nz-form-control>
         </nz-form-item>
       </div>
-      <div nz-col nzSpan="12">
+      <div nz-col nzSpan="8">
         <nz-form-item>
           <nz-form-label nzRequired>到货日期</nz-form-label>
           <nz-form-control>
-            <nz-date-picker formControlName="arrivalDate" style="width: 100%;"></nz-date-picker>
+            <nz-date-picker formControlName="arrivalDate" style="width: 100%;" placeholder="请选择到货日期"></nz-date-picker>
           </nz-form-control>
         </nz-form-item>
       </div>
-    </div>
-    <div nz-row [nzGutter]="16">
-      <div nz-col nzSpan="12">
+      <div nz-col nzSpan="8">
         <nz-form-item>
           <nz-form-label>采购单号</nz-form-label>
           <nz-form-control>
@@ -285,20 +88,22 @@
           </nz-form-control>
         </nz-form-item>
       </div>
+    </div>
+    <div nz-row [nzGutter]="16">
       <div nz-col nzSpan="12">
         <nz-form-item>
-          <nz-form-label>检验标准</nz-form-label>
+          <nz-form-label>检验方案</nz-form-label>
           <nz-form-control>
-            <div class="standard-selector" *ngIf="!selectedStandard; else selectedStandardDisplay">
-              <button nz-button (click)="openStandardSelector()" style="width: 100%;">
+            <div class="plan-selector" *ngIf="!selectedPlan; else selectedPlanDisplay">
+              <button nz-button (click)="openPlanSelector()" style="width: 100%;">
                 <span nz-icon nzType="search"></span>
-                选择检验标准
+                选择检验方案
               </button>
             </div>
-            <ng-template #selectedStandardDisplay>
-              <div class="selected-standard">
-                <nz-tag nzColor="blue">{{ selectedStandard?.code || '已选择' }} v{{ selectedStandard?.version || '1.0' }}</nz-tag>
-                <button nz-button nzType="text" nzDanger (click)="clearStandard()">
+            <ng-template #selectedPlanDisplay>
+              <div class="selected-plan">
+                <nz-tag nzColor="blue">{{ selectedPlan?.code || '已选择' }} v{{ selectedPlan?.version || '1.0' }}</nz-tag>
+                <button nz-button nzType="text" nzDanger (click)="clearPlan()">
                   <span nz-icon nzType="close"></span>
                 </button>
               </div>
@@ -306,120 +111,19 @@
           </nz-form-control>
         </nz-form-item>
       </div>
-    </div>
-    <div nz-row [nzGutter]="16">
       <div nz-col nzSpan="12">
         <nz-form-item>
           <nz-form-label>抽样方案</nz-form-label>
           <nz-form-control>
-            <nz-select formControlName="samplingSchemeId" nzPlaceHolder="请选择抽样方案" [nzAllowClear]="true" style="width: 100%;">
+            <nz-select formControlName="samplingSchemeId" nzPlaceHolder="请选择抽样方案" style="width: 100%;">
               <nz-option *ngFor="let scheme of samplingSchemes" [nzLabel]="scheme.name" [nzValue]="scheme.id"></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
       </div>
     </div>
-    
-    <div *ngIf="selectedSamplingScheme" style="margin-bottom: 16px;">
-      <nz-card nzSize="small" nzTitle="抽样方案详情">
-        <nz-descriptions [nzColumn]="2" nzSize="small">
-          <nz-descriptions-item nzTitle="方案类型">
-            <nz-tag nzColor="blue">
-              {{ getSchemeTypeText(selectedSamplingScheme.schemeType) }}
-            </nz-tag>
-          </nz-descriptions-item>
-          <nz-descriptions-item nzTitle="抽样数量">
-            <nz-tag nzColor="green" *ngIf="sampleSize > 0">
-              <span nz-icon nzType="check-circle"></span>
-              {{ sampleSize }} 件
-            </nz-tag>
-            <span *ngIf="sampleSize === 0" style="color: #faad14;">
-              <span nz-icon nzType="exclamation-circle"></span>
-              {{ isAqlScheme && !matchedAqlConfig ? '未找到匹配的AQL配置' : '请输入批量' }}
-            </span>
-          </nz-descriptions-item>
-          <ng-container *ngIf="matchedAqlConfig">
-            <nz-descriptions-item nzTitle="AQL值">
-              <nz-tag nzColor="cyan">{{ matchedAqlConfig.aqlValue }}</nz-tag>
-            </nz-descriptions-item>
-            <nz-descriptions-item nzTitle="样本量字码">
-              <nz-tag nzColor="purple">{{ matchedAqlConfig.sampleSizeCode }}</nz-tag>
-            </nz-descriptions-item>
-            <nz-descriptions-item nzTitle="接收数 (AC)">
-              <nz-tag nzColor="success">
-                ≤ {{ matchedAqlConfig.acceptanceNumber }}
-              </nz-tag>
-            </nz-descriptions-item>
-            <nz-descriptions-item nzTitle="拒收数 (RE)">
-              <nz-tag nzColor="error">
-                ≥ {{ matchedAqlConfig.rejectionNumber }}
-              </nz-tag>
-            </nz-descriptions-item>
-          </ng-container>
-          <ng-container *ngIf="!matchedAqlConfig">
-            <nz-descriptions-item nzTitle="接收数 (AC)" *ngIf="selectedSamplingScheme.acceptanceNumber !== null && selectedSamplingScheme.acceptanceNumber !== undefined">
-              <nz-tag nzColor="success">
-                ≤ {{ selectedSamplingScheme.acceptanceNumber }}
-              </nz-tag>
-            </nz-descriptions-item>
-            <nz-descriptions-item nzTitle="拒收数 (RE)" *ngIf="selectedSamplingScheme.rejectionNumber !== null && selectedSamplingScheme.rejectionNumber !== undefined">
-              <nz-tag nzColor="error">
-                ≥ {{ selectedSamplingScheme.rejectionNumber }}
-              </nz-tag>
-            </nz-descriptions-item>
-          </ng-container>
-          <nz-descriptions-item nzTitle="固定样本数" *ngIf="selectedSamplingScheme.fixedSampleSize">
-            {{ selectedSamplingScheme.fixedSampleSize }} 件
-          </nz-descriptions-item>
-          <nz-descriptions-item nzTitle="抽样百分比" *ngIf="selectedSamplingScheme.samplePercentage">
-            {{ selectedSamplingScheme.samplePercentage }}%
-          </nz-descriptions-item>
-        </nz-descriptions>
-        
-        <div *ngIf="isAqlScheme && !matchedAqlConfig && relatedAqlConfigs.length > 0" style="margin-top: 16px;">
-          <nz-alert nzType="warning" nzMessage="未找到匹配的AQL配置" [nzDescription]="noMatchReason"></nz-alert>
-          
-          <nz-divider nzText="可用的AQL配置"></nz-divider>
-          
-          <nz-table #aqlConfigTable [nzData]="relatedAqlConfigs" nzSize="small" [nzPageSize]="10" [nzFrontPagination]="false">
-            <thead>
-              <tr>
-                <th>样本量字码</th>
-                <th>检验水平</th>
-                <th>AQL值</th>
-                <th>最小批量</th>
-                <th>最大批量</th>
-                <th>样本量</th>
-                <th>AC</th>
-                <th>RE</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let config of aqlConfigTable.data" [ngStyle]="{'background-color': isPotentialMatch(config) ? '#fff7e6' : 'white'}">
-                <td><nz-tag nzColor="purple">{{ config.sampleSizeCode }}</nz-tag></td>
-                <td>{{ getInspectionLevelText(config.inspectionLevel) }}</td>
-                <td><nz-tag nzColor="cyan">{{ config.aqlValue }}</nz-tag></td>
-                <td>{{ config.minLotSize }}</td>
-                <td>{{ config.maxLotSize }}</td>
-                <td><nz-tag nzColor="green">{{ config.sampleSize }}</nz-tag></td>
-                <td><nz-tag nzColor="success">{{ config.acceptanceNumber }}</nz-tag></td>
-                <td><nz-tag nzColor="error">{{ config.rejectionNumber }}</nz-tag></td>
-              </tr>
-            </tbody>
-          </nz-table>
-        </div>
-        
-        <div *ngIf="selectedSamplingScheme.description" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0;">
-          <small style="color: #666;">说明: {{ selectedSamplingScheme.description }}</small>
-        </div>
-      </nz-card>
-    </div>
-    
-    <nz-alert *ngIf="selectedSamplingScheme && sampleSize > 0 && createForm.get('lotSize')?.value" 
-              nzType="info" 
-              [nzMessage]="'批量 ' + createForm.get('lotSize')?.value + ' 件 → 需抽样 ' + sampleSize + ' 件'"
-              style="margin-bottom: 16px;">
-    </nz-alert>
+
+ 
     
     <nz-form-item>
       <nz-form-label>备注</nz-form-label>
@@ -427,14 +131,487 @@
         <textarea nz-input formControlName="remark" placeholder="请输入备注" nzAutosize></textarea>
       </nz-form-control>
     </nz-form-item>
+
+
+    <nz-card *ngIf="selectedSamplingScheme" nzTitle="抽样信息" style="margin-top: 16px;">
+      <div *ngIf="matchedAqlConfig" style="margin-bottom: 12px;">
+        <nz-alert nzType="success" [nzMessage]="'匹配抽样方案: ' + matchedAqlConfig.sampleSizeCode + ' (IL: ' + getInspectionLevelText(matchedAqlConfig.inspectionLevel) + ', AQL: ' + matchedAqlConfig.aqlValue + ')'"></nz-alert>
+      </div>
+      <div *ngIf="!matchedAqlConfig && relatedAqlConfigs.length > 0">
+        <nz-alert nzType="warning" nzMessage="以下抽样方案适用于当前批量" style="margin-bottom: 12px;"></nz-alert>
+        <nz-table #configTable [nzData]="relatedAqlConfigs" nzSize="small" [nzShowPagination]="false">
+          <thead>
+            <tr>
+              <th>抽样代码</th>
+              <th>检验水平</th>
+              <th>AQL</th>
+              <th>批量范围</th>
+              <th>抽样数</th>
+              <th>接收数</th>
+              <th>拒收数</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let config of configTable.data">
+              <td><nz-tag nzColor="purple">{{ config.sampleSizeCode }}</nz-tag></td>
+              <td>{{ getInspectionLevelText(config.inspectionLevel) }}</td>
+              <td><nz-tag nzColor="cyan">{{ config.aqlValue }}</nz-tag></td>
+              <td>{{ config.minLotSize }} - {{ config.maxLotSize }}</td>
+              <td><nz-tag nzColor="green">{{ config.sampleSize }}</nz-tag></td>
+              <td><nz-tag nzColor="success">{{ config.acceptanceNumber }}</nz-tag></td>
+              <td><nz-tag nzColor="error">{{ config.rejectionNumber }}</nz-tag></td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </div>
+      <div *ngIf="selectedSamplingScheme.description" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0;">
+        <small style="color: #666;">说明: {{ selectedSamplingScheme.description }}</small>
+      </div>
+    </nz-card>
+ 
+    <nz-alert *ngIf="selectedSamplingScheme && sampleSize > 0 && createForm.get('lotSize')?.value" 
+              nzType="info" 
+              [nzMessage]="'批量 ' + createForm.get('lotSize')?.value + ' 件 → 需抽样 ' + sampleSize + ' 件'"
+              style="margin-bottom: 16px;">
+    </nz-alert>
+
+
+<nz-card *ngIf="planStepGroups.length > 0" nzTitle="检验信息" style="margin-top: 16px;">
+    <nz-collapse *ngIf=" planStepGroups.length > 0" [nzExpandIconPosition]="'end'" style="margin-top: 16px;">
+      <nz-collapse-panel 
+        *ngFor="let group of planStepGroups; let i = index"
+        [nzHeader]="planStepHeaderTpl"
+        [nzExtra]="planStepExtraTpl"
+        [nzActive]="true">
+        <ng-template #planStepHeaderTpl>
+          <span style="font-weight: 500;">
+            步骤 {{ i + 1 }} - {{ group.stepName }} ({{ group.indicators.length }}项)
+          </span>
+        </ng-template>
+        <ng-template #planStepExtraTpl>
+          <nz-tag nzColor="geekblue">{{ group.stepCode }}</nz-tag>
+        </ng-template>
+        
+        <nz-table
+          #planIndicatorTable
+          [nzData]="group.indicators"
+          nzSize="small"
+          [nzFrontPagination]="false"
+          [nzShowPagination]="false"
+        >
+          <thead>
+            <tr>
+              <th>检验项目编号</th>
+              <th>检验项目名称</th>
+              <!-- <th>标准值</th>
+              <th>USL</th>
+              <th>LSL</th> -->
+               <th nzWidth="100px">检验方式</th>
+               <th nzWidth="80px">指标类别</th>
+                    <th nzWidth="80px">数据类型</th>
+                    <th nzWidth="60px">单位</th>
+              <th>判定规则</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let indicator of planIndicatorTable.data">
+              <td>{{ indicator.code }}</td>
+              <td>{{ indicator.name }}</td>
+              <!-- <td>{{ indicator.defaultValue || '-' }}</td>
+              <td>{{ indicator.usl || '-' }}</td>
+              <td>{{ indicator.lsl || '-' }}</td> -->
+
+              <td>{{ indicator.inspectionType }}</td>
+              <td>{{ indicator.indicatorCategory }}</td>
+              <td>{{ indicator.dataType }}</td>
+              <td>{{ indicator.unit }}</td> 
+
+              <td>
+                <app-judgment-rules-display 
+                  [rules]="indicator.rules || []"
+                  [expanded]="false">
+                </app-judgment-rules-display>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </nz-collapse-panel>
+    </nz-collapse>
+</nz-card>
+
   </form>
+
+  <!-- 步骤分组检验项目（新建模式）
+  <div *ngIf="!isViewMode && !isInspectMode && !isEdit && planStepGroups.length > 0" style="margin-top: 16px;">
+    <nz-divider nzText="检验项目"></nz-divider>
+    <nz-collapse [nzExpandIconPosition]="'end'">
+      <nz-collapse-panel 
+        *ngFor="let group of planStepGroups; let i = index"
+        [nzHeader]="planStepHeaderTpl"
+        [nzExtra]="planStepExtraTpl"
+        [nzActive]="true">
+        <ng-template #planStepHeaderTpl>
+          <span style="font-weight: 500;">
+            步骤 {{ i + 1 }} - {{ group.stepName }} ({{ group.indicators.length }}项)
+          </span>
+        </ng-template>
+        <ng-template #planStepExtraTpl>
+          <nz-tag nzColor="geekblue">{{ group.stepCode }}</nz-tag>
+        </ng-template>
+        
+        <nz-table
+          #planIndicatorTable
+          [nzData]="group.indicators"
+          nzSize="small"
+          [nzFrontPagination]="false"
+          [nzShowPagination]="false"
+        >
+          <thead>
+            <tr>
+              <th>检验项目编号</th>
+              <th>检验项目名称</th>
+              <th>标准值</th>
+              <th>USL</th>
+              <th>LSL</th>
+              <th>判定规则</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let indicator of planIndicatorTable.data">
+              <td>{{ indicator.code }}</td>
+              <td>{{ indicator.name }}</td>
+              <td>{{ indicator.defaultValue || '-' }}</td>
+              <td>{{ indicator.usl || '-' }}</td>
+              <td>{{ indicator.lsl || '-' }}</td>
+              <td>
+                <app-judgment-rules-display 
+                  [rules]="indicator.rules || []"
+                  [expanded]="false">
+                </app-judgment-rules-display>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </nz-collapse-panel>
+    </nz-collapse>
+  </div>
+ -->
+
+  <!-- 加载中状态 -->
+  <div *ngIf="!isViewMode && !isInspectMode && !createForm" style="padding: 40px; text-align: center;">
+    <nz-spin nzTip="加载中..."></nz-spin>
+  </div>
+
+  <!-- 视图模式 -->
+  <div *ngIf="isViewMode && !isInspectMode && viewingOrder">
+    <nz-descriptions [nzColumn]="2" nzBordered>
+      <nz-descriptions-item nzTitle="单号">{{ viewingOrder.orderNo }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="批次号">{{ viewingOrder.batchNo }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="物料">
+        <nz-tag nzColor="blue">{{ viewingOrder.materialCode }} {{ viewingOrder.materialName }}</nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="供应商">
+        <nz-tag nzColor="blue">{{ viewingOrder.supplierName }}</nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="批量">{{ viewingOrder.lotSize }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="到货日期">{{ viewingOrder.arrivalDate | date:'yyyy-MM-dd' }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="采购单号">{{ viewingOrder.purchaseOrderNo || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="检验方案">
+        <nz-tag nzColor="blue" *ngIf="selectedPlan || viewingOrder.qualityInspectionPlanName">{{ viewingOrder.qualityInspectionPlanName || (selectedPlan?.code + ' v' + selectedPlan?.version) }}</nz-tag>
+        <span *ngIf="!selectedPlan && !viewingOrder.qualityInspectionPlanName">-</span>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="抽样方案">
+        <span *ngIf="viewingOrder.samplingSchemeId">{{ getSamplingSchemeName(viewingOrder.samplingSchemeId) }}</span>
+        <span *ngIf="!viewingOrder.samplingSchemeId">-</span>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="状态">
+        <nz-tag [nzColor]="getStatusColor(viewingOrder.status)">{{ getStatusText(viewingOrder.status) }}</nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="检验结果" [nzSpan]="2">
+        <nz-tag [nzColor]="getResultColor(viewingOrder.result)" *ngIf="viewingOrder.result !== null && viewingOrder.result !== undefined">{{ getResultText(viewingOrder.result) }}</nz-tag>
+        <span *ngIf="viewingOrder.result === null || viewingOrder.result === undefined">-</span>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="备注" [nzSpan]="2">{{ viewingOrder.remark || '-' }}</nz-descriptions-item>
+    </nz-descriptions>
+    
+    <!-- 检验记录/检验项目（查看模式） -->
+    <div *ngIf="isViewMode && !isInspectMode && viewingOrder && (recordStepGroups.length > 0 || planStepGroups.length > 0)" style="margin-top: 24px;">
+      <!-- 有检验记录时显示实际值+判定结果 -->
+      <ng-container *ngIf="recordStepGroups.length > 0">
+        <nz-divider nzText="检验记录"></nz-divider>
+        <nz-collapse [nzExpandIconPosition]="'end'">
+          <nz-collapse-panel 
+            *ngFor="let group of getSortedStepList(); let i = index"
+            [nzHeader]="stepHeaderTpl"
+            [nzExtra]="stepExtraTpl"
+            [nzActive]="true">
+            <ng-template #stepHeaderTpl>
+              <span style="font-weight: 500;">
+                步骤 {{ group.stepName }} ({{ group.records.length }}项)
+              </span>
+            </ng-template>
+            <ng-template #stepExtraTpl>
+              <nz-tag nzColor="geekblue">{{ group.stepCode }}</nz-tag>
+            </ng-template>
+          
+          <nz-table
+            #viewRecordTable
+            [nzData]="group.records"
+            nzSize="small"
+            [nzFrontPagination]="false"
+            [nzShowPagination]="false"
+          >
+            <thead>
+              <tr>
+                <th>检验项目</th>
+                <!-- <th>标准值</th>
+                <th>USL</th>
+                <th>UCL</th>
+                <th>LCL</th>
+                <th>LSL</th> -->
+                <th>实际值</th>
+                <th>判定规则</th>
+                <th>判定</th>
+                <th>缺陷描述</th>
+                <th>改进情况说明</th>
+                <th>备注</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let record of viewRecordTable.data">
+                <td>{{ record.itemCode }} {{ record.itemName }}</td>
+                <!-- <td>{{ record.standardValue || '-' }}</td>
+                <td>{{ record.usl || '-' }}</td>
+                <td>{{ record.ucl || '-' }}</td>
+                <td>{{ record.lcl || '-' }}</td>
+                <td>{{ record.lsl || '-' }}</td> -->
+                <td>
+                  <nz-tag [nzColor]="getJudgmentColor(record.judgment)">
+                    {{ record.actualValue || '-' }}
+                  </nz-tag>
+                </td>
+                <td>
+                  <app-judgment-rules-display 
+                    [rules]="parseRuleEvaluationResult(record.ruleEvaluationResultJson??record.originalRulesJson)"
+                    [expanded]="false">
+                  </app-judgment-rules-display>
+                </td>
+                <td>
+                  <nz-tag [nzColor]="getJudgmentColor(record.judgment)">
+                    {{ getJudgmentText(record.judgment) }}
+                  </nz-tag>
+                </td>
+                <td>{{ record.defectDescription || '-' }}</td>
+                <td>{{ record.improvementDescription || '-' }}</td>
+                <td>{{ record.remark || '-' }}</td>
+              </tr>
+            </tbody>
+          </nz-table>
+        </nz-collapse-panel>
+      </nz-collapse>
+      </ng-container>
+      
+      <!-- 无检验记录时显示方案配置的检验项目 -->
+      <ng-container *ngIf="recordStepGroups.length === 0 && planStepGroups.length > 0">
+        <nz-divider nzText="检验项目"></nz-divider>
+        <nz-collapse [nzExpandIconPosition]="'end'">
+          <nz-collapse-panel 
+            *ngFor="let group of planStepGroups; let i = index"
+            [nzHeader]="viewPlanStepHeaderTpl"
+            [nzExtra]="viewPlanStepExtraTpl"
+            [nzActive]="true">
+            <ng-template #viewPlanStepHeaderTpl>
+              <span style="font-weight: 500;">
+                步骤 {{ group.stepName }} ({{ group.indicators.length }}项)
+              </span>
+            </ng-template>
+            <ng-template #viewPlanStepExtraTpl>
+              <nz-tag nzColor="geekblue">{{ group.stepCode }}</nz-tag>
+            </ng-template>
+            
+            <nz-table
+              #viewPlanIndicatorTable
+              [nzData]="group.indicators"
+              nzSize="small"
+              [nzFrontPagination]="false"
+              [nzShowPagination]="false"
+            >
+              <thead>
+                <tr>
+                  <th>检验项目编号</th>
+                  <th>检验项目名称</th>
+                  <th>标准值</th>
+                  <th>USL</th>
+                  <th>LSL</th>
+                  <th>判定规则</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let indicator of viewPlanIndicatorTable.data">
+                  <td>{{ indicator.code }}</td>
+                  <td>{{ indicator.name }}</td>
+                  <td>{{ indicator.defaultValue || '-' }}</td>
+                  <td>{{ indicator.usl || '-' }}</td>
+                  <td>{{ indicator.lsl || '-' }}</td>
+                  <td>
+                    <app-judgment-rules-display 
+                      [rules]="indicator.rules || []"
+                      [expanded]="false">
+                    </app-judgment-rules-display>
+                  </td>
+                </tr>
+              </tbody>
+            </nz-table>
+          </nz-collapse-panel>
+        </nz-collapse>
+      </ng-container>
+    </div>
+  </div>
+  
+  <!-- 检验模式 -->
+  <div *ngIf="isInspectMode">
+    <div *ngIf="inspectLoading" class="loading-container">
+      <nz-spin nzSize="large" [nzTip]="'加载中...'"></nz-spin>
+    </div>
+    
+    <div *ngIf="!inspectLoading && viewingOrder">
+      <nz-descriptions [nzColumn]="2" nzBordered>
+        <nz-descriptions-item nzTitle="单号">{{ viewingOrder.orderNo }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="批次号">{{ viewingOrder.batchNo }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="物料">
+          <nz-tag nzColor="blue">{{ viewingOrder.materialCode }} {{ viewingOrder.materialName }}</nz-tag>
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="供应商">
+          <nz-tag nzColor="blue">{{ viewingOrder.supplierName }}</nz-tag>
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="批量">{{ viewingOrder.lotSize }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="到货日期">{{ viewingOrder.arrivalDate | date:'yyyy-MM-dd' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="采购单号">{{ viewingOrder.purchaseOrderNo || '-' }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="检验方案">
+          <nz-tag nzColor="blue" *ngIf="selectedPlan || viewingOrder.qualityInspectionPlanName">{{ viewingOrder.qualityInspectionPlanName || (selectedPlan?.code + ' v' + selectedPlan?.version) }}</nz-tag>
+          <span *ngIf="!selectedPlan && !viewingOrder.qualityInspectionPlanName">-</span>
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="抽样方案">
+          <span *ngIf="viewingOrder.samplingSchemeId">{{ getSamplingSchemeName(viewingOrder.samplingSchemeId) }}</span>
+          <span *ngIf="!viewingOrder.samplingSchemeId">-</span>
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="状态">
+          <nz-tag [nzColor]="getStatusColor(viewingOrder.status)">{{ getStatusText(viewingOrder.status) }}</nz-tag>
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="备注" [nzSpan]="2">{{ viewingOrder.remark || '-' }}</nz-descriptions-item>
+    </nz-descriptions>
+
+    <div *ngIf="viewingOrder?.records && viewingOrder?.records?.length" style="margin-top: 24px;">
+      <nz-divider nzText="检验记录"></nz-divider>
+      
+      <nz-collapse [nzExpandIconPosition]="'end'">
+        <nz-collapse-panel 
+          *ngFor="let group of recordStepGroups; let i = index"
+          [nzHeader]="inspectStepHeaderTpl"
+          [nzExtra]="inspectStepExtraTpl"
+          [nzActive]="true">
+          <ng-template #inspectStepHeaderTpl>
+            <span style="font-weight: 500;">
+              步骤 {{ group.stepName }} ({{ group.records.length }}项)
+            </span>
+          </ng-template>
+          <ng-template #inspectStepExtraTpl>
+            <nz-tag nzColor="geekblue">{{ group.stepCode }}</nz-tag>
+          </ng-template>
+          
+          <nz-table
+            #inspectRecordTable
+            [nzData]="group.records"
+            nzSize="small"
+            [nzFrontPagination]="false"
+            [nzShowPagination]="false"
+          >
+            <thead>
+              <tr>
+                <th>检验项目</th>
+                <!-- <th>标准值</th>
+                <th>USL</th>
+                <th>UCL</th>
+                <th>LCL</th>
+                <th>LSL</th> -->
+                <th>实际值</th>
+                <th>判定规则</th>
+                <th>判定</th>
+                <th>缺陷描述</th>
+                <th>改进情况说明</th>
+                <th>备注</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let record of inspectRecordTable.data" 
+                  [ngClass]="{'row-warning': record.judgment === 2, 'row-success': record.judgment === 1}">
+                <td>{{ record.itemCode }} {{ record.itemName }}</td>
+                <!-- <td [ngClass]="{'highlight-cell': record.standardValue}">{{ record.standardValue || '-' }}</td>
+                <td [ngClass]="{'highlight-cell': record.usl}">{{ record.usl || '-' }}</td>
+                <td [ngClass]="{'highlight-cell': record.ucl}">{{ record.ucl || '-' }}</td>
+                <td [ngClass]="{'highlight-cell': record.lcl}">{{ record.lcl || '-' }}</td>
+                <td [ngClass]="{'highlight-cell': record.lsl}">{{ record.lsl || '-' }}</td> -->
+                <td>
+                  <input nz-input 
+                         [(ngModel)]="record.actualValue" 
+                         (input)="onActualValueChange(record)"
+                         (blur)="evaluateRule(record)"
+                         placeholder="请输入实际值" 
+                         style="width: 100%;" />
+                  <!-- <div *ngIf="record.actualValue && isValueOutOfRange(record)" style="color: #ff4d4f; font-size: 12px; margin-top: 4px;">
+                    <span nz-icon nzType="warning"></span>
+                    超出规格范围
+                  </div>
+                  <div *ngIf="record.actualValue && isValueInRange(record) && record.judgment !== 2" style="color: #52c41a; font-size: 12px; margin-top: 4px;">
+                    <span nz-icon nzType="check-circle"></span>
+                    在规格范围内
+                  </div> -->
+                </td>
+                <td>
+                  <app-judgment-rules-display 
+                    [rules]="parseRuleEvaluationResult(record.ruleEvaluationResultJson)"
+                    [expanded]="false">
+                  </app-judgment-rules-display>
+                </td>
+                <td>
+                  <nz-select [(ngModel)]="record.judgment" 
+                             style="width: 100%;"
+                             (ngModelChange)="onJudgmentChange(record)">
+                    <nz-option [nzLabel]="'待判定'" [nzValue]="0"></nz-option>
+                    <nz-option [nzLabel]="'合格'" [nzValue]="1"></nz-option>
+                    <nz-option [nzLabel]="'不合格'" [nzValue]="2"></nz-option>
+                  </nz-select>
+                </td>
+                <td>
+                  <input nz-input [(ngModel)]="record.defectDescription" placeholder="缺陷描述" style="width: 100%;" />
+                </td>
+                <td>
+                  <input nz-input [(ngModel)]="record.improvementDescription" placeholder="改进说明" style="width: 100%;" />
+                </td>
+                <td>
+                  <input nz-input [(ngModel)]="record.remark" placeholder="备注" style="width: 100%;" />
+                </td>
+                <td>
+                  <button nz-button nzType="primary" nzSize="small" (click)="saveRecord(record)">
+                    <span nz-icon nzType="save"></span>
+                    保存
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </nz-table>
+        </nz-collapse-panel>
+      </nz-collapse>
+    </div>
+  </div>
 </div>
 
-<app-inspection-standard-selector
-  [(visible)]="isStandardSelectorVisible"
+<app-quality-inspection-plan-selector
+  [(visible)]="isPlanSelectorVisible"
   [inspectionType]="1"
-  (selected)="onStandardSelected($event)">
-</app-inspection-standard-selector>
+  (selected)="onPlanSelected($event)">
+</app-quality-inspection-plan-selector>
 
 <app-material-selector
   [(visible)]="isMaterialSelectorVisible"

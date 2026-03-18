@@ -4,6 +4,32 @@ export enum QualityInspectionPlanStatus {
   Inactive = 3
 }
 
+export interface InspectionStepIndicatorRuleDto {
+  id: string;
+  inspectionStepIndicatorId?: string;
+  originalRuleId?: string;
+  name: string;
+  severityLevel: string;
+  priority: number;
+  conditionExpression: string;
+  judgmentResult: string;
+  description: string;
+  executeAction: string;
+  remark?: string;
+}
+
+export interface CreateUpdateInspectionStepIndicatorRuleDto {
+  id?: string;
+  name: string;
+  severityLevel: string;
+  priority: number;
+  conditionExpression: string;
+  judgmentResult: string;
+  description: string;
+  executeAction: string;
+  remark?: string;
+}
+
 export interface InspectionItemDto {
   id: string;
   standardId: string;
@@ -22,6 +48,8 @@ export interface InspectionItemDto {
   defectSeverity?: number;
   defectCode?: string;
   sortOrder: number;
+  // 判定规则列表
+  rules?: InspectionStepIndicatorRuleDto[];
 }
 
 export interface CreateUpdateInspectionItemDto {
@@ -41,6 +69,8 @@ export interface CreateUpdateInspectionItemDto {
   defectSeverity?: number;
   defectCode?: string;
   sortOrder: number;
+  // 判定规则列表
+  rules?: CreateUpdateInspectionStepIndicatorRuleDto[];
 }
 
 export interface InspectionStepDto {
@@ -90,6 +120,7 @@ export interface CreateUpdateQualityInspectionPlanDto {
   samplingSchemeType: number;
   samplingSchemeConfig?: string;
   steps?: CreateUpdateInspectionStepDto[];
+  //items?: CreateUpdateInspectionItemDto[];
 }
 
 export interface GetQualityInspectionPlanListDto {

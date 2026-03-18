@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { IqcInspectionOrderDto, CreateUpdateIqcInspectionOrderDto, GetIqcInspectionOrderListDto, IqcInspectionRecordDto, CreateUpdateIqcInspectionRecordDto } from '../models/iqc-inspection.model';
 import { PagedResultDto } from '../models/aql-config.model';
+import { RuleEvaluationResult } from '../components/judgment-rules-display/judgment-rules-display.component';
 
 @Injectable({
   providedIn: 'root',
@@ -56,5 +57,13 @@ export class IqcInspectionService {
 
   submit(id: string): Observable<IqcInspectionOrderDto> {
     return this.http.put<IqcInspectionOrderDto>(`${this.apiUrl}/${id}/submit`, {});
+  }
+
+  evaluateRule(rulesJson: string | null, actualValue: string | null): Observable<RuleEvaluationResult[]> {
+   let params = new HttpParams();
+  if (rulesJson) params = params.set('rulesJson', rulesJson);
+  if (actualValue) params = params.set('actualValue', actualValue);
+ 
+  return this.http.post<RuleEvaluationResult[]>(`/api/app/iqc-inspection-order/evaluate-rule`, {}, { params });
   }
 }

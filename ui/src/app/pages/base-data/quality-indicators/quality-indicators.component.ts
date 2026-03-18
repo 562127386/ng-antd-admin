@@ -134,7 +134,7 @@ export class QualityIndicatorsComponent implements OnInit {
       indicatorCategory: ['', Validators.required],
       name: ['', Validators.required],
       inspectionType: ['', Validators.required],
-      defaultValue: ['', Validators.required],
+      defaultValue: [''],
       dataType: [''],
       unit: [''],
       decimalPlaces: [0],

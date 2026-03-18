@@ -106,7 +106,7 @@
 <nz-modal
   [(nzVisible)]="isModalVisible"
   [nzTitle]="currentItem ? '编辑质检指标' : '新增质检指标'"
-  [nzWidth]="1000"
+  [nzWidth]="1200"
   (nzOnCancel)="handleModalCancel()"
   (nzOnOk)="handleModalOk()"
 >
@@ -153,7 +153,7 @@
       <div nz-row [nzGutter]="16">
         <div nz-col nzSpan="6">
           <nz-form-item>
-            <nz-form-label nzRequired>默认值</nz-form-label>
+            <nz-form-label>默认值</nz-form-label>
             <nz-form-control nzErrorTip="请输入默认值">
               <input nz-input formControlName="defaultValue" placeholder="请输入默认值" />
             </nz-form-control>

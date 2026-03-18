@@ -16,16 +16,18 @@ import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { Subject, takeUntil } from 'rxjs';
 import { IqcInspectionOrderDto, CreateUpdateIqcInspectionOrderDto } from '@app/pages/base-data/models/iqc-inspection.model';
 import { IqcInspectionService } from '@app/pages/base-data/services/iqc-inspection.service';
 import { SamplingSchemeDto } from '@app/pages/base-data/models/sampling-scheme.model';
 import { SamplingSchemeService } from '@app/pages/base-data/services/sampling-scheme.service';
-import { InspectionStandardSelectorComponent } from '@app/pages/base-data/components/inspection-standard-selector/inspection-standard-selector.component';
-import { InspectionStandardDto } from '@app/pages/base-data/models/inspection-standard.model';
-import { InspectionStandardService } from '@app/pages/base-data/services/inspection-standard.service';
+import { QualityInspectionPlanSelectorComponent } from '@app/pages/base-data/components/quality-inspection-plan-selector/quality-inspection-plan-selector.component';
+import { QualityInspectionPlanDto } from '@app/pages/base-data/models/quality-inspection-plan.model';
+import { QualityInspectionPlanService } from '@app/pages/base-data/services/quality-inspection-plan.service';
 import { MaterialSelectorComponent } from '@app/pages/base-data/components/material-selector/material-selector.component';
 import { SupplierSelectorComponent } from '@app/pages/base-data/components/supplier-selector/supplier-selector.component';
+import { JudgmentRulesDisplayComponent, RuleEvaluationResult } from '@app/pages/base-data/components/judgment-rules-display/judgment-rules-display.component';
 import { MaterialDto } from '@app/pages/base-data/models/material.model';
 import { SupplierDto } from '@app/pages/base-data/models/supplier.model';
 import { InspectionStatus, InspectionResult, ItemJudgment, SamplingSchemeType } from '@app/pages/base-data/models/enums';
@@ -57,9 +59,11 @@ import { NzSafeAny } from 'ng-zorro-antd/core/types';
     NzDescriptionsModule,
     NzAlertModule,
     NzSpinModule,
-    InspectionStandardSelectorComponent,
+    NzCollapseModule,
+    QualityInspectionPlanSelectorComponent,
     MaterialSelectorComponent,
-    SupplierSelectorComponent
+    SupplierSelectorComponent,
+    JudgmentRulesDisplayComponent
   ],
   templateUrl: './iqc-inspection-drawer.component.html',
   styleUrls: ['./iqc-inspection-drawer.component.less']
@@ -67,7 +71,7 @@ import { NzSafeAny } from 'ng-zorro-antd/core/types';
 export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
   private iqcInspectionService = inject(IqcInspectionService);
   private samplingSchemeService = inject(SamplingSchemeService);
-  private inspectionStandardService = inject(InspectionStandardService);
+  private qualityInspectionPlanService = inject(QualityInspectionPlanService);
   private aqlConfigService = inject(AqlConfigService);
   private fb = inject(FormBuilder);
   private messageService = inject(NzMessageService);
@@ -82,11 +86,12 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
   isViewMode = false;
   isInspectMode = false;
   inspectLoading = false;
-  selectedStandard?: InspectionStandardDto;
+  selectedPlan?: QualityInspectionPlanDto;
+  planStepGroups: { stepCode: string; stepName: string; indicators: any[] }[] = [];
   selectedMaterial?: MaterialDto;
   selectedSupplier?: SupplierDto;
   samplingSchemes: SamplingSchemeDto[] = [];
-  isStandardSelectorVisible = false;
+  isPlanSelectorVisible = false;
   isMaterialSelectorVisible = false;
   isSupplierSelectorVisible = false;
   
@@ -96,6 +101,8 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
   matchedAqlConfig?: AqlConfigDto;
   relatedAqlConfigs: AqlConfigDto[] = [];
   private destroy$ = new Subject<void>();
+
+  recordStepGroups: { stepCode: string; stepName: string; records: any[] }[] = [];
 
   statusOptions = [
     { label: '草稿', value: InspectionStatus.Draft, color: 'default' },
@@ -155,7 +162,7 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       purchaseOrderNo: [''],
       arrivalDate: [null, [Validators.required]],
       samplingSchemeId: [null],
-      inspectionStandardId: [null],
+      qualityInspectionPlanId: [null],
       remark: ['']
     });
   }
@@ -163,7 +170,7 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
   resetForm(): void {
     this.createForm.reset();
     this.viewingOrder = undefined;
-    this.selectedStandard = undefined;
+    this.selectedPlan = undefined;
     this.selectedMaterial = undefined;
     this.selectedSupplier = undefined;
     this.cdr.markForCheck();
@@ -179,6 +186,7 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
     this.iqcInspectionService.get(id).subscribe({
       next: (detail) => {
         this.viewingOrder = detail;
+        this.groupRecordsByStep();
         
         if (detail.materialId && detail.materialCode && detail.materialName) {
           this.selectedMaterial = {
@@ -208,10 +216,10 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
           this.selectedSupplier = undefined;
         }
         
-        if (detail.inspectionStandardId) {
-          this.loadInspectionStandard(detail.inspectionStandardId);
+        if (detail.qualityInspectionPlanId) {
+          this.loadQualityInspectionPlan(detail.qualityInspectionPlanId);
         } else {
-          this.selectedStandard = undefined;
+          this.selectedPlan = undefined;
         }
 
         if (this.params.mode === 'edit') {
@@ -226,12 +234,13 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
             supplierName: detail.supplierName,
             purchaseOrderNo: detail.purchaseOrderNo,
             arrivalDate: detail.arrivalDate ? new Date(detail.arrivalDate) : null,
-            inspectionStandardId: detail.inspectionStandardId,
+            qualityInspectionPlanId: detail.qualityInspectionPlanId,
             samplingSchemeId: detail.samplingSchemeId,
             remark: detail.remark
           });
           
           this.updateSamplingInfo();
+          
         }
 
         if (this.isInspectMode) {
@@ -253,15 +262,16 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadInspectionStandard(id: string): void {
-    this.inspectionStandardService.get(id).subscribe({
-      next: (standard) => {
-        this.selectedStandard = standard;
+  loadQualityInspectionPlan(id: string): void {
+    this.qualityInspectionPlanService.get(id).subscribe({
+      next: (plan) => {
+        this.selectedPlan = plan;
+        this.groupPlanSteps();
         this.cdr.markForCheck();
       },
       error: () => {
-        this.messageService.error('加载检验标准失败');
-        this.selectedStandard = undefined;
+        this.messageService.error('加载检验方案失败');
+        this.selectedPlan = undefined;
         this.cdr.markForCheck();
       }
     });
@@ -296,6 +306,29 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
     return scheme ? scheme.name : '-';
   }
 
+  groupRecordsByStep(): void {
+    this.recordStepGroups = [];
+    if (!this.viewingOrder?.records || this.viewingOrder.records.length === 0) {
+      return;
+    }
+
+    const groups = new Map<string, { stepCode: string; stepName: string; records: any[] }>();
+    
+    for (const record of this.viewingOrder.records) {
+      const key = record.stepCode || record.stepName || '未分组';
+      if (!groups.has(key)) {
+        groups.set(key, {
+          stepCode: record.stepCode || '',
+          stepName: record.stepName || '未分组',
+          records: []
+        });
+      }
+      groups.get(key)!.records.push(record);
+    }
+
+    this.recordStepGroups = Array.from(groups.values());
+  }
+
   getJudgmentText(judgment?: number): string {
     if (judgment === undefined || judgment === null) return '待判定';
     switch (judgment) {
@@ -312,6 +345,15 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       case ItemJudgment.OK: return 'success';
       case ItemJudgment.NG: return 'error';
       default: return 'default';
+    }
+  }
+
+  parseRuleEvaluationResult(json?: string): RuleEvaluationResult[] {
+    if (!json) return [];
+    try {
+      return JSON.parse(json);
+    } catch {
+      return [];
     }
   }
 
@@ -490,22 +532,55 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  openStandardSelector(): void {
-    this.isStandardSelectorVisible = true;
+  openPlanSelector(): void {
+    this.isPlanSelectorVisible = true;
   }
 
-  onStandardSelected(standard: InspectionStandardDto): void {
-    this.selectedStandard = standard;
+  onPlanSelected(plan: QualityInspectionPlanDto): void {
+    this.selectedPlan = plan;
     this.createForm.patchValue({
-      inspectionStandardId: standard.id
+      qualityInspectionPlanId: plan.id
     });
+    this.groupPlanSteps();
     this.cdr.markForCheck();
   }
 
-  clearStandard(): void {
-    this.selectedStandard = undefined;
+  groupPlanSteps(): void {
+    this.planStepGroups = [];
+    if (!this.selectedPlan?.steps || this.selectedPlan.steps.length === 0) {
+      return;
+    }
+
+    for (const step of this.selectedPlan.steps.sort((a, b) => a.sortOrder - b.sortOrder)) {////升序
+      const stepAny = step as any;
+      const indicators = stepAny.items || stepAny.indicators || [];
+      if (indicators.length > 0) {
+        this.planStepGroups.push({
+          stepCode: step.code || '',
+          stepName: step.name || step.code || '未命名步骤',
+          indicators: indicators
+        });
+      }
+    }
+  }
+
+  // 升序排序方法（按指定字段）
+  getSortedStepList() {
+    // slice() 复制数组，避免修改原数组
+    return this.recordStepGroups.slice().sort((a, b) => {
+      // 数字字段升序：a.字段 - b.字段
+      //return a.id - b.id; 
+      
+      // 字符串字段升序（比如name）：
+       return a.stepName.localeCompare(b.stepName);
+    });
+  }
+
+  clearPlan(): void {
+    this.selectedPlan = undefined;
+    this.planStepGroups = [];
     this.createForm.patchValue({
-      inspectionStandardId: null
+      qualityInspectionPlanId: null
     });
     this.cdr.markForCheck();
   }
@@ -631,6 +706,16 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       return false;
     }
 
+    if (record.originalRulesJson) {
+      const results = this.parseRuleEvaluationResult(record.originalRulesJson);
+      if (results && results.length > 0) {
+        const allRulesFailed = results.every((r: any) => !(r.isPassed || r.IsPassed));
+        if (allRulesFailed) {
+          return true;
+        }
+      }
+    }
+
     const actualValue = parseFloat(record.actualValue);
     if (isNaN(actualValue)) {
       return false;
@@ -707,6 +792,30 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
+  evaluateRule(record: any): void {
+    if (!this.viewingOrder?.id) {
+      return;
+    }
+
+    if (record.actualValue && record.originalRulesJson) {
+      this.iqcInspectionService.evaluateRule(record.originalRulesJson, record.actualValue).subscribe({
+        next: (results) => {
+          if (results && results.length > 0) {
+            const allPassed = results.every((r: any) => (r.isPassed || r.IsPassed) && r.JudgmentResult ==="不合格");
+            record.judgment = allPassed ? 2 : 1;
+            record.ruleEvaluationResultJson = JSON.stringify(results);
+          }
+          //this.saveRecord(record); 先不保存
+        },
+        error: () => {
+          this.messageService.error('规则评估失败');
+        }
+      });
+    } else {
+      //this.saveRecord(record); 先不保存
+    }
+  }
+
   saveRecord(record: any): void {
     if (!this.viewingOrder?.id) {
       return;
@@ -731,7 +840,7 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       remark: record.remark
     };
 
-    this.iqcInspectionService.updateInspectionRecord(this.viewingOrder.id, record.id, updateInput).subscribe({
+    this.iqcInspectionService.updateInspectionRecord(this.viewingOrder!.id, record.id, updateInput).subscribe({
       next: () => {
         this.messageService.success('保存成功');
       },
@@ -773,8 +882,12 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
     } else {
       return new Observable(subscriber => {
         this.iqcInspectionService.create(this.createForm.value).subscribe({
-          next: () => {
+          next: (result) => {
             this.messageService.success('创建成功');
+            this.viewingOrder = result;
+            this.recordStepGroups = [];
+            this.groupRecordsByStep();
+            this.cdr.markForCheck();
             subscriber.next(true);
             subscriber.complete();
           },

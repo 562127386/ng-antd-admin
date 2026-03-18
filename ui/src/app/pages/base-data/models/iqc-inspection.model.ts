@@ -19,6 +19,12 @@ export interface IqcInspectionRecordDto {
   remark?: string;
   creationTime: Date;
   creatorId?: string;
+  inspectionStepIndicatorId?: string;
+  originalRulesJson?: string;
+  ruleEvaluationResultJson?: string;
+  stepCode?: string;
+  stepName?: string;
+  sortOrder: number;
 }
 
 export interface CreateUpdateIqcInspectionRecordDto {
@@ -54,7 +60,8 @@ export interface IqcInspectionOrderDto {
   lotSize: number;
   arrivalDate?: Date;
   batchNo?: string;
-  inspectionStandardId?: string;
+  qualityInspectionPlanId?: string;
+  qualityInspectionPlanName?: string;
   samplingSchemeId?: string;
   inspectionLevel?: number;
   aqlValue?: number;
@@ -86,7 +93,7 @@ export interface CreateUpdateIqcInspectionOrderDto {
   lotSize: number;
   arrivalDate?: Date;
   batchNo?: string;
-  inspectionStandardId?: string;
+  qualityInspectionPlanId?: string;
   samplingSchemeId?: string;
   inspectionLevel?: number;
   aqlValue?: number;

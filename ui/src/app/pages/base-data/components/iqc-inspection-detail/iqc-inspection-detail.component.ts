@@ -18,9 +18,9 @@ import { IqcInspectionOrderDto, CreateUpdateIqcInspectionOrderDto, IqcInspection
 import { IqcInspectionService } from '../../services/iqc-inspection.service';
 import { SamplingSchemeDto } from '../../models/sampling-scheme.model';
 import { SamplingSchemeService } from '../../services/sampling-scheme.service';
-import { InspectionStandardSelectorComponent } from '../inspection-standard-selector/inspection-standard-selector.component';
-import { InspectionStandardDto } from '../../models/inspection-standard.model';
-import { InspectionStandardService } from '../../services/inspection-standard.service';
+import { QualityInspectionPlanSelectorComponent } from '../quality-inspection-plan-selector/quality-inspection-plan-selector.component';
+import { QualityInspectionPlanDto } from '../../models/quality-inspection-plan.model';
+import { QualityInspectionPlanService } from '../../services/quality-inspection-plan.service';
 import { MaterialSelectorComponent } from '../material-selector/material-selector.component';
 import { SupplierSelectorComponent } from '../supplier-selector/supplier-selector.component';
 import { MaterialDto } from '../../models/material.model';
@@ -48,7 +48,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
     NzInputNumberModule,
     NzDividerModule,
     NzDescriptionsModule,
-    InspectionStandardSelectorComponent,
+    QualityInspectionPlanSelectorComponent,
     MaterialSelectorComponent,
     SupplierSelectorComponent
   ],
@@ -58,7 +58,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 export class IqcInspectionDetailComponent implements OnInit, OnChanges {
   private iqcInspectionService = inject(IqcInspectionService);
   private samplingSchemeService = inject(SamplingSchemeService);
-  private inspectionStandardService = inject(InspectionStandardService);
+  private qualityInspectionPlanService = inject(QualityInspectionPlanService);
   private fb = inject(FormBuilder);
   private messageService = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
@@ -74,12 +74,12 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
   createForm!: FormGroup;
   isEdit = false;
   isViewMode = false;
-  selectedStandard?: InspectionStandardDto;
+  selectedPlan?: QualityInspectionPlanDto;
   selectedMaterial?: MaterialDto;
   selectedSupplier?: SupplierDto;
   selectedOrder?: IqcInspectionOrderDto;
   samplingSchemes: SamplingSchemeDto[] = [];
-  isStandardSelectorVisible = false;
+  isPlanSelectorVisible = false;
   isMaterialSelectorVisible = false;
   isSupplierSelectorVisible = false;
   isExecutionVisible = false;
@@ -140,7 +140,7 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
   resetForm(): void {
     this.createForm.reset();
     this.viewingOrder = undefined;
-    this.selectedStandard = undefined;
+    this.selectedPlan = undefined;
     this.selectedMaterial = undefined;
     this.selectedSupplier = undefined;
     this.cdr.markForCheck();
@@ -181,10 +181,10 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
           this.selectedSupplier = undefined;
         }
         
-        if (detail.inspectionStandardId) {
-          this.loadInspectionStandard(detail.inspectionStandardId);
+        if (detail.qualityInspectionPlanId) {
+          this.loadQualityInspectionPlan(detail.qualityInspectionPlanId);
         } else {
-          this.selectedStandard = undefined;
+          this.selectedPlan = undefined;
         }
 
         if (this.mode === 'edit') {
@@ -199,7 +199,7 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
             supplierName: detail.supplierName,
             purchaseOrderNo: detail.purchaseOrderNo,
             arrivalDate: detail.arrivalDate ? new Date(detail.arrivalDate) : null,
-            inspectionStandardId: detail.inspectionStandardId,
+            qualityInspectionPlanId: detail.qualityInspectionPlanId,
             samplingSchemeId: detail.samplingSchemeId,
             remark: detail.remark
           });
@@ -216,15 +216,15 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
     });
   }
 
-  loadInspectionStandard(id: string): void {
-    this.inspectionStandardService.get(id).subscribe({
-      next: (standard) => {
-        this.selectedStandard = standard;
+  loadQualityInspectionPlan(id: string): void {
+    this.qualityInspectionPlanService.get(id).subscribe({
+      next: (plan) => {
+        this.selectedPlan = plan;
         this.cdr.markForCheck();
       },
       error: () => {
-        this.messageService.error('加载检验标准失败');
-        this.selectedStandard = undefined;
+        this.messageService.error('加载检验方案失败');
+        this.selectedPlan = undefined;
         this.cdr.markForCheck();
       }
     });
@@ -337,22 +337,22 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
     }
   }
 
-  openStandardSelector(): void {
-    this.isStandardSelectorVisible = true;
+  openPlanSelector(): void {
+    this.isPlanSelectorVisible = true;
   }
 
-  onStandardSelected(standard: InspectionStandardDto): void {
-    this.selectedStandard = standard;
+  onPlanSelected(plan: QualityInspectionPlanDto): void {
+    this.selectedPlan = plan;
     this.createForm.patchValue({
-      inspectionStandardId: standard.id
+      qualityInspectionPlanId: plan.id
     });
     this.cdr.markForCheck();
   }
 
-  clearStandard(): void {
-    this.selectedStandard = undefined;
+  clearPlan(): void {
+    this.selectedPlan = undefined;
     this.createForm.patchValue({
-      inspectionStandardId: null
+      qualityInspectionPlanId: null
     });
     this.cdr.markForCheck();
   }
