@@ -1,21 +1,30 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, TemplateRef, ChangeDetectorRef, inject, DestroyRef, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { NzTableModule } from 'ng-zorro-antd/table';
+import { finalize } from 'rxjs/operators';
+
+import { AntTableConfig, AntTableComponent } from '@shared/components/ant-table/ant-table.component';
+import { CardTableWrapComponent } from '@shared/components/card-table-wrap/card-table-wrap.component';
+import { PageHeaderType, PageHeaderComponent } from '@shared/components/page-header/page-header.component';
+
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzSwitchModule } from 'ng-zorro-antd/switch';
-import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzPaginationModule } from 'ng-zorro-antd/pagination';
-import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
+import { NzSafeAny } from 'ng-zorro-antd/core/types';
+import { NzWaveModule } from 'ng-zorro-antd/core/wave';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzSpaceModule } from 'ng-zorro-antd/space';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
+
 import { SamplingSchemeDto, CreateUpdateSamplingSchemeDto, GetSamplingSchemeListDto } from '../models/sampling-scheme.model';
 import { SamplingSchemeService } from '../services/sampling-scheme.service';
 import { AqlConfigDto } from '../models/aql-config.model';
@@ -23,46 +32,49 @@ import { AqlConfigService } from '../services/aql-config.service';
 
 @Component({
   selector: 'app-sampling-schemes',
-  standalone: true,
+  templateUrl: './sampling-schemes.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
+    PageHeaderComponent,
+    NzGridModule,
+    NzCardModule,
     FormsModule,
     ReactiveFormsModule,
-    NzTableModule,
-    NzButtonModule,
-    NzInputModule,
-    NzModalModule,
     NzFormModule,
-    NzSelectModule,
-    NzSwitchModule,
-    NzPopconfirmModule,
-    NzPaginationModule,
-    NzSpaceModule,
-    NzCardModule,
-    NzIconModule,
+    NzInputModule,
     NzInputNumberModule,
+    NzSelectModule,
+    NzButtonModule,
+    NzWaveModule,
+    NzIconModule,
+    CardTableWrapComponent,
+    AntTableComponent,
+    NzSwitchModule,
+    NzModalModule,
+    NzPopconfirmModule,
+    NzSpaceModule,
     NzDividerModule
-  ],
-  templateUrl: './sampling-schemes.component.html',
-  styleUrls: ['./sampling-schemes.component.less']
+  ]
 })
 export class SamplingSchemesComponent implements OnInit {
-  private samplingSchemeService = inject(SamplingSchemeService);
-  private aqlConfigService = inject(AqlConfigService);
-  private fb = inject(FormBuilder);
-  private messageService = inject(NzMessageService);
-  private cdr = inject(ChangeDetectorRef);
-
-  loading = false;
-  data: SamplingSchemeDto[] = [];
-  total = 0;
-  pageIndex = 1;
-  pageSize = 10;
-  filterForm!: FormGroup;
-  searchForm!: FormGroup;
+  readonly operationTpl = viewChild.required<TemplateRef<NzSafeAny>>('operationTpl');
+  
+  tableConfig!: AntTableConfig;
+  pageHeaderInfo: Partial<PageHeaderType> = {
+    title: '抽样方案管理',
+    breadcrumb: ['首页', '基础数据', '抽样方案管理'],
+    desc: ''
+  };
+  dataList: SamplingSchemeDto[] = [];
+  checkedCashArray: SamplingSchemeDto[] = [];
+  isCollapse = true;
+  filterForm!: { filter: string; isEnabled: boolean | null; schemeType: number | null };
   isModalVisible = false;
   isEdit = false;
   editId?: string;
+  modalForm!: FormGroup;
+  destroyRef = inject(DestroyRef);
   aqlConfigOptions: AqlConfigDto[] = [];
 
   schemeTypeOptions = [
@@ -83,119 +95,155 @@ export class SamplingSchemesComponent implements OnInit {
     { label: 'III', value: 7 }
   ];
 
-  ngOnInit(): void {
-    this.initForms();
-    this.loadData();
-    this.loadAqlConfigs();
+  private samplingSchemeService = inject(SamplingSchemeService);
+  private aqlConfigService = inject(AqlConfigService);
+  private modalSrv = inject(NzModalService);
+  private cdr = inject(ChangeDetectorRef);
+  private message = inject(NzMessageService);
+  private fb = inject(FormBuilder);
+
+  selectedChecked(e: SamplingSchemeDto[]): void {
+    this.checkedCashArray = [...e];
   }
 
-  loadAqlConfigs(): void {
-    this.aqlConfigService.getList({ isEnabled: true, maxResultCount: 1000 }).subscribe({
-      next: (result) => {
-        this.aqlConfigOptions = result.items;
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.messageService.error('加载AQL配置失败');
-      }
-    });
+  resetForm(): void {
+    this.filterForm = { filter: '', isEnabled: null, schemeType: null };
+    this.getDataList({ pageIndex: 1 });
   }
 
-  initForms(): void {
-    this.filterForm = this.fb.group({
-      filter: [''],
-      isEnabled: [null],
-      schemeType: [null]
-    });
-
-    this.searchForm = this.fb.group({
-      code: ['', [Validators.required, Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9_-]+$/)]],
-      name: ['', [Validators.required, Validators.maxLength(200)]],
-      schemeType: [null, [Validators.required]],
-      description: ['', [Validators.maxLength(500)]],
-      isEnabled: [true],
-      sortOrder: [0, [Validators.min(0)]],
-      aqlConfigId: [null],
-      fixedSampleSize: [null, [Validators.min(0)]],
-      samplePercentage: [null, [Validators.min(0), Validators.max(100)]],
-      acceptanceNumber: [null, [Validators.min(0)]],
-      rejectionNumber: [null, [Validators.min(0)]]
-    });
-  }
-
-  loadData(): void {
-    this.loading = true;
-    this.cdr.markForCheck();
+  getDataList(e?: { pageIndex: number }): void {
+    this.tableConfig.loading = true;
     const input: GetSamplingSchemeListDto = {
-      filter: this.filterForm.value.filter,
-      isEnabled: this.filterForm.value.isEnabled,
-      schemeType: this.filterForm.value.schemeType,
-      skipCount: (this.pageIndex - 1) * this.pageSize,
-      maxResultCount: this.pageSize
+      filter: this.filterForm.filter,
+      isEnabled: this.filterForm.isEnabled ?? undefined,
+      schemeType: this.filterForm.schemeType ?? undefined,
+      skipCount: ((e?.pageIndex || this.tableConfig.pageIndex) - 1) * this.tableConfig.pageSize!,
+      maxResultCount: this.tableConfig.pageSize!
     };
 
-    this.samplingSchemeService.getList(input).subscribe({
-      next: (result) => {
-        this.data = result.items;
-        this.total = result.totalCount;
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.loading = false;
-        this.cdr.markForCheck();
-        this.messageService.error('加载数据失败');
-      }
+    this.samplingSchemeService.getList(input).pipe(
+      finalize(() => this.tableLoading(false)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(result => {
+      this.dataList = result.items || [];
+      this.tableConfig.total = result.totalCount || 0;
+      this.tableConfig.pageIndex = e?.pageIndex || this.tableConfig.pageIndex;
+      this.tableLoading(false);
     });
   }
 
-  onSearch(): void {
-    this.pageIndex = 1;
-    this.loadData();
+  tableChangeDectction(): void {
+    this.dataList = [...this.dataList];
+    this.cdr.detectChanges();
   }
 
-  onReset(): void {
-    this.filterForm.reset();
-    this.pageIndex = 1;
-    this.loadData();
+  tableLoading(isLoading: boolean): void {
+    this.tableConfig.loading = isLoading;
+    this.tableChangeDectction();
   }
 
-  onPageIndexChange(index: number): void {
-    this.pageIndex = index;
-    this.loadData();
-  }
-
-  onPageSizeChange(size: number): void {
-    this.pageSize = size;
-    this.pageIndex = 1;
-    this.loadData();
-  }
-
-  showAddModal(): void {
+  add(): void {
     this.isEdit = false;
     this.editId = undefined;
-    this.searchForm.reset();
-    this.searchForm.patchValue({ isEnabled: true, sortOrder: 0 });
+    this.initModalForm();
     this.isModalVisible = true;
   }
 
-  showEditModal(item: SamplingSchemeDto): void {
+  reloadTable(): void {
+    this.message.info('刷新成功');
+    this.getDataList();
+  }
+
+  edit(id: string, dataItem: SamplingSchemeDto): void {
     this.isEdit = true;
-    this.editId = item.id;
-    this.searchForm.patchValue({
-      code: item.code,
-      name: item.name,
-      schemeType: item.schemeType,
-      description: item.description,
-      isEnabled: item.isEnabled,
-      sortOrder: item.sortOrder,
-      aqlConfigId: item.aqlConfigId,
-      fixedSampleSize: item.fixedSampleSize,
-      samplePercentage: item.samplePercentage,
-      acceptanceNumber: item.acceptanceNumber,
-      rejectionNumber: item.rejectionNumber
-    });
+    this.editId = id;
+    this.initModalForm(dataItem);
     this.isModalVisible = true;
+  }
+
+  get currentSchemeType(): number {
+    return this.modalForm?.get('schemeType')?.value || 1;
+  }
+
+  get showAqlConfig(): boolean {
+    return this.currentSchemeType === 1;
+  }
+
+  get showCZeroConfig(): boolean {
+    return this.currentSchemeType === 2;
+  }
+
+  get showVariableConfig(): boolean {
+    return this.currentSchemeType === 3;
+  }
+
+  get showContinuousConfig(): boolean {
+    return this.currentSchemeType === 4;
+  }
+
+  get showSkipLotConfig(): boolean {
+    return this.currentSchemeType === 5;
+  }
+
+  get getCodeErrorTip(): string {
+    const control = this.modalForm?.get('code');
+    if (control?.hasError('required')) return '请输入方案编码';
+    return '';
+  }
+
+  get getNameErrorTip(): string {
+    const control = this.modalForm?.get('name');
+    if (control?.hasError('required')) return '请输入方案名称';
+    return '';
+  }
+
+  getC0ValidationMessage(field: string): string {
+    if (field === 'acceptanceNumber') {
+      const control = this.modalForm?.get('acceptanceNumber');
+      if (control?.hasError('c0Zero')) return 'C=0抽样时，接收数必须为0';
+    }
+    if (field === 'rejectionNumber') {
+      const control = this.modalForm?.get('rejectionNumber');
+      if (control?.hasError('c0One')) return 'C=0抽样时，拒收数必须为1';
+    }
+    return '';
+  }
+
+  initModalForm(dataItem?: SamplingSchemeDto): void {
+    this.modalForm = this.fb.group({
+      code: [dataItem?.code || '', [Validators.required]],
+      name: [dataItem?.name || '', [Validators.required]],
+      schemeType: [dataItem?.schemeType || 1, [Validators.required]],
+      description: [dataItem?.description || ''],
+      sortOrder: [dataItem?.sortOrder || 0],
+      isEnabled: [dataItem?.isEnabled ?? true],
+      aqlConfigId: [dataItem?.aqlConfigId || null],
+      fixedSampleSize: [dataItem?.fixedSampleSize || null],
+      samplePercentage: [dataItem?.samplePercentage || null],
+      acceptanceNumber: [dataItem?.acceptanceNumber ?? 0, [Validators.required]],
+      rejectionNumber: [dataItem?.rejectionNumber ?? 1, [Validators.required]]
+    });
+
+    this.modalForm.get('acceptanceNumber')?.setValidators([
+      Validators.required,
+      (control) => {
+        if (this.currentSchemeType === 2 && control.value !== 0) {
+          return { c0Zero: true };
+        }
+        return null;
+      }
+    ]);
+    this.modalForm.get('rejectionNumber')?.setValidators([
+      Validators.required,
+      (control) => {
+        if (this.currentSchemeType === 2 && control.value !== 1) {
+          return { c0One: true };
+        }
+        return null;
+      }
+    ]);
+    
+    this.cdr.markForCheck();
   }
 
   handleCancel(): void {
@@ -204,83 +252,142 @@ export class SamplingSchemesComponent implements OnInit {
   }
 
   handleOk(): void {
-    Object.values(this.searchForm.controls).forEach(control => {
-      control.markAsDirty();
-      control.updateValueAndValidity();
-    });
-
-    if (this.searchForm.invalid) {
-      this.messageService.warning('请检查表单填写是否正确');
+    if (!this.modalForm.valid) {
+      Object.values(this.modalForm.controls).forEach(control => {
+        if (control instanceof FormGroup) {
+          Object.values(control.controls).forEach(c => {
+            if (c.invalid) {
+              c.markAsDirty();
+              c.updateValueAndValidity();
+            }
+          });
+        } else {
+          if (control.invalid) {
+            control.markAsDirty();
+            control.updateValueAndValidity();
+          }
+        }
+      });
+      this.message.error('请填写必填项');
       return;
     }
 
-    if (!this.validateSchemeTypeFields()) {
-      const c0Message = this.getC0ValidationMessage();
-      if (c0Message) {
-        this.messageService.warning(c0Message);
-      } else {
-        this.messageService.warning('请完善抽样方案必填字段');
-      }
-      return;
-    }
+    const formValue = this.modalForm.value;
+    let formData: CreateUpdateSamplingSchemeDto;
 
-    const input: CreateUpdateSamplingSchemeDto = this.searchForm.value;
+    switch (formValue.schemeType) {
+      case 1:
+        formData = {
+          code: formValue.code,
+          name: formValue.name,
+          schemeType: formValue.schemeType,
+          description: formValue.description,
+          sortOrder: formValue.sortOrder,
+          isEnabled: formValue.isEnabled,
+          aqlConfigId: formValue.aqlConfigId,
+          fixedSampleSize: formValue.fixedSampleSize,
+          samplePercentage: formValue.samplePercentage,
+          acceptanceNumber: formValue.acceptanceNumber,
+          rejectionNumber: formValue.rejectionNumber
+        } as CreateUpdateSamplingSchemeDto;
+        break;
+      case 2:
+        formData = {
+          code: formValue.code,
+          name: formValue.name,
+          schemeType: formValue.schemeType,
+          description: formValue.description,
+          sortOrder: formValue.sortOrder,
+          isEnabled: formValue.isEnabled,
+          fixedSampleSize: formValue.fixedSampleSize,
+          acceptanceNumber: formValue.acceptanceNumber,
+          rejectionNumber: formValue.rejectionNumber
+        } as CreateUpdateSamplingSchemeDto;
+        break;
+      case 3:
+        formData = {
+          code: formValue.code,
+          name: formValue.name,
+          schemeType: formValue.schemeType,
+          description: formValue.description,
+          sortOrder: formValue.sortOrder,
+          isEnabled: formValue.isEnabled,
+          fixedSampleSize: formValue.fixedSampleSize
+        } as CreateUpdateSamplingSchemeDto;
+        break;
+      case 4:
+        formData = {
+          code: formValue.code,
+          name: formValue.name,
+          schemeType: formValue.schemeType,
+          description: formValue.description,
+          sortOrder: formValue.sortOrder,
+          isEnabled: formValue.isEnabled,
+          samplePercentage: formValue.samplePercentage
+        } as CreateUpdateSamplingSchemeDto;
+        break;
+      case 5:
+        formData = {
+          code: formValue.code,
+          name: formValue.name,
+          schemeType: formValue.schemeType,
+          description: formValue.description,
+          sortOrder: formValue.sortOrder,
+          isEnabled: formValue.isEnabled
+        } as CreateUpdateSamplingSchemeDto;
+        break;
+      default:
+        formData = formValue;
+    }
 
     if (this.isEdit && this.editId) {
-      this.samplingSchemeService.update(this.editId, input).subscribe({
-        next: () => {
-          this.messageService.success('更新成功');
-          this.isModalVisible = false;
-          this.cdr.markForCheck();
-          this.loadData();
-        },
-        error: (err) => {
-          console.error('Update error:', err);
-          this.messageService.error('更新失败');
-        }
+      this.tableLoading(true);
+      this.samplingSchemeService.update(this.editId, formData).pipe(
+        finalize(() => this.tableLoading(false)),
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
+        this.message.success('更新成功');
+        this.isModalVisible = false;
+        this.getDataList();
       });
     } else {
-      this.samplingSchemeService.create(input).subscribe({
-        next: () => {
-          this.messageService.success('创建成功');
-          this.isModalVisible = false;
-          this.cdr.markForCheck();
-          this.loadData();
-        },
-        error: (err) => {
-          console.error('Create error:', err);
-          this.messageService.error('创建失败');
-        }
+      this.tableLoading(true);
+      this.samplingSchemeService.create(formData).pipe(
+        finalize(() => this.tableLoading(false)),
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
+        this.message.success('创建成功');
+        this.isModalVisible = false;
+        this.getDataList();
       });
     }
   }
 
-  showDeleteConfirm(id: string): void {
-    this.samplingSchemeService.delete(id).subscribe({
-      next: () => {
-        this.messageService.success('删除成功');
-        this.cdr.markForCheck();
-        this.loadData();
-      },
-      error: () => {
-        this.messageService.error('删除失败');
-        this.cdr.markForCheck();
+  del(id: string): void {
+    this.modalSrv.confirm({
+      nzTitle: '确定要删除吗？',
+      nzContent: '删除后不可恢复',
+      nzOnOk: () => {
+        this.tableLoading(true);
+        this.samplingSchemeService.delete(id).pipe(
+          finalize(() => this.tableLoading(false)),
+          takeUntilDestroyed(this.destroyRef)
+        ).subscribe(() => {
+          if (this.dataList.length === 1 && this.tableConfig.pageIndex !== 1) {
+            this.tableConfig.pageIndex--;
+          }
+          this.getDataList();
+        });
       }
     });
   }
 
-  toggleEnabled(item: SamplingSchemeDto): void {
-    this.samplingSchemeService.setEnabled(item.id, !item.isEnabled).subscribe({
-      next: () => {
-        this.messageService.success('状态更新成功');
-        this.cdr.markForCheck();
-        this.loadData();
-      },
-      error: () => {
-        this.messageService.error('状态更新失败');
-        this.cdr.markForCheck();
-      }
-    });
+  changePageSize(e: number): void {
+    this.tableConfig.pageSize = e;
+  }
+
+  toggleCollapse(): void {
+    this.isCollapse = !this.isCollapse;
   }
 
   getSchemeTypeText(type: number): string {
@@ -293,87 +400,43 @@ export class SamplingSchemesComponent implements OnInit {
     return option ? option.label : '';
   }
 
-  getFieldValidationClass(fieldName: string): string {
-    const control = this.searchForm.get(fieldName);
-    if (!control) return '';
-    
-    if (!control.touched && !control.dirty) return '';
-    return control.invalid ? 'field-error' : 'field-success';
-  }
-
-  getFieldValidationMessage(fieldName: string): string {
-    const control = this.searchForm.get(fieldName);
-    if (!control || !control.touched || !control.dirty || control.valid) return '';
-
-    if (control.errors?.['required']) {
-      return '此字段为必填项';
-    }
-    if (control.errors?.['maxlength']) {
-      const maxLength = control.errors['maxlength'].requiredLength;
-      return `长度不能超过${maxLength}个字符`;
-    }
-    if (control.errors?.['min']) {
-      const min = control.errors['min'].min;
-      return `值不能小于${min}`;
-    }
-    if (control.errors?.['max']) {
-      const max = control.errors['max'].max;
-      return `值不能大于${max}`;
-    }
-    if (control.errors?.['pattern']) {
-      return '格式不正确，只能包含字母、数字、下划线和连字符';
-    }
-    return '输入值不正确';
-  }
-
-  isFieldValid(fieldName: string): boolean {
-    const control = this.searchForm.get(fieldName);
-    if (!control) return true;
-    
-    if (!control.touched && !control.dirty) return true;
-    return control.valid;
-  }
-
-  validateSchemeTypeFields(): boolean {
-    const schemeType = this.searchForm.get('schemeType')?.value;
-    
-    if (schemeType === 1) {
-      const aqlConfigId = this.searchForm.get('aqlConfigId')?.value;
-      return aqlConfigId !== null;
-    } else if (schemeType === 2) {
-      const fixedSampleSize = this.searchForm.get('fixedSampleSize')?.value;
-      const acceptanceNumber = this.searchForm.get('acceptanceNumber')?.value;
-      const rejectionNumber = this.searchForm.get('rejectionNumber')?.value;
-      
-      if (fixedSampleSize === null || fixedSampleSize === undefined) return false;
-      if (acceptanceNumber === null || acceptanceNumber === undefined) return false;
-      if (rejectionNumber === null || rejectionNumber === undefined) return false;
-      
-      if (rejectionNumber <= acceptanceNumber) {
-        return false;
+  loadAqlConfigs(): void {
+    this.aqlConfigService.getList({ isEnabled: true, maxResultCount: 1000 }).subscribe({
+      next: (result) => {
+        this.aqlConfigOptions = result.items;
+        this.cdr.markForCheck();
       }
-      return true;
-    } else if (schemeType === 4) {
-      const samplePercentage = this.searchForm.get('samplePercentage')?.value;
-      return samplePercentage !== null && samplePercentage !== undefined;
-    }
-    
-    return true;
+    });
   }
 
-  getC0ValidationMessage(): string {
-    const schemeType = this.searchForm.get('schemeType')?.value;
-    if (schemeType !== 2) return '';
-    
-    const acceptanceNumber = this.searchForm.get('acceptanceNumber')?.value;
-    const rejectionNumber = this.searchForm.get('rejectionNumber')?.value;
-    
-    if (acceptanceNumber !== null && acceptanceNumber !== undefined && 
-        rejectionNumber !== null && rejectionNumber !== undefined) {
-      if (rejectionNumber <= acceptanceNumber) {
-        return '拒收数(Re)必须大于接收数(Ac)';
-      }
-    }
-    return '';
+  ngOnInit(): void {
+    this.filterForm = { filter: '', isEnabled: null, schemeType: null };
+    this.initTable();
+    this.getDataList();
+    this.loadAqlConfigs();
+  }
+
+  private initTable(): void {
+    this.tableConfig = {
+      showCheckbox: true,
+      headers: [
+        { title: '方案编码', field: 'code', width: 120 },
+        { title: '方案名称', field: 'name', width: 150 },
+        { title: '方案类型', field: 'schemeType', width: 100, fieldType: 'enum', enumParams: [
+          { label: 'AQL抽样', value: 1 },
+          { label: 'C=0抽样', value: 2 },
+          { label: '计量抽样', value: 3 },
+          { label: '连续抽样', value: 4 },
+          { label: '跳批抽样', value: 5 }
+        ]},
+        { title: '排序', field: 'sortOrder', width: 80 },
+        { title: '状态', field: 'isEnabled', width: 80, fieldType: 'switch' },
+        { title: '操作', tdTemplate: this.operationTpl(), width: 120, fixed: true }
+      ],
+      total: 0,
+      loading: true,
+      pageSize: 10,
+      pageIndex: 1
+    };
   }
 }

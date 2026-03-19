@@ -1,64 +1,73 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { NzTableModule } from 'ng-zorro-antd/table';
+import { Component, OnInit, ChangeDetectionStrategy, TemplateRef, ChangeDetectorRef, inject, DestroyRef, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
+
+import { AntTableConfig, AntTableComponent } from '@shared/components/ant-table/ant-table.component';
+import { CardTableWrapComponent } from '@shared/components/card-table-wrap/card-table-wrap.component';
+import { PageHeaderType, PageHeaderComponent } from '@shared/components/page-header/page-header.component';
+
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzSwitchModule } from 'ng-zorro-antd/switch';
-import { NzTagModule } from 'ng-zorro-antd/tag';
-import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzPaginationModule } from 'ng-zorro-antd/pagination';
-import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzSafeAny } from 'ng-zorro-antd/core/types';
+import { NzWaveModule } from 'ng-zorro-antd/core/wave';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzSpaceModule } from 'ng-zorro-antd/space';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
+
 import { MaterialDto, CreateUpdateMaterialDto, GetMaterialListDto } from '../models/material.model';
 import { MaterialService } from '../services/material.service';
 
 @Component({
   selector: 'app-materials',
-  standalone: true,
+  templateUrl: './materials.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule,
+    PageHeaderComponent,
+    NzGridModule,
+    NzCardModule,
     FormsModule,
     ReactiveFormsModule,
-    NzTableModule,
-    NzButtonModule,
-    NzInputModule,
-    NzModalModule,
     NzFormModule,
+    NzInputModule,
     NzSelectModule,
+    NzButtonModule,
+    NzWaveModule,
+    NzIconModule,
+    CardTableWrapComponent,
+    AntTableComponent,
     NzSwitchModule,
-    NzTagModule,
+    NzModalModule,
     NzPopconfirmModule,
-    NzPaginationModule,
-    NzSpaceModule,
-    NzCardModule,
-    NzIconModule
-  ],
-  templateUrl: './materials.component.html',
-  styleUrls: ['./materials.component.less']
+    NzSpaceModule
+  ]
 })
 export class MaterialsComponent implements OnInit {
-  private materialService = inject(MaterialService);
-  private fb = inject(FormBuilder);
-  private modalService = inject(NzModalService);
-  private messageService = inject(NzMessageService);
-  private cdr = inject(ChangeDetectorRef);
-
-  loading = false;
-  data: MaterialDto[] = [];
-  total = 0;
-  pageIndex = 1;
-  pageSize = 10;
-  filterForm!: FormGroup;
-  searchForm!: FormGroup;
+  readonly operationTpl = viewChild.required<TemplateRef<NzSafeAny>>('operationTpl');
+  readonly materialTypeTpl = viewChild.required<TemplateRef<NzSafeAny>>('materialTypeTpl');
+  
+  tableConfig!: AntTableConfig;
+  pageHeaderInfo: Partial<PageHeaderType> = {
+    title: '物料管理',
+    breadcrumb: ['首页', '基础数据', '物料管理'],
+    desc: ''
+  };
+  dataList: MaterialDto[] = [];
+  checkedCashArray: MaterialDto[] = [];
+  isCollapse = true;
+  filterForm!: { filter: string; isEnabled: boolean | null };
   isModalVisible = false;
   isEdit = false;
   editId?: string;
+  searchFormData: CreateUpdateMaterialDto = {} as CreateUpdateMaterialDto;
+  destroyRef = inject(DestroyRef);
 
   materialTypeOptions = [
     { label: '原材料', value: 1 },
@@ -66,104 +75,77 @@ export class MaterialsComponent implements OnInit {
     { label: '成品', value: 3 }
   ];
 
-  ngOnInit(): void {
-    this.initForms();
-    this.loadData();
+  private materialService = inject(MaterialService);
+  private modalSrv = inject(NzModalService);
+  private cdr = inject(ChangeDetectorRef);
+  private message = inject(NzMessageService);
+
+  selectedChecked(e: MaterialDto[]): void {
+    this.checkedCashArray = [...e];
   }
 
-  initForms(): void {
-    this.filterForm = this.fb.group({
-      filter: [''],
-      isEnabled: [null]
-    });
-
-    this.searchForm = this.fb.group({
-      code: ['', [Validators.required]],
-      name: ['', [Validators.required]],
-      specification: [''],
-      drawingNo: [''],
-      materialType: [null, [Validators.required]],
-      batchManagement: [false],
-      expiryManagement: [false],
-      supplier: [''],
-      defaultStandardId: [''],
-      isEnabled: [true]
-    });
+  resetForm(): void {
+    this.filterForm = { filter: '', isEnabled: null };
+    this.getDataList({ pageIndex: 1 });
   }
 
-  loadData(): void {
-    this.loading = true;
-    this.cdr.markForCheck();
+  getDataList(e?: { pageIndex: number }): void {
+    this.tableConfig.loading = true;
     const input: GetMaterialListDto = {
-      filter: this.filterForm.value.filter,
-      isEnabled: this.filterForm.value.isEnabled,
-      skipCount: (this.pageIndex - 1) * this.pageSize,
-      maxResultCount: this.pageSize
+      filter: this.filterForm.filter,
+      isEnabled: this.filterForm.isEnabled ?? undefined,
+      skipCount: ((e?.pageIndex || this.tableConfig.pageIndex) - 1) * this.tableConfig.pageSize!,
+      maxResultCount: this.tableConfig.pageSize!
     };
 
-    this.materialService.getList(input).subscribe({
-      next: (result) => {
-        this.data = result.items;
-        this.total = result.totalCount;
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.loading = false;
-        this.cdr.markForCheck();
-        this.messageService.error('加载数据失败');
-      }
+    this.materialService.getList(input).pipe(
+      finalize(() => this.tableLoading(false)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(result => {
+      this.dataList = result.items || [];
+      this.tableConfig.total = result.totalCount || 0;
+      this.tableConfig.pageIndex = e?.pageIndex || this.tableConfig.pageIndex;
+      this.tableLoading(false);
     });
   }
 
-  onSearch(): void {
-    this.pageIndex = 1;
-    this.loadData();
+  tableChangeDectction(): void {
+    this.dataList = [...this.dataList];
+    this.cdr.detectChanges();
   }
 
-  onReset(): void {
-    this.filterForm.reset();
-    this.pageIndex = 1;
-    this.loadData();
+  tableLoading(isLoading: boolean): void {
+    this.tableConfig.loading = isLoading;
+    this.tableChangeDectction();
   }
 
-  onPageIndexChange(index: number): void {
-    this.pageIndex = index;
-    this.loadData();
-  }
-
-  onPageSizeChange(size: number): void {
-    this.pageSize = size;
-    this.pageIndex = 1;
-    this.loadData();
-  }
-
-  showAddModal(): void {
+  add(): void {
     this.isEdit = false;
     this.editId = undefined;
-    this.searchForm.reset();
-    this.searchForm.patchValue({
-      batchManagement: false,
-      expiryManagement: false
-    });
+    this.searchFormData = { code: '', name: '', specification: '', drawingNo: '', materialType: 1, batchManagement: false, expiryManagement: false, supplier: '', isEnabled: true };
     this.isModalVisible = true;
   }
 
-  showEditModal(item: MaterialDto): void {
+  reloadTable(): void {
+    this.message.info('刷新成功');
+    this.getDataList();
+  }
+
+  edit(id: string, dataItem: MaterialDto): void {
     this.isEdit = true;
-    this.editId = item.id;
-    this.searchForm.patchValue({
-      code: item.code,
-      name: item.name,
-      specification: item.specification,
-      drawingNo: item.drawingNo,
-      materialType: item.materialType,
-      batchManagement: item.batchManagement,
-      expiryManagement: item.expiryManagement,
-      supplier: item.supplier,
-      defaultStandardId: item.defaultStandardId,
-      isEnabled: item.isEnabled
-    });
+    this.editId = id;
+    this.searchFormData = {
+      code: dataItem.code,
+      name: dataItem.name,
+      specification: dataItem.specification || '',
+      drawingNo: dataItem.drawingNo || '',
+      materialType: dataItem.materialType,
+      batchManagement: dataItem.batchManagement,
+      expiryManagement: dataItem.expiryManagement,
+      supplier: dataItem.supplier || '',
+      defaultStandardId: dataItem.defaultStandardId || '',
+      isEnabled: dataItem.isEnabled
+    };
     this.isModalVisible = true;
   }
 
@@ -173,71 +155,92 @@ export class MaterialsComponent implements OnInit {
   }
 
   handleOk(): void {
-    if (this.searchForm.invalid) {
-      Object.values(this.searchForm.controls).forEach(control => {
-        control.markAsDirty();
-        control.updateValueAndValidity();
-      });
+    if (!this.searchFormData.code || !this.searchFormData.name) {
+      this.message.error('请填写必填项');
       return;
     }
 
-    const input: CreateUpdateMaterialDto = this.searchForm.value;
-
     if (this.isEdit && this.editId) {
-      this.materialService.update(this.editId, input).subscribe({
-        next: () => {
-          this.messageService.success('更新成功');
-          this.isModalVisible = false;
-          this.cdr.markForCheck();
-          this.loadData();
-        },
-        error: () => {
-          this.messageService.error('更新失败');
-        }
+      this.tableLoading(true);
+      this.materialService.update(this.editId, this.searchFormData).pipe(
+        finalize(() => this.tableLoading(false)),
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
+        this.message.success('更新成功');
+        this.isModalVisible = false;
+        this.getDataList();
       });
     } else {
-      this.materialService.create(input).subscribe({
-        next: () => {
-          this.messageService.success('创建成功');
-          this.isModalVisible = false;
-          this.cdr.markForCheck();
-          this.loadData();
-        },
-        error: () => {
-          this.messageService.error('创建失败');
-        }
+      this.tableLoading(true);
+      this.materialService.create(this.searchFormData).pipe(
+        finalize(() => this.tableLoading(false)),
+        takeUntilDestroyed(this.destroyRef)
+      ).subscribe(() => {
+        this.message.success('创建成功');
+        this.isModalVisible = false;
+        this.getDataList();
       });
     }
   }
 
-  showDeleteConfirm(id: string): void {
-    this.modalService.confirm({
-      nzTitle: '确认删除',
-      nzContent: '确定要删除这条记录吗？',
-      nzOkText: '确定',
-      nzOkType: 'primary',
-      nzOkDanger: true,
-      nzOnOk: () => this.delete(id),
-      nzCancelText: '取消'
+  del(id: string): void {
+    this.modalSrv.confirm({
+      nzTitle: '确定要删除吗？',
+      nzContent: '删除后不可恢复',
+      nzOnOk: () => {
+        this.tableLoading(true);
+        this.materialService.delete(id).pipe(
+          finalize(() => this.tableLoading(false)),
+          takeUntilDestroyed(this.destroyRef)
+        ).subscribe(() => {
+          if (this.dataList.length === 1 && this.tableConfig.pageIndex !== 1) {
+            this.tableConfig.pageIndex--;
+          }
+          this.getDataList();
+        });
+      }
     });
   }
 
-  delete(id: string): void {
-    this.materialService.delete(id).subscribe({
-      next: () => {
-        this.messageService.success('删除成功');
-        this.cdr.markForCheck();
-        this.loadData();
-      },
-      error: () => {
-        this.messageService.error('删除失败');
-        this.cdr.markForCheck();
-      }
-    });
+  changePageSize(e: number): void {
+    this.tableConfig.pageSize = e;
+  }
+
+  toggleCollapse(): void {
+    this.isCollapse = !this.isCollapse;
   }
 
   getMaterialTypeText(type: number): string {
     const option = this.materialTypeOptions.find(o => o.value === type);
     return option ? option.label : '';
+  }
+
+  ngOnInit(): void {
+    this.filterForm = { filter: '', isEnabled: null };
+    this.initTable();
+    this.getDataList();
+  }
+
+  private initTable(): void {
+    this.tableConfig = {
+      showCheckbox: true,
+      headers: [
+        { title: '物料编码', field: 'code', width: 120 },
+        { title: '物料名称', field: 'name', width: 150 },
+        { title: '规格', field: 'specification', width: 120 },
+        { title: '图号', field: 'drawingNo', width: 120 },
+        { title: '物料类型', field: 'materialType', width: 100, fieldType: 'enum', enumParams: [
+          { label: '原材料', value: 1 },
+          { label: '半成品', value: 2 },
+          { label: '成品', value: 3 }
+        ]},
+        { title: '状态', field: 'isEnabled', width: 80, fieldType: 'switch' },
+        { title: '操作', tdTemplate: this.operationTpl(), width: 120, fixed: true }
+      ],
+      total: 0,
+      loading: true,
+      pageSize: 10,
+      pageIndex: 1
+    };
   }
 }

@@ -1,18 +1,25 @@
-import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { NgClass, NgTemplateOutlet, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, inject, input, InputSignal, OnChanges, output, SimpleChanges, TemplateRef } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 import { ContextPipePipe } from '@shared/components/ant-table/context-pipe.pipe';
 
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 import { NzResizableModule, NzResizeEvent } from 'ng-zorro-antd/resizable';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzTableModule, NzTableQueryParams, NzTableSize } from 'ng-zorro-antd/table';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 
 import { MapPipe } from '../../pipes/map.pipe';
 import { TableFiledPipe } from '../../pipes/table-filed.pipe';
 
+export type FieldType = 'switch' | 'boolText' | 'date' | 'datetime' | 'enum' | 'tag';
+
 export interface TableHeader {
   title: string; // 表头名称
   field?: string; // 字段
+  fieldType?: FieldType; // 字段类型：switch(开关)、boolText(布尔文本)、date(日期)、datetime(日期时间)、enum(枚举)、tag(标签)
+  enumParams?: { label: string; value: string | number; color?: string }[]; // 枚举类型参数
   pipe?: string; // 管道
   showSort?: boolean; // 是否显示排序
   sortDir?: undefined | 'asc' | 'desc'; // 排序方向
@@ -60,7 +67,7 @@ export interface SortFile {
   styleUrls: ['./ant-table.component.less'],
   providers: [{ provide: AntTableComponentToken, useExisting: AntTableComponent }],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NzTableModule, NzResizableModule, NgClass, NgTemplateOutlet, MapPipe, TableFiledPipe, ContextPipePipe]
+  imports: [NzTableModule, NzResizableModule, NzSwitchModule, NzTagModule, NgClass, NgTemplateOutlet, FormsModule, DatePipe, MapPipe, TableFiledPipe, ContextPipePipe]
 })
 export class AntTableComponent implements OnChanges {
   // 从业务组件中传入的缓存的已经选中的checkbox数据数组
@@ -96,6 +103,7 @@ export class AntTableComponent implements OnChanges {
   readonly changePageSize = output<number>();
   readonly selectedChange = output<NzSafeAny[]>();
   readonly sortFn = output<SortFile>();
+  readonly switchChange = output<{ field: string; value: boolean; row: NzSafeAny }>();
   indeterminate = false;
   allChecked = false;
   private cdr = inject(ChangeDetectorRef);
@@ -134,6 +142,22 @@ export class AntTableComponent implements OnChanges {
 
   trackById(_: number, data: { id: number }): number {
     return data.id;
+  }
+
+  getEnumLabel(enumParams: { label: string; value: string | number; color?: string }[] | undefined, value: NzSafeAny): string {
+    if (!enumParams) {
+      return String(value);
+    }
+    const found = enumParams.find(p => p.value === value);
+    return found ? found.label : String(value);
+  }
+
+  getEnumColor(enumParams: { label: string; value: string | number; color?: string }[] | undefined, value: NzSafeAny): string {
+    if (!enumParams) {
+      return 'default';
+    }
+    const found = enumParams.find(p => p.value === value);
+    return found?.color || 'default';
   }
 
   public trackByTableHead(index: number, item: NzSafeAny): string {

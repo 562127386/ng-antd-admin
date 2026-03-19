@@ -169,6 +169,11 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       arrivalDate: [null, [Validators.required]],
       samplingSchemeId: [null],
       qualityInspectionPlanId: [null],
+      aqlValue: [null],
+      sampleSize: [null],
+      sampleSizeCode: [''],
+      acceptanceNumber: [null],
+      rejectionNumber: [null],
       remark: ['']
     });
   }
@@ -237,6 +242,11 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
             arrivalDate: detail.arrivalDate ? new Date(detail.arrivalDate) : null,
             qualityInspectionPlanId: detail.qualityInspectionPlanId,
             samplingSchemeId: detail.samplingSchemeId,
+            aqlValue: detail.aqlValue,
+            sampleSize: detail.sampleSize,
+            sampleSizeCode: detail.sampleSizeCode || '',
+            acceptanceNumber: detail.acceptanceNumber,
+            rejectionNumber: detail.rejectionNumber,
             remark: detail.remark
           });
           
@@ -466,6 +476,13 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       this.sampleSize = 0;
       this.matchedAqlConfig = undefined;
       this.relatedAqlConfigs = [];
+      this.createForm.patchValue({
+        aqlValue: null,
+        sampleSize: null,
+        sampleSizeCode: '',
+        acceptanceNumber: null,
+        rejectionNumber: null
+      });
       return;
     }
 
@@ -476,8 +493,22 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       this.matchedAqlConfig = this.findMatchingAqlConfig(scheme.aqlConfigId, lotSize);
       if (this.matchedAqlConfig) {
         this.sampleSize = this.matchedAqlConfig.sampleSize;
+        this.createForm.patchValue({
+          aqlValue: this.matchedAqlConfig.aqlValue,
+          sampleSize: this.matchedAqlConfig.sampleSize,
+          sampleSizeCode: this.matchedAqlConfig.sampleSizeCode,
+          acceptanceNumber: this.matchedAqlConfig.acceptanceNumber,
+          rejectionNumber: this.matchedAqlConfig.rejectionNumber
+        });
       } else {
         this.sampleSize = 0;
+        this.createForm.patchValue({
+          aqlValue: null,
+          sampleSize: null,
+          sampleSizeCode: '',
+          acceptanceNumber: null,
+          rejectionNumber: null
+        });
       }
     } else {
       this.relatedAqlConfigs = [];
@@ -485,14 +516,49 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       
       if (scheme.schemeType === SamplingSchemeType.CZero && scheme.fixedSampleSize) {
         this.sampleSize = scheme.fixedSampleSize;
+        this.createForm.patchValue({
+          aqlValue: null,
+          sampleSize: scheme.fixedSampleSize,
+          sampleSizeCode: '',
+          acceptanceNumber: scheme.acceptanceNumber,
+          rejectionNumber: scheme.rejectionNumber
+        });
       } else if (scheme.schemeType === SamplingSchemeType.Continuous && scheme.samplePercentage) {
         this.sampleSize = Math.ceil(lotSize * scheme.samplePercentage / 100);
+        this.createForm.patchValue({
+          aqlValue: null,
+          sampleSize: this.sampleSize,
+          sampleSizeCode: '',
+          acceptanceNumber: null,
+          rejectionNumber: null
+        });
       } else if (scheme.fixedSampleSize) {
         this.sampleSize = scheme.fixedSampleSize;
+        this.createForm.patchValue({
+          aqlValue: null,
+          sampleSize: scheme.fixedSampleSize,
+          sampleSizeCode: '',
+          acceptanceNumber: scheme.acceptanceNumber,
+          rejectionNumber: scheme.rejectionNumber
+        });
       } else if (scheme.samplePercentage) {
         this.sampleSize = Math.ceil(lotSize * scheme.samplePercentage / 100);
+        this.createForm.patchValue({
+          aqlValue: null,
+          sampleSize: this.sampleSize,
+          sampleSizeCode: '',
+          acceptanceNumber: null,
+          rejectionNumber: null
+        });
       } else {
         this.sampleSize = 0;
+        this.createForm.patchValue({
+          aqlValue: null,
+          sampleSize: null,
+          sampleSizeCode: '',
+          acceptanceNumber: null,
+          rejectionNumber: null
+        });
       }
     }
   }

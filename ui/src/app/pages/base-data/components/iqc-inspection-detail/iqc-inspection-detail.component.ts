@@ -18,6 +18,8 @@ import { IqcInspectionOrderDto, CreateUpdateIqcInspectionOrderDto, IqcInspection
 import { IqcInspectionService } from '../../services/iqc-inspection.service';
 import { SamplingSchemeDto } from '../../models/sampling-scheme.model';
 import { SamplingSchemeService } from '../../services/sampling-scheme.service';
+import { AqlConfigDto } from '../../models/aql-config.model';
+import { AqlConfigService } from '../../services/aql-config.service';
 import { QualityInspectionPlanSelectorComponent } from '../quality-inspection-plan-selector/quality-inspection-plan-selector.component';
 import { QualityInspectionPlanDto } from '../../models/quality-inspection-plan.model';
 import { QualityInspectionPlanService } from '../../services/quality-inspection-plan.service';
@@ -58,6 +60,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 export class IqcInspectionDetailComponent implements OnInit, OnChanges {
   private iqcInspectionService = inject(IqcInspectionService);
   private samplingSchemeService = inject(SamplingSchemeService);
+  private aqlConfigService = inject(AqlConfigService);
   private qualityInspectionPlanService = inject(QualityInspectionPlanService);
   private fb = inject(FormBuilder);
   private messageService = inject(NzMessageService);
@@ -134,6 +137,11 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
       arrivalDate: [null, [Validators.required]],
       samplingSchemeId: [null],
       inspectionStandardId: [null],
+      aqlValue: [null],
+      sampleSize: [null],
+      sampleSizeCode: [''],
+      acceptanceNumber: [null],
+      rejectionNumber: [null],
       remark: ['']
     });
   }
@@ -246,6 +254,55 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
   getSamplingSchemeName(schemeId: string): string {
     const scheme = this.samplingSchemes.find(s => s.id === schemeId);
     return scheme ? scheme.name : '-';
+  }
+
+  onSchemeChange(schemeId: string): void {
+    if (!schemeId) {
+      this.createForm.patchValue({
+        aqlValue: null,
+        sampleSize: null,
+        sampleSizeCode: '',
+        acceptanceNumber: null,
+        rejectionNumber: null
+      });
+      return;
+    }
+
+    const scheme = this.samplingSchemes.find(s => s.id === schemeId);
+    if (scheme) {
+      if (scheme.aqlConfigId) {
+        this.aqlConfigService.get(scheme.aqlConfigId).subscribe({
+          next: (aqlConfig) => {
+            this.createForm.patchValue({
+              aqlValue: aqlConfig.aqlValue,
+              sampleSize: aqlConfig.sampleSize,
+              sampleSizeCode: aqlConfig.sampleSizeCode,
+              acceptanceNumber: aqlConfig.acceptanceNumber,
+              rejectionNumber: aqlConfig.rejectionNumber
+            });
+            this.cdr.markForCheck();
+          },
+          error: () => {
+            this.createForm.patchValue({
+              aqlValue: null,
+              sampleSize: null,
+              sampleSizeCode: '',
+              acceptanceNumber: null,
+              rejectionNumber: null
+            });
+          }
+        });
+      } else {
+        this.createForm.patchValue({
+          aqlValue: null,
+          sampleSize: scheme.fixedSampleSize || null,
+          sampleSizeCode: '',
+          acceptanceNumber: scheme.acceptanceNumber,
+          rejectionNumber: scheme.rejectionNumber
+        });
+      }
+    }
+    this.cdr.markForCheck();
   }
 
   getJudgmentText(judgment?: number): string {

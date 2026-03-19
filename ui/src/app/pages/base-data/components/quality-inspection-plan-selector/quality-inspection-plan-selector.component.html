@@ -1,0 +1,94 @@
+<nz-modal
+  [(nzVisible)]="visible"
+  nzTitle="选择检验方案"
+  [nzWidth]="900"
+  [nzFooter]="null"
+  (nzOnCancel)="handleCancel()">
+  <ng-container *nzModalContent>
+    <div class="selector-content">
+      <div class="filter-section" [formGroup]="filterForm">
+        <div nz-row [nzGutter]="16">
+          <div nz-col [nzSpan]="8">
+            <nz-form-item>
+              <nz-form-label>方案编码</nz-form-label>
+              <nz-form-control>
+                <input nz-input formControlName="filter" placeholder="请输入方案编码" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="8">
+            <nz-form-item>
+              <nz-form-label>检验类型</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="inspectionType" nzPlaceHolder="请选择" [nzAllowClear]="true" style="width: 100%;">
+                  <nz-option *ngFor="let option of inspectionTypeOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="8">
+            <nz-form-item>
+              <nz-form-label>状态</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="status" nzPlaceHolder="请选择" style="width: 100%;">
+                  <nz-option *ngFor="let option of statusOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+        <div class="button-group">
+          <button nz-button nzType="primary" (click)="onSearch()">
+            <span nz-icon nzType="search"></span>
+            查询
+          </button>
+          <button nz-button (click)="onReset()">重置</button>
+        </div>
+      </div>
+
+      <nz-table
+        [nzData]="data"
+        [nzLoading]="loading"
+        [nzTotal]="total"
+        [nzPageIndex]="pageIndex"
+        [nzPageSize]="pageSize"
+        (nzQueryParams)="onQueryParamsChange($event)"
+        nzShowSizeChanger
+        [nzPageSizeOptions]="[10, 20, 50]"
+        nzFrontPagination>
+        <thead>
+          <tr>
+            <th>方案编码</th>
+            <th>版本</th>
+            <th>检验类型</th>
+            <th>状态</th>
+            <th>生效日期</th>
+            <th>检验项目数</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of data" (dblclick)="selectPlan(item)" style="cursor: pointer;">
+            <td>
+              <nz-tag nzColor="blue">{{ item.code }}</nz-tag>
+            </td>
+            <td>v{{ item.version }}</td>
+            <td>
+              <nz-tag>{{ getInspectionTypeText(item.inspectionType) }}</nz-tag>
+            </td>
+            <td>
+              <nz-tag [nzColor]="getStatusColor(item.status)">{{ getStatusText(item.status) }}</nz-tag>
+            </td>
+            <td>{{ item.effectiveDate | date:'yyyy-MM-dd' }}</td>
+            <td>
+              <nz-tag nzColor="purple">{{ getStepCount(item.steps) }} 项</nz-tag>
+            </td>
+            <td>
+              <button nz-button nzType="link" nzSize="small" (click)="selectPlan(item)">选择</button>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </div>
+  </ng-container>
+</nz-modal>

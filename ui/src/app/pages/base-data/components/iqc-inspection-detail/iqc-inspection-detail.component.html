@@ -200,9 +200,51 @@
         <nz-form-item>
           <nz-form-label>抽样方案</nz-form-label>
           <nz-form-control>
-            <nz-select formControlName="samplingSchemeId" nzPlaceHolder="请选择抽样方案" [nzAllowClear]="true" style="width: 100%;">
+            <nz-select formControlName="samplingSchemeId" nzPlaceHolder="请选择抽样方案" [nzAllowClear]="true" style="width: 100%;" (ngModelChange)="onSchemeChange($event)">
               <nz-option *ngFor="let scheme of samplingSchemes" [nzLabel]="scheme.name" [nzValue]="scheme.id"></nz-option>
             </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="6">
+        <nz-form-item>
+          <nz-form-label>AQL值</nz-form-label>
+          <nz-form-control>
+            <nz-input-number formControlName="aqlValue" [nzMin]="0" style="width: 100%;" [nzDisabled]="true"></nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="6">
+        <nz-form-item>
+          <nz-form-label>样本量</nz-form-label>
+          <nz-form-control>
+            <nz-input-number formControlName="sampleSize" [nzMin]="0" style="width: 100%;" [nzDisabled]="true"></nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="6">
+        <nz-form-item>
+          <nz-form-label>样本量字码</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="sampleSizeCode" [disabled]="true" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="3">
+        <nz-form-item>
+          <nz-form-label>Ac</nz-form-label>
+          <nz-form-control>
+            <nz-input-number formControlName="acceptanceNumber" [nzMin]="0" style="width: 100%;" [nzDisabled]="true"></nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="3">
+        <nz-form-item>
+          <nz-form-label>Re</nz-form-label>
+          <nz-form-control>
+            <nz-input-number formControlName="rejectionNumber" [nzMin]="0" style="width: 100%;" [nzDisabled]="true"></nz-input-number>
           </nz-form-control>
         </nz-form-item>
       </div>

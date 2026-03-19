@@ -1,5 +1,6 @@
 @let tableConfig = this.tableConfig();
 @let _scrollConfig = this._scrollConfig();
+@let switchChangeFn = this.switchChange;
 <nz-table
   nzShowPagination
   nzShowQuickJumper
@@ -76,6 +77,18 @@
             >
               @if (head.tdTemplate) {
                 <ng-container *ngTemplateOutlet="head.tdTemplate; context: row | contextPipe: '$$dataItem'"></ng-container>
+              } @else if (head.fieldType === 'switch') {
+                <nz-switch [ngModel]="row[head.field!]" (ngModelChange)="switchChangeFn.emit({ field: head.field!, value: $event, row: row })" nzSize="small"></nz-switch>
+              } @else if (head.fieldType === 'boolText') {
+                <span>{{ row[head.field!] ? '是' : '否' }}</span>
+              } @else if (head.fieldType === 'date') {
+                <span>{{ row[head.field!] | date: 'yyyy-MM-dd' }}</span>
+              } @else if (head.fieldType === 'datetime') {
+                <span>{{ row[head.field!] | date: 'yyyy-MM-dd HH:mm:ss' }}</span>
+              } @else if (head.fieldType === 'tag') {
+                <nz-tag [nzColor]="getEnumColor(head.enumParams, row[head.field!])">{{ getEnumLabel(head.enumParams, row[head.field!]) }}</nz-tag>
+              } @else if (head.fieldType === 'enum') {
+                <span>{{ getEnumLabel(head.enumParams, row[head.field!]) }}</span>
               } @else {
                 @if (head.pipe) {
                   <span [title]="row | tableFiledPipe: head.field | map: head.pipe">{{ row | tableFiledPipe: head.field | map: head.pipe }}</span>
