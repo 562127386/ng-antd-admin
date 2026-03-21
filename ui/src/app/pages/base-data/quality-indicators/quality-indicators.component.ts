@@ -117,12 +117,13 @@ export class QualityIndicatorsComponent implements OnInit {
   inspectionTypes = [
      { label: '计数', value: '计数' },
      { label: '计量', value: '计量' }
+  ];
 
-    // { label: '外观检验', value: '外观检验' },
-    // { label: '尺寸检验', value: '尺寸检验' },
-    // { label: '功能检验', value: '功能检验' },
-    // { label: '性能检验', value: '性能检验' },
-    // { label: '可靠性检验', value: '可靠性检验' }
+  dataTypes = [
+    { label: '文本', value: '文本' },
+    { label: '数值', value: '数值' },
+    { label: '日期', value: '日期' },
+    { label: '选择', value: '选择' }
   ];
 
   ngOnInit(): void {
@@ -183,7 +184,8 @@ export class QualityIndicatorsComponent implements OnInit {
       .getList({
         skipCount: ((params.pageIndex || 1) - 1) * (params.MaxResultCount || 10),
         maxResultCount: params.MaxResultCount || 10,
-        sorting: 'sortOrder asc'
+        sorting: 'sortOrder asc',
+        ...params.filters
       })
       .pipe(
         finalize(() => {
@@ -537,9 +539,35 @@ export class QualityIndicatorsComponent implements OnInit {
       nzTitle: '确定要删除吗？',
       nzContent: '删除后不可恢复',
       nzOnOk: () => {
-        // 这里需要调用删除判定规则的API
-        this.messageService.success('删除成功');
-        // 重新加载判定规则列表
+        return new Promise<void>((resolve) => {
+          this.qualityIndicatorService.deleteInspectionRule(id).subscribe({
+            next: () => {
+              this.messageService.success('删除成功');
+              this.loadInspectionRules();
+              resolve();
+            },
+            error: () => {
+              this.messageService.error('删除失败');
+              resolve();
+            }
+          });
+        });
+      }
+    });
+  }
+
+  loadInspectionRules(): void {
+    if (!this.currentInspectionItem?.id) return;
+    this.inspectionRulesLoading = true;
+    this.qualityIndicatorService.getInspectionRules(this.currentInspectionItem.id).subscribe({
+      next: (rules) => {
+        this.inspectionRules = rules;
+        this.inspectionRulesLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.inspectionRulesLoading = false;
+        this.cdr.markForCheck();
       }
     });
   }

@@ -142,7 +142,7 @@ export class IqcInspectionsComponent implements OnInit {
 
   showAddModal(): void {
     const defaultOptions: NzDrawerOptions = {
-      nzWidth: '85%',
+      nzWidth: '80%',
       nzTitle: '新增检验单'
     };
     this.drawerWrapService
@@ -167,7 +167,7 @@ export class IqcInspectionsComponent implements OnInit {
   showViewModal(item: IqcInspectionOrderDto): void {
     const isInProgress = item.status === InspectionStatus.InProgress;
     const defaultOptions: NzDrawerOptions = {
-      nzWidth: isInProgress ? '85%' : '80%',
+      nzWidth: '100%',
       nzTitle: isInProgress ? '检验执行' : '查看检验单',
       nzFooter: this.cancelTpl
     };
@@ -270,8 +270,9 @@ export class IqcInspectionsComponent implements OnInit {
     this.iqcInspectionService.startInspection(id).subscribe({
       next: () => {
         const defaultOptions: NzDrawerOptions = {
-          nzWidth: '85%',
-          nzTitle: '检验执行'
+          nzWidth: '100%',
+          nzTitle: '检验执行',
+          nzFooter: this.cancelTpl
         };
         this.drawerWrapService
           .show(IqcInspectionDrawerComponent, defaultOptions, { mode: 'inspect', id: id })
@@ -300,8 +301,18 @@ export class IqcInspectionsComponent implements OnInit {
               return;
             }
 
-            const inspectionResult = result.modalValue.result || result.modalValue;
-            this.iqcInspectionService.completeInspection(item.id, inspectionResult).subscribe({
+            const modalValue = result.modalValue;
+            const input = {
+              result: modalValue.result || modalValue,
+              remark: modalValue.remark || '',
+              qualifiedSampleCount: modalValue.qualifiedSampleCount,
+              unqualifiedSampleCount: modalValue.unqualifiedSampleCount,
+              incompleteSampleCount: modalValue.incompleteSampleCount,
+              unqualifiedItemCount: modalValue.unqualifiedItemCount,
+              qualifiedItemCount: modalValue.qualifiedItemCount,
+              pendingItemCount: modalValue.pendingItemCount
+            };
+            this.iqcInspectionService.completeInspection(item.id, input).subscribe({
               next: () => {
                 this.messageService.success('完成检验成功');
                 this.loadData();

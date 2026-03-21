@@ -97,12 +97,12 @@
     <div nz-row [nzGutter]="16">
       <div nz-col nzSpan="12">
         <nz-form-item>
-          <nz-form-label>检验方案</nz-form-label>
+          <nz-form-label nzRequired>质检方案</nz-form-label>
           <nz-form-control>
             <div class="plan-selector" *ngIf="!selectedPlan; else selectedPlanDisplay">
               <button nz-button (click)="openPlanSelector()" style="width: 100%;">
                 <span nz-icon nzType="search"></span>
-                选择检验方案
+                选择质检方案
               </button>
             </div>
             <ng-template #selectedPlanDisplay>
@@ -118,7 +118,7 @@
       </div>
       <div nz-col nzSpan="12">
         <nz-form-item>
-          <nz-form-label>抽样方案</nz-form-label>
+          <nz-form-label nzRequired>抽样方案</nz-form-label>
           <nz-form-control>
             <nz-select formControlName="samplingSchemeId" nzPlaceHolder="请选择抽样方案" style="width: 100%;">
               <nz-option *ngFor="let scheme of samplingSchemes" [nzLabel]="scheme.name" [nzValue]="scheme.id"></nz-option>
@@ -132,7 +132,7 @@
         <nz-form-item>
           <nz-form-label>AQL值</nz-form-label>
           <nz-form-control>
-            <nz-input-number formControlName="aqlValue" [nzMin]="0" style="width: 100%;" [nzDisabled]="true"></nz-input-number>
+            <nz-input-number formControlName="aqlValue" [nzMin]="0" style="width: 100%;"></nz-input-number>
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -148,7 +148,7 @@
         <nz-form-item>
           <nz-form-label>样本量字码</nz-form-label>
           <nz-form-control>
-            <input nz-input formControlName="sampleSizeCode" [disabled]="true" />
+            <input nz-input formControlName="sampleSizeCode"/>
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -281,8 +281,8 @@
                 规则名称：{{ rule.name }} -->
 
 
-                <div *ngFor="let rule of indicator.rules ">
-          <nz-tag  [nzColor]="(rule.judgmentResult === 'OK') ? 'success' : 'error'" nzMode="default">
+          <div *ngFor="let rule of indicator.rules ">
+            <nz-tag  [nzColor]="(rule.judgmentResult === 'OK') ? 'success' : 'error'" nzMode="default">
              判定表达式：{{rule.conditionExpression}} 时，判定结果为：{{rule.judgmentResult}}
             </nz-tag> 
           </div>
@@ -367,13 +367,14 @@
       <nz-descriptions-item nzTitle="批量">{{ viewingOrder.lotSize }}</nz-descriptions-item>
       <nz-descriptions-item nzTitle="到货日期">{{ viewingOrder.arrivalDate | date:'yyyy-MM-dd' }}</nz-descriptions-item>
       <nz-descriptions-item nzTitle="采购单号">{{ viewingOrder.purchaseOrderNo || '-' }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="检验方案">
+      <nz-descriptions-item nzTitle="质检方案">
         <nz-tag nzColor="blue" *ngIf="selectedPlan || viewingOrder.qualityInspectionPlanName">{{ viewingOrder.qualityInspectionPlanName || (selectedPlan?.code + ' v' + selectedPlan?.version) }}</nz-tag>
         <span *ngIf="!selectedPlan && !viewingOrder.qualityInspectionPlanName">-</span>
       </nz-descriptions-item>
       <nz-descriptions-item nzTitle="抽样方案">
-        <span *ngIf="viewingOrder.samplingSchemeId">{{ getSamplingSchemeName(viewingOrder.samplingSchemeId) }}</span>
-        <span *ngIf="!viewingOrder.samplingSchemeId">-</span>
+        <span *ngIf="viewingOrder.samplingSchemeName">{{ viewingOrder.samplingSchemeName }}</span>
+        <span *ngIf="!viewingOrder.samplingSchemeName">{{ getSamplingSchemeName(viewingOrder.samplingSchemeId) }}</span>
+        <span *ngIf="!viewingOrder.samplingSchemeName && !viewingOrder.samplingSchemeId">-</span>
       </nz-descriptions-item>
       <nz-descriptions-item nzTitle="AQL值">{{ viewingOrder.aqlValue || '-' }}</nz-descriptions-item>
       <nz-descriptions-item nzTitle="样本量">{{ viewingOrder.sampleSize || '-' }}</nz-descriptions-item>
@@ -395,82 +396,83 @@
       <!-- 有检验记录时显示实际值+判定结果 -->
       <ng-container *ngIf="recordStepGroups.length > 0">
         <nz-divider nzText="检验记录"></nz-divider>
-        <nz-collapse [nzExpandIconPosition]="'end'">
-          <nz-collapse-panel 
-            *ngFor="let group of getSortedStepList(); let i = index"
-            [nzHeader]="stepHeaderTpl"
-            [nzExtra]="stepExtraTpl"
-            [nzActive]="true">
-            <ng-template #stepHeaderTpl>
-              <span style="font-weight: 500;">
-                步骤 {{ group.stepName }} ({{ group.records.length }}项)
-              </span>
-            </ng-template>
-            <ng-template #stepExtraTpl>
-              <nz-tag nzColor="geekblue">{{ group.stepCode }}</nz-tag>
-            </ng-template>
-          
-          <nz-table
-            #viewRecordTable
-            [nzData]="group.records"
-            nzSize="small"
-            [nzFrontPagination]="false"
-            [nzShowPagination]="false"
-          >
-            <thead>
-              <tr>
-                <th>检验项目</th>
-                <!-- <th>标准值</th>
-                <th>USL</th>
-                <th>UCL</th>
-                <th>LCL</th>
-                <th>LSL</th> -->
-                <th>实际值</th>
-                <th>判定规则</th>
-                <th>判定</th>
-                <th>缺陷描述</th>
-                <th>改进情况说明</th>
-                <th>备注</th>
+        
+        <nz-table
+          #inspectionTreeTable
+          [nzData]="inspectionTreeData"
+          nzSize="small"
+          [nzFrontPagination]="false"
+          [nzShowPagination]="false"
+          [nzScroll]="{ x: '1200px' }"
+        >
+          <thead>
+            <tr>
+              <th nzLeft nzWidth="50px"></th>
+              <th nzLeft nzWidth="200px" nzFixed="left">检测项目</th>
+              <th nzLeft nzWidth="180px">判定规则</th>
+              <th *ngFor="let col of sampleColumns" nzWidth="100px">样品{{ col }}</th>
+              <th nzRight nzWidth="150px">缺陷描述</th>
+              <th nzRight nzWidth="150px">改进情况说明</th>
+              <th nzRight nzWidth="100px">备注</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let node of inspectionTreeTable.data">
+              <tr *ngIf="node.children && node.children.length > 0">
+                <td nzLeft nzExpand [(nzExpand)]="node.expand"></td>
+                <td nzLeft nzFixed="left" style="background-color: #f5f5f5; font-weight: bold;">
+                  {{ node.stepName }} ({{ node.children?.length || 0 }}项)
+                </td>
+                <td nzLeft style="background-color: #f5f5f5;"></td>
+                <td *ngFor="let col of sampleColumns" style="background-color: #f5f5f5;"></td>
+                <td nzRight style="background-color: #f5f5f5;"></td>
+                <td nzRight style="background-color: #f5f5f5;"></td>
+                <td nzRight style="background-color: #f5f5f5;"></td>
               </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let record of viewRecordTable.data">
-                <td>{{ record.itemCode }} {{ record.itemName }}</td>
-                <!-- <td>{{ record.standardValue || '-' }}</td>
-                <td>{{ record.usl || '-' }}</td>
-                <td>{{ record.ucl || '-' }}</td>
-                <td>{{ record.lcl || '-' }}</td>
-                <td>{{ record.lsl || '-' }}</td> -->
-                <td>
-                  <nz-tag [nzColor]="getJudgmentColor(record.judgment)">
-                    {{ record.actualValue || '-' }}
-                  </nz-tag>
+              <tr *ngIf="!node.children || node.children.length === 0">
+                <td nzLeft nzExpand></td>
+                <td nzLeft nzFixed="left" style="background-color: #f5f5f5; font-weight: bold;">
+                  {{ node.stepName }} (0项)
                 </td>
-                <td>
-                  <app-judgment-rules-display 
-                    [rules]="parseRuleEvaluationResult(record.ruleEvaluationResultJson??record.originalRulesJson)"
-                    [expanded]="false">
-                  </app-judgment-rules-display>
-
-
-                   
-
-
-
-                </td>
-                <td>
-                  <nz-tag [nzColor]="getJudgmentColor(record.judgment)">
-                    {{ getJudgmentText(record.judgment) }}
-                  </nz-tag>
-                </td>
-                <td>{{ record.defectDescription || '-' }}</td>
-                <td>{{ record.improvementDescription || '-' }}</td>
-                <td>{{ record.remark || '-' }}</td>
+                <td nzLeft style="background-color: #f5f5f5;"></td>
+                <td *ngFor="let col of sampleColumns" style="background-color: #f5f5f5;"></td>
+                <td nzRight style="background-color: #f5f5f5;"></td>
+                <td nzRight style="background-color: #f5f5f5;"></td>
+                <td nzRight style="background-color: #f5f5f5;"></td>
               </tr>
-            </tbody>
-          </nz-table>
-        </nz-collapse-panel>
-      </nz-collapse>
+              <ng-container *ngIf="node.expand">
+                <tr *ngFor="let child of node.children" 
+                    [ngClass]="{'row-warning': hasNG(child.samples), 'row-success': allOK(child.samples)}">
+                  <td nzLeft></td>
+                  <td nzLeft nzFixed="left">
+                    {{ child.itemCode }} {{ child.itemName }}
+                  </td>
+                  <td nzLeft>
+                    <div *ngFor="let rule of parseRuleEvaluationResult(child.originalRulesJson)">
+                      <nz-tag [nzColor]="(rule.JudgmentResult === 'OK') ? 'success' : 'error'" nzMode="default">
+                        {{rule.ConditionExpression}} ，判定为：{{rule.JudgmentResult}}
+                      </nz-tag> 
+                    </div>
+                  </td>
+                  <td *ngFor="let col of sampleColumns; let idx = index">
+                    <div *ngIf="child.samples && child.samples[idx]" style="text-align: center;">
+                      <div>{{ child.samples[idx].sampleValue || '-' }}</div>
+                      <nz-tag [nzColor]="getSampleJudgmentColor(child.samples[idx].judgment)" nzMode="default">
+                        {{ getSampleJudgmentText(child.samples[idx].judgment) }}
+                      </nz-tag>
+                    </div>
+                    <div *ngIf="!child.samples || !child.samples[idx]" style="text-align: center; color: #999;">
+                      -
+                    </div>
+                  </td>
+                  <td nzRight>{{ child.record.defectDescription || '-' }}</td>
+                  <td nzRight>{{ child.record.improvementDescription || '-' }}</td>
+                  <td nzRight>{{ child.record.remark || '-' }}</td>
+                </tr>
+              </ng-container>
+            </ng-container>
+          </tbody>
+        </nz-table>
       </ng-container>
       
       <!-- 无检验记录时显示方案配置的检验项目 -->
@@ -545,13 +547,14 @@
         <nz-descriptions-item nzTitle="批量">{{ viewingOrder.lotSize }}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="到货日期">{{ viewingOrder.arrivalDate | date:'yyyy-MM-dd' }}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="采购单号">{{ viewingOrder.purchaseOrderNo || '-' }}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="检验方案">
+        <nz-descriptions-item nzTitle="质检方案">
           <nz-tag nzColor="blue" *ngIf="selectedPlan || viewingOrder.qualityInspectionPlanName">{{ viewingOrder.qualityInspectionPlanName || (selectedPlan?.code + ' v' + selectedPlan?.version) }}</nz-tag>
           <span *ngIf="!selectedPlan && !viewingOrder.qualityInspectionPlanName">-</span>
         </nz-descriptions-item>
         <nz-descriptions-item nzTitle="抽样方案">
-          <span *ngIf="viewingOrder.samplingSchemeId">{{ getSamplingSchemeName(viewingOrder.samplingSchemeId) }}</span>
-          <span *ngIf="!viewingOrder.samplingSchemeId">-</span>
+          <span *ngIf="viewingOrder.samplingSchemeName">{{ viewingOrder.samplingSchemeName }}</span>
+          <span *ngIf="!viewingOrder.samplingSchemeName">{{ getSamplingSchemeName(viewingOrder.samplingSchemeId) }}</span>
+          <span *ngIf="!viewingOrder.samplingSchemeName && !viewingOrder.samplingSchemeId">-</span>
         </nz-descriptions-item>
         <nz-descriptions-item nzTitle="AQL值">{{ viewingOrder.aqlValue || '-' }}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="样本量">{{ viewingOrder.sampleSize || '-' }}</nz-descriptions-item>
@@ -567,109 +570,99 @@
     <div *ngIf="viewingOrder?.records && viewingOrder?.records?.length" style="margin-top: 24px;">
       <nz-divider nzText="检验记录"></nz-divider>
       
-      <nz-collapse [nzExpandIconPosition]="'end'">
-        <nz-collapse-panel 
-          *ngFor="let group of recordStepGroups; let i = index"
-          [nzHeader]="inspectStepHeaderTpl"
-          [nzExtra]="inspectStepExtraTpl"
-          [nzActive]="true">
-          <ng-template #inspectStepHeaderTpl>
-            <span style="font-weight: 500;">
-              步骤 {{ group.stepName }} ({{ group.records.length }}项)
-            </span>
-          </ng-template>
-          <ng-template #inspectStepExtraTpl>
-            <nz-tag nzColor="geekblue">{{ group.stepCode }}</nz-tag>
-          </ng-template>
-          
-          <nz-table
-            #inspectRecordTable
-            [nzData]="group.records"
-            nzSize="small"
-            [nzFrontPagination]="false"
-            [nzShowPagination]="false"
-          >
-            <thead>
-              <tr>
-                <th>检验项目</th>
-                <!-- <th>标准值</th>
-                <th>USL</th>
-                <th>UCL</th>
-                <th>LCL</th>
-                <th>LSL</th> -->
-                <th>实际值</th>
-                <th>判定规则</th>
-                <th>判定</th>
-                <th>缺陷描述</th>
-                <th>改进情况说明</th>
-                <th>备注</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let record of inspectRecordTable.data" 
-                  [ngClass]="{'row-warning': record.judgment === 2, 'row-success': record.judgment === 1}">
-                <td>{{ record.itemCode }} {{ record.itemName }}</td>
-                <!-- <td [ngClass]="{'highlight-cell': record.standardValue}">{{ record.standardValue || '-' }}</td>
-                <td [ngClass]="{'highlight-cell': record.usl}">{{ record.usl || '-' }}</td>
-                <td [ngClass]="{'highlight-cell': record.ucl}">{{ record.ucl || '-' }}</td>
-                <td [ngClass]="{'highlight-cell': record.lcl}">{{ record.lcl || '-' }}</td>
-                <td [ngClass]="{'highlight-cell': record.lsl}">{{ record.lsl || '-' }}</td> -->
-                <td>
-                  <input nz-input 
-                         [(ngModel)]="record.actualValue" 
-                         (input)="onActualValueChange(record)"
-                         (blur)="evaluateRule(record)"
-                         placeholder="请输入实际值" 
-                         style="width: 100%;" />
-                  <!-- <div *ngIf="record.actualValue && isValueOutOfRange(record)" style="color: #ff4d4f; font-size: 12px; margin-top: 4px;">
-                    <span nz-icon nzType="warning"></span>
-                    超出规格范围
-                  </div>
-                  <div *ngIf="record.actualValue && isValueInRange(record) && record.judgment !== 2" style="color: #52c41a; font-size: 12px; margin-top: 4px;">
-                    <span nz-icon nzType="check-circle"></span>
-                    在规格范围内
-                  </div> -->
+      <div style="margin-bottom: 16px; text-align: right;">
+        <button nz-button nzType="primary" (click)="saveAllRecords()" [nzLoading]="isSaving">
+          批量保存
+        </button>
+      </div>
+      
+      <nz-table
+         #inspectionTreeTable
+         [nzData]="inspectionTreeData"
+         nzSize="small"
+         [nzFrontPagination]="false"
+         [nzShowPagination]="false"
+         [nzScroll]="{ x: '1200px' }"
+       >
+        <thead>
+          <tr>
+            <th nzLeft nzWidth="50px"></th>
+            <th nzLeft nzWidth="200px" nzFixed="left">检测项目</th>
+            <th nzLeft nzWidth="180px">判定规则</th>
+            <th *ngFor="let col of sampleColumns" nzWidth="100px">样品{{ col }}</th>
+            <th nzRight nzWidth="150px">缺陷描述</th>
+            <th nzRight nzWidth="150px">改进情况说明</th>
+            <th nzRight nzWidth="100px">备注</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let node of inspectionTreeTable.data">
+            <tr *ngIf="node.children && node.children.length > 0">
+              <td nzLeft nzExpand [(nzExpand)]="node.expand"></td>
+              <td nzLeft nzFixed="left" style="background-color: #f5f5f5; font-weight: bold;">
+                {{ node.stepName }} ({{ node.children?.length || 0 }}项)
+              </td>
+              <td nzLeft style="background-color: #f5f5f5;"></td>
+              <td *ngFor="let col of sampleColumns" style="background-color: #f5f5f5;"></td>
+              <td nzRight style="background-color: #f5f5f5;"></td>
+              <td nzRight style="background-color: #f5f5f5;"></td>
+              <td nzRight style="background-color: #f5f5f5;"></td>
+            </tr>
+            <tr *ngIf="!node.children || node.children.length === 0">
+              <td nzLeft nzExpand></td>
+              <td nzLeft nzFixed="left" style="background-color: #f5f5f5; font-weight: bold;">
+                {{ node.stepName }} (0项)
+              </td>
+              <td nzLeft style="background-color: #f5f5f5;"></td>
+              <td *ngFor="let col of sampleColumns" style="background-color: #f5f5f5;"></td>
+              <td nzRight style="background-color: #f5f5f5;"></td>
+              <td nzRight style="background-color: #f5f5f5;"></td>
+              <td nzRight style="background-color: #f5f5f5;"></td>
+            </tr>
+            <ng-container *ngIf="node.expand">
+              <tr *ngFor="let child of node.children" 
+                  [ngClass]="{'row-warning': hasNG(child.samples), 'row-success': allOK(child.samples)}">
+                <td nzLeft></td>
+                <td nzLeft nzFixed="left">
+                  {{ child.itemCode }} {{ child.itemName }}
                 </td>
-                <td>
-                  <app-judgment-rules-display 
-                    [rules]="parseRuleEvaluationResult(record.ruleEvaluationResultJson)"
+                <td nzLeft>
+                  <!-- <app-judgment-rules-display 
+                    [rules]="parseRuleEvaluationResult(child.record?.ruleEvaluationResultJson)"
                     [expanded]="false">
-                  </app-judgment-rules-display>
+                  </app-judgment-rules-display> -->
+                  <div *ngFor="let rule of parseRuleEvaluationResult(child.originalRulesJson) ">
+                    <nz-tag  [nzColor]="(rule.JudgmentResult === 'OK') ? 'success' : 'error'" nzMode="default">
+                    {{rule.ConditionExpression}} ，判定为：{{rule.JudgmentResult}}
+                    </nz-tag> 
+                  </div>
                 </td>
-                <td>
-                  <nz-select [(ngModel)]="record.judgment" 
-                             style="width: 100%;"
-                             (ngModelChange)="onJudgmentChange(record)">
-                    <nz-option [nzLabel]="'待判定'" [nzValue]="0"></nz-option>
-                    <nz-option [nzLabel]="'合格'" [nzValue]="1"></nz-option>
-                    <nz-option [nzLabel]="'不合格'" [nzValue]="2"></nz-option>
-                  </nz-select>
-                </td>
-                <td>
+                <td *ngFor="let col of sampleColumns; let idx = index">
                   <input nz-input 
-                         [(ngModel)]="record.defectDescription" 
-                         [placeholder]="record.judgment === 2 ? '缺陷描述（必填）' : '缺陷描述'"
-                         [style.border-color]="record.judgment === 2 && !record.defectDescription ? '#ff4d4f' : ''"
+                         [(ngModel)]="child.samples[idx].sampleValue" 
+                         (blur)="onSampleBlur(child, child.samples[idx])"
+                         [style.background-color]="child.samples[idx]?.judgment === 2 && child.samples[idx]?.sampleValue ? '#fff1f0' : ''"
+                         [style.border-color]="child.samples[idx]?.judgment === 2 && child.samples[idx]?.sampleValue ? '#ff4d4f' : ''"
+                         placeholder="值" 
                          style="width: 100%;" />
                 </td>
-                <td>
-                  <input nz-input [(ngModel)]="record.improvementDescription" placeholder="改进说明" style="width: 100%;" />
+                <td nzRight>
+                  <input nz-input 
+                         [(ngModel)]="child.record.defectDescription" 
+                         placeholder="缺陷描述"
+                         style="width: 100%;" />
                 </td>
-                <td>
-                  <input nz-input [(ngModel)]="record.remark" placeholder="备注" style="width: 100%;" />
+                <td nzRight>
+                  <input nz-input [(ngModel)]="child.record.improvementDescription" placeholder="改进说明" style="width: 100%;" />
                 </td>
-                <td>
-                  <button nz-button nzType="primary" nzSize="small" (click)="saveRecord(record)">
-                    <span nz-icon nzType="save"></span>
-                    保存
-                  </button>
+                <td nzRight>
+                  <input nz-input [(ngModel)]="child.record.remark" placeholder="备注" style="width: 100%;" />
                 </td>
               </tr>
-            </tbody>
-          </nz-table>
-        </nz-collapse-panel>
-      </nz-collapse>
+            </ng-container>
+          </ng-container>
+        </tbody>
+      </nz-table>
     </div>
   </div>
 </div>

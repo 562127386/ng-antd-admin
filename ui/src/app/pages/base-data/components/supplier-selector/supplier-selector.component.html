@@ -9,7 +9,7 @@
     <nz-card nzSize="small">
       <form nz-form [formGroup]="filterForm" class="filter-form">
         <div nz-row [nzGutter]="16">
-          <div nz-col nzSpan="10">
+          <div nz-col nzSpan="8">
             <nz-form-item>
               <nz-form-label>关键词</nz-form-label>
               <nz-form-control>
@@ -27,7 +27,7 @@
               </nz-form-control>
             </nz-form-item>
           </div>
-          <div nz-col nzSpan="8" class="button-group">
+          <div nz-col nzSpan="10" class="button-group">
             <button nz-button nzType="primary" (click)="onSearch()">搜索</button>
             <button nz-button (click)="onReset()">重置</button>
           </div>

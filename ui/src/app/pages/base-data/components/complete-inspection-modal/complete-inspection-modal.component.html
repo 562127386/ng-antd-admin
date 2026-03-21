@@ -15,24 +15,24 @@
       </nz-descriptions-item>
     </nz-descriptions>
 
-    <nz-divider nzText="检验项目统计"></nz-divider>
+    <!-- <nz-divider nzText="检验项目统计"></nz-divider>
 
     <nz-descriptions [nzColumn]="4" nzBordered nzSize="small">
       <nz-descriptions-item nzTitle="总项目数">
         <nz-tag nzColor="default">{{ totalCount }}</nz-tag>
       </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="合格">
+      <nz-descriptions-item nzTitle="合格检测项">
         <nz-tag nzColor="success">{{ okCount }}</nz-tag>
       </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="不合格">
+      <nz-descriptions-item nzTitle="不合格检测项">
         <nz-tag nzColor="error">{{ ngCount }}</nz-tag>
       </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="待判定">
+      <nz-descriptions-item nzTitle="待判定检测项">
         <nz-tag nzColor="warning">{{ pendingCount }}</nz-tag>
       </nz-descriptions-item>
     </nz-descriptions>
 
-    <nz-alert 
+       <nz-alert 
       *ngIf="ngCount > 0" 
       nzType="error" 
       nzMessage="存在不合格检验项目，建议选择不合格或特采"
@@ -48,6 +48,51 @@
 
     <nz-alert 
       *ngIf="ngCount === 0 && pendingCount === 0" 
+      nzType="success" 
+      nzMessage="所有检验项目均已合格，建议选择合格"
+      style="margin-top: 16px;">
+    </nz-alert> -->
+
+
+    <nz-divider nzText="样品统计" *ngIf="totalSamples > 0"></nz-divider>
+
+    <nz-descriptions [nzColumn]="4" nzBordered nzSize="small" *ngIf="totalSamples > 0">
+      <nz-descriptions-item nzTitle="总样本数">
+        <nz-tag nzColor="default">{{ totalSamples }}</nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="合格样品">
+        <nz-tag nzColor="success">{{ qualifiedSamples }}</nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="不合格样品">
+        <nz-tag nzColor="error">{{ unqualifiedSamples }}</nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="未完成">
+        <nz-tag nzColor="warning">{{ incompleteSamples }}</nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="不合格率">
+        <nz-tag [nzColor]="unqualifiedRate > 0 ? 'error' : 'success'">{{ unqualifiedRate }}%</nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="AC/RE">
+        <nz-tag nzColor="blue">{{ inspectionOrder.acceptanceNumber || 0 }} / {{ inspectionOrder.rejectionNumber || 0 }}</nz-tag>
+      </nz-descriptions-item>
+    </nz-descriptions>
+
+    <nz-alert 
+      *ngIf="unqualifiedSamples > 0" 
+      nzType="error" 
+      nzMessage="存在不合格检验项目，建议选择不合格或特采"
+      style="margin-top: 16px;">
+    </nz-alert>
+    
+    <nz-alert 
+      *ngIf="incompleteSamples > 0" 
+      nzType="warning" 
+      nzMessage="存在待判定或未完成的检验项目，请确认是否继续"
+      style="margin-top: 16px;">
+    </nz-alert>
+
+    <nz-alert 
+      *ngIf="unqualifiedSamples === 0 && incompleteSamples === 0" 
       nzType="success" 
       nzMessage="所有检验项目均已合格，建议选择合格"
       style="margin-top: 16px;">

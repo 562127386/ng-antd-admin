@@ -163,7 +163,9 @@
           <nz-form-item>
             <nz-form-label>数据类型</nz-form-label>
             <nz-form-control>
-              <input nz-input formControlName="dataType" placeholder="请输入数据类型" />
+              <nz-select formControlName="dataType" nzPlaceHolder="请选择数据类型">
+                <nz-option *ngFor="let item of dataTypes" [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
+              </nz-select>
             </nz-form-control>
           </nz-form-item>
         </div>

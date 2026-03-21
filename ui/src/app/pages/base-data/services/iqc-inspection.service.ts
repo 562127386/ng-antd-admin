@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@env/environment';
-import { IqcInspectionOrderDto, CreateUpdateIqcInspectionOrderDto, GetIqcInspectionOrderListDto, IqcInspectionRecordDto, CreateUpdateIqcInspectionRecordDto } from '../models/iqc-inspection.model';
+import { IqcInspectionOrderDto, CreateUpdateIqcInspectionOrderDto, GetIqcInspectionOrderListDto, IqcInspectionRecordDto, CreateUpdateIqcInspectionRecordDto, BatchSaveRecordsDto } from '../models/iqc-inspection.model';
 import { PagedResultDto } from '../models/aql-config.model';
 import { RuleEvaluationResult } from '../components/judgment-rules-display/judgment-rules-display.component';
 
@@ -44,8 +44,8 @@ export class IqcInspectionService {
     return this.http.put<IqcInspectionOrderDto>(`${this.apiUrl}/${id}/start`, {});
   }
 
-  completeInspection(id: string, result: number): Observable<IqcInspectionOrderDto> {
-    return this.http.put<IqcInspectionOrderDto>(`${this.apiUrl}/${id}/complete`, result);
+  completeInspection(id: string, input: { result: number; remark?: string; qualifiedSampleCount?: number; unqualifiedSampleCount?: number; incompleteSampleCount?: number; unqualifiedItemCount?: number; qualifiedItemCount?: number; pendingItemCount?: number }): Observable<IqcInspectionOrderDto> {
+    return this.http.put<IqcInspectionOrderDto>(`${this.apiUrl}/${id}/complete`, input);
   }
 
   cancel(id: string): Observable<IqcInspectionOrderDto> {
@@ -65,7 +65,11 @@ export class IqcInspectionService {
     if (rulesJson) params = params.set('rulesJson', rulesJson);
     if (actualValue) params = params.set('actualValue', actualValue);
     
-    const evaluateRuleUrl = environment.apiUrl + '/api/app/iqc-inspection-order/evaluate-rule';
+    const evaluateRuleUrl = environment.apiUrl + '/api/iqc-inspections/evaluate-rule';
     return this.http.post<RuleEvaluationResult[]>(evaluateRuleUrl, {}, { params });
+  }
+
+  saveAllRecords(input: BatchSaveRecordsDto): Observable<IqcInspectionOrderDto> {
+    return this.http.post<IqcInspectionOrderDto>(`${this.apiUrl}/save-all-records`, input);
   }
 }

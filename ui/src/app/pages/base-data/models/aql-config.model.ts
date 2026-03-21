@@ -1,5 +1,6 @@
 export interface AqlConfigDto {
   id: string;
+  samplingSchemeId?: string;
   code: string;
   aqlValue: number;
   inspectionLevel: number;
@@ -18,24 +19,29 @@ export interface AqlConfigDto {
 }
 
 export interface CreateUpdateAqlConfigDto {
-  code: string;
-  aqlValue: number;
-  inspectionLevel: number;
-  minLotSize: number;
-  maxLotSize: number;
-  sampleSizeCode: string;
-  sampleSize: number;
-  acceptanceNumber: number;
-  rejectionNumber: number;
+  samplingSchemeId?: string;
+  code?: string;
+  aqlValue?: number;
+  inspectionLevel?: number;
+  minLotSize?: number;
+  maxLotSize?: number;
+  sampleSizeCode?: string;
+  sampleSize?: number;
+  acceptanceNumber?: number;
+  rejectionNumber?: number;
   remark?: string;
-  isEnabled: boolean;
+  isEnabled?: boolean;
 }
 
 export interface GetAqlConfigListDto {
   filter?: string;
+  samplingSchemeId?: string;
   aqlValue?: number;
   inspectionLevel?: number;
   isEnabled?: boolean;
+  minSampleSize?: number;
+  maxSampleSize?: number;
+  lotSize?: number;
   sorting?: string;
   skipCount?: number;
   maxResultCount?: number;

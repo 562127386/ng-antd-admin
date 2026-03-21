@@ -15,6 +15,80 @@
 
         <div nz-col [nzLg]="8" [nzMd]="12" [nzSm]="24" [nzXl]="8" [nzXs]="24" [nzXXl]="8">
           <nz-form-item>
+            <nz-form-label [nzFor]="">AQL值</nz-form-label>
+            <nz-form-control>
+              <nz-select name="aqlValue" nzAllowClear nzPlaceHolder="请选择AQL值" [(ngModel)]="filterForm.aqlValue">
+                <nz-option nzLabel="0.010" [nzValue]="0.010"></nz-option>
+                <nz-option nzLabel="0.015" [nzValue]="0.015"></nz-option>
+                <nz-option nzLabel="0.025" [nzValue]="0.025"></nz-option>
+                <nz-option nzLabel="0.040" [nzValue]="0.040"></nz-option>
+                <nz-option nzLabel="0.065" [nzValue]="0.065"></nz-option>
+                <nz-option nzLabel="0.10" [nzValue]="0.10"></nz-option>
+                <nz-option nzLabel="0.15" [nzValue]="0.15"></nz-option>
+                <nz-option nzLabel="0.25" [nzValue]="0.25"></nz-option>
+                <nz-option nzLabel="0.40" [nzValue]="0.40"></nz-option>
+                <nz-option nzLabel="0.65" [nzValue]="0.65"></nz-option>
+                <nz-option nzLabel="1.0" [nzValue]="1.0"></nz-option>
+                <nz-option nzLabel="1.5" [nzValue]="1.5"></nz-option>
+                <nz-option nzLabel="2.5" [nzValue]="2.5"></nz-option>
+                <nz-option nzLabel="4.0" [nzValue]="4.0"></nz-option>
+                <nz-option nzLabel="6.5" [nzValue]="6.5"></nz-option>
+                <nz-option nzLabel="10" [nzValue]="10"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzLg]="8" [nzMd]="12" [nzSm]="24" [nzXl]="8" [nzXs]="24" [nzXXl]="8">
+          <nz-form-item>
+            <nz-form-label [nzFor]="">检验水平</nz-form-label>
+            <nz-form-control>
+              <nz-select name="inspectionLevel" nzAllowClear nzPlaceHolder="请选择检验水平" [(ngModel)]="filterForm.inspectionLevel">
+                <nz-option *ngFor="let option of inspectionLevelOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzLg]="8" [nzMd]="12" [nzSm]="24" [nzXl]="8" [nzXs]="24" [nzXXl]="8">
+          <nz-form-item>
+            <nz-form-label [nzFor]="">抽样方案</nz-form-label>
+            <nz-form-control>
+              <nz-select name="samplingSchemeId" nzAllowClear nzPlaceHolder="请选择抽样方案" [(ngModel)]="filterForm.samplingSchemeId">
+                <nz-option *ngFor="let scheme of samplingSchemes" [nzLabel]="scheme.name" [nzValue]="scheme.id"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzLg]="8" [nzMd]="12" [nzSm]="24" [nzXl]="8" [nzXs]="24" [nzXXl]="8">
+          <nz-form-item>
+            <nz-form-label [nzFor]="">样本量</nz-form-label>
+            <nz-form-control>
+              <div nz-row [nzGutter]="8">
+                <div nz-col [nzSpan]="11">
+                  <nz-input-number name="minSampleSize" [(ngModel)]="filterForm.minSampleSize" [nzMin]="0" [nzStep]="1" nzPlaceHolder="最小" style="width: 100%;"></nz-input-number>
+                </div>
+                <div nz-col [nzSpan]="2" style="text-align: center;">-</div>
+                <div nz-col [nzSpan]="11">
+                  <nz-input-number name="maxSampleSize" [(ngModel)]="filterForm.maxSampleSize" [nzMin]="0" [nzStep]="1" nzPlaceHolder="最大" style="width: 100%;"></nz-input-number>
+                </div>
+              </div>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzLg]="8" [nzMd]="12" [nzSm]="24" [nzXl]="8" [nzXs]="24" [nzXXl]="8">
+          <nz-form-item>
+            <nz-form-label [nzFor]="">批量</nz-form-label>
+            <nz-form-control>
+              <nz-input-number name="lotSize" [(ngModel)]="filterForm.lotSize" [nzMin]="0" [nzStep]="1" nzPlaceHolder="请输入批量" style="width: 100%;"></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzLg]="8" [nzMd]="12" [nzSm]="24" [nzXl]="8" [nzXs]="24" [nzXXl]="8">
+          <nz-form-item>
             <nz-form-label [nzFor]="">状态</nz-form-label>
             <nz-form-control>
               <nz-select name="isEnabled" nzAllowClear nzPlaceHolder="请选择状态" [(ngModel)]="filterForm.isEnabled">
@@ -52,6 +126,9 @@
       <span class="operate-text" (click)="edit(id, $$dataItem)">编辑</span>
       <span class="operate-text" (click)="del(id)">删除</span>
     </ng-template>
+    <ng-template #inspectionLevelTpl let-$$dataItem="$$dataItem">
+      {{ getInspectionLevelName($$dataItem.inspectionLevel) }}
+    </ng-template>
   </app-card-table-wrap>
 
   <ng-template #tableBtns>
@@ -82,9 +159,11 @@
       </nz-form-control>
     </nz-form-item>
     <nz-form-item>
-      <nz-form-label>检验水平</nz-form-label>
+      <nz-form-label nzRequired>检验水平</nz-form-label>
       <nz-form-control>
-        <nz-input-number [(ngModel)]="searchFormData.inspectionLevel" [nzMin]="1" [nzStep]="1"></nz-input-number>
+        <nz-select [(ngModel)]="searchFormData.inspectionLevel" nzPlaceHolder="请选择检验水平">
+          <nz-option *ngFor="let option of inspectionLevelOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+        </nz-select>
       </nz-form-control>
     </nz-form-item>
     <nz-form-item>

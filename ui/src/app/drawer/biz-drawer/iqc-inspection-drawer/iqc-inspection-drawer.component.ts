@@ -18,6 +18,7 @@ import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { Subject, takeUntil } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { IqcInspectionOrderDto, CreateUpdateIqcInspectionOrderDto } from '@app/pages/base-data/models/iqc-inspection.model';
 import { IqcInspectionService } from '@app/pages/base-data/services/iqc-inspection.service';
 import { SamplingSchemeDto } from '@app/pages/base-data/models/sampling-scheme.model';
@@ -36,6 +37,7 @@ import { AqlConfigService } from '@app/pages/base-data/services/aql-config.servi
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { Observable, of, forkJoin } from 'rxjs';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
+import { Disablable } from '@antv/x6';
 
 @Component({
   selector: 'app-iqc-inspection-drawer',
@@ -103,6 +105,10 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
 
   recordStepGroups: { stepCode: string; stepName: string; records: any[] }[] = [];
 
+  inspectionTreeData: any[] = [];
+  sampleColumns: number[] = [];
+  isSaving = false;
+
   statusOptions = [
     { label: '草稿', value: InspectionStatus.Draft, color: 'default' },
     { label: '待检验', value: InspectionStatus.Pending, color: 'processing' },
@@ -130,34 +136,46 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       this.isLoading = true;
     }
     
-    forkJoin([
-      this.samplingSchemeService.getList({ isEnabled: true, maxResultCount: 1000 }),
-      this.aqlConfigService.getList({ isEnabled: true, maxResultCount: 1000 })
-    ]).subscribe({
-      next: ([samplingResult, aqlResult]) => {
-        this.samplingSchemes = samplingResult.items;
-        this.aqlConfigs = aqlResult.items;
-        
-        if ((this.params.mode === 'view' || this.params.mode === 'edit' || this.params.mode === 'inspect') && this.params.id) {
-          this.loadInspection(this.params.id);
-        } else {
+    if (this.params.mode === 'view' || this.params.mode === 'inspect') {
+      this.loadInspectionOnly();
+    } else {
+      forkJoin([
+        this.samplingSchemeService.getList({ isEnabled: true, maxResultCount: 1000 }),
+        this.aqlConfigService.getList({ isEnabled: true, maxResultCount: 1000 })
+      ]).subscribe({
+        next: ([samplingResult, aqlResult]) => {
+          this.samplingSchemes = samplingResult.items;
+          this.aqlConfigs = aqlResult.items;
+          
+          if ((this.params.mode === 'view' || this.params.mode === 'edit' || this.params.mode === 'inspect') && this.params.id) {
+            this.loadInspection(this.params.id);
+          } else {
+            this.isLoading = false;
+            this.resetForm();
+          }
+          
+          this.setupFormWatchers();
+          this.cdr.markForCheck();
+        },
+        error: () => {
           this.isLoading = false;
-          this.resetForm();
+          this.messageService.error('加载数据失败');
         }
-        
-        this.setupFormWatchers();
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.isLoading = false;
-        this.messageService.error('加载数据失败');
-      }
-    });
+      });
+    }
+  }
+
+  loadInspectionOnly(): void {
+    if (!this.params.id) {
+      this.isLoading = false;
+      return;
+    }
+    this.loadInspection(this.params.id);
   }
 
   initForms(): void {
     this.createForm = this.fb.group({
-      orderNo: ['', [Validators.required]],
+      orderNo: [{ value: '自动生成', disabled: true }, [Validators.required]],
       materialId: [null, [Validators.required]],
       materialCode: [''],
       materialName: [''],
@@ -167,23 +185,100 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       supplierName: [''],
       purchaseOrderNo: [''],
       arrivalDate: [null, [Validators.required]],
-      samplingSchemeId: [null],
-      qualityInspectionPlanId: [null],
-      aqlValue: [null],
+      samplingSchemeId: [null, [Validators.required]],
+      qualityInspectionPlanId: [null, [Validators.required]],
+      aqlValue: [0.65],
       sampleSize: [null],
-      sampleSizeCode: [''],
+      sampleSizeCode: [{ value: '', disabled: true }],
       acceptanceNumber: [null],
       rejectionNumber: [null],
       remark: ['']
     });
+    this.initValueChanges();
+  }
+
+  private initValueChanges(): void {
+    this.createForm.get('lotSize')?.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.findBestMatchAqlConfig();
+    });
+
+    this.createForm.get('aqlValue')?.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.findBestMatchAqlConfig();
+    });
+
+    this.createForm.get('samplingSchemeId')?.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.findBestMatchAqlConfig();
+    });
+  }
+
+  private findBestMatchAqlConfig(): void {
+    const lotSize = this.createForm.get('lotSize')?.value;
+    const aqlValue = this.createForm.get('aqlValue')?.value;
+    const samplingSchemeId = this.createForm.get('samplingSchemeId')?.value;
+
+if (samplingSchemeId === null || samplingSchemeId === undefined || samplingSchemeId === '') {
+  return;
+}
+    if (!lotSize || !aqlValue) {
+      this.matchedAqlConfig = undefined;
+      this.relatedAqlConfigs = [];
+      this.createForm.patchValue({
+        sampleSize: null,
+        sampleSizeCode: '',
+        acceptanceNumber: null,
+        rejectionNumber: null
+      }, { emitEvent: false });
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.aqlConfigService.findBestMatch(samplingSchemeId, lotSize, aqlValue).subscribe({
+      next: (config) => {
+        this.matchedAqlConfig = config ?? undefined;
+        if (config) {
+          this.createForm.patchValue({
+            sampleSize: config.sampleSize,
+            sampleSizeCode: config.sampleSizeCode,
+            acceptanceNumber: config.acceptanceNumber,
+            rejectionNumber: config.rejectionNumber
+          }, { emitEvent: false });
+          this.relatedAqlConfigs = [config];
+        } else {
+          this.relatedAqlConfigs = [];
+        }
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.matchedAqlConfig = undefined;
+        this.relatedAqlConfigs = [];
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   resetForm(): void {
-    this.createForm.reset();
+    this.createForm.reset({
+      orderNo: '自动生成',
+      aqlValue: 0.65
+    });
     this.viewingOrder = undefined;
     this.selectedPlan = undefined;
     this.selectedMaterial = undefined;
     this.selectedSupplier = undefined;
+    this.matchedAqlConfig = undefined;
+    this.relatedAqlConfigs = [];
     this.cdr.markForCheck();
   }
 
@@ -222,7 +317,7 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
           this.selectedSupplier = undefined;
         }
         
-        if (detail.qualityInspectionPlanId) {
+        if (this.params.mode === 'edit' && detail.qualityInspectionPlanId) {
           this.loadQualityInspectionPlan(detail.qualityInspectionPlanId);
         } else {
           this.selectedPlan = undefined;
@@ -273,7 +368,7 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: () => {
-        this.messageService.error('加载检验方案失败');
+        this.messageService.error('加载质检方案失败');
         this.selectedPlan = undefined;
         this.cdr.markForCheck();
       }
@@ -304,9 +399,17 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
     });
   }
 
-  getSamplingSchemeName(schemeId: string): string {
+  getSamplingSchemeName(schemeId?: string): string {
+    if (!schemeId) return '-';
     const scheme = this.samplingSchemes.find(s => s.id === schemeId);
     return scheme ? scheme.name : '-';
+  }
+
+  getSelectedSamplingSchemeName(): string {
+    const schemeId = this.createForm.get('samplingSchemeId')?.value;
+    if (!schemeId) return '';
+    const scheme = this.samplingSchemes.find(s => s.id === schemeId);
+    return scheme ? scheme.name : '';
   }
 
   groupRecordsByStep(): void {
@@ -330,6 +433,199 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
     }
 
     this.recordStepGroups = Array.from(groups.values());
+    this.buildInspectionTreeData();
+  }
+
+  buildInspectionTreeData(): void {
+    this.inspectionTreeData = [];
+    if (!this.viewingOrder?.records || this.viewingOrder.records.length === 0) {
+      return;
+    }
+
+    const sampleSize = this.viewingOrder.sampleSize || this.sampleSize || 0;
+    this.sampleColumns = Array.from({ length: sampleSize }, (_, i) => i + 1);
+
+    const groups = new Map<string, { stepCode: string; stepName: string; records: any[] }>();
+    
+    for (const record of this.viewingOrder.records) {
+      const key = record.stepCode || record.stepName || '未分组';
+      if (!groups.has(key)) {
+        groups.set(key, {
+          stepCode: record.stepCode || '',
+          stepName: record.stepName || '未分组',
+          records: []
+        });
+      }
+      groups.get(key)!.records.push(record);
+    }
+
+    for (const group of groups.values()) {
+      const stepNode = {
+        key: group.stepCode || group.stepName,
+        title: group.stepName,
+        stepCode: group.stepCode,
+        stepName: group.stepName,
+        isLeaf: false,
+        expand: true,
+        children: group.records.map((record, idx) => ({
+          key: `${group.stepCode || group.stepName}-${record.inspectionItemId || idx}`,
+          title: record.itemName,
+          itemCode: record.itemCode,
+          itemName: record.itemName,
+          inspectionItemId: record.inspectionItemId,
+          originalRulesJson: record.originalRulesJson,
+          isLeaf: true,
+          record: record,
+          samples: record.samples?.length ? record.samples : this.initSamplesForRecord(record) // record.samples || this.initSamplesForRecord(record)
+        }))
+      };
+      this.inspectionTreeData.push(stepNode);
+    }
+  }
+
+  initSamplesForRecord(record: any): any[] {
+    return this.sampleColumns.map(no => ({
+      sampleNo: no,
+      sampleName: `样品${no}`,
+      sampleValue: '',
+      judgment: ItemJudgment.Pending,
+      //isPassed: true
+    }));
+  }
+
+  async evaluateSampleValue(sample: any, rulesJson: string | null): Promise<void> {
+    if (!sample.sampleValue || !rulesJson) {
+      //sample.isPassed = true;
+      sample.judgment = ItemJudgment.Pending;
+      return;
+    }
+
+    try {
+      const results = await this.iqcInspectionService.evaluateRule(rulesJson, sample.sampleValue).toPromise();
+      // if (results && results.length > 0) {
+      //   const allPassed = results.every((r: any) => r.isPassed);
+      //   sample.isPassed = allPassed;
+      //   sample.judgment = allPassed ? ItemJudgment.OK : ItemJudgment.NG;
+      // } else {
+      //   sample.isPassed = true;
+      // }
+
+
+      if (results && results.length > 0) {
+            //const allPassed = results.every((r: any) => (r.isPassed || r.IsPassed) && r.JudgmentResult ==="不合格");
+            const allPassed = results.some((r: any) => {
+                // 兼容大小写字段，强制转布尔
+                const isPassed = !!r.isPassed || !!r.IsPassed;
+                // 兼容大小写字段 + 去空格 + 转字符串
+                const judgmentResult = String(r.JudgmentResult || r.judgmentResult || '').trim();
+                // 条件：通过 并且 是不合格/NG
+                return isPassed && (judgmentResult === "不合格" || judgmentResult === "NG");
+            });
+            if(allPassed)
+            {
+              //sample.isPassed= false;
+              sample.judgment = ItemJudgment.NG;// 有一个条件触发不合格 就不合格
+            }
+            else //
+            {
+                const okPassed = results.some((r: any) => {
+                      // 统一取 isPassed（兼容大小写、空值）
+                      const isPassed = !!r.isPassed || !!r.IsPassed;
+                      // 统一取结果（兼容大小写、空值、去空格、转字符串）
+                      const judgmentResult = String(r.JudgmentResult || r.judgmentResult || '').trim();
+                      // 核心条件：必须全部满足
+                      return isPassed && (judgmentResult === '合格' || judgmentResult === 'OK');
+                });
+                if(okPassed)
+                  {
+                    //sample.isPassed= true;
+                    sample.judgment = ItemJudgment.OK;// 有一个条件触发合格 就合格
+                  }
+                else 
+                  {
+                    //sample.isPassed= true;
+                    sample.judgment = ItemJudgment.Pending;//带判定
+                  }
+            } 
+      }
+
+
+
+    } catch {
+      //sample.isPassed = true;
+      sample.judgment = ItemJudgment.Pending;//带判定
+    }
+    this.cdr.markForCheck();
+  }
+
+  async saveAllRecords(): Promise<void> {
+    if (!this.viewingOrder?.id) return;
+
+    const records = this.inspectionTreeData
+      .filter((step: any) => step.children)
+      .flatMap((step: any) => step.children.map((child: any) => ({
+        inspectionItemId: child.inspectionItemId || '',
+        stepCode: step.stepCode || '',
+        stepName: step.stepName || '',
+        itemCode: child.itemCode || '',
+        itemName: child.itemName || '',
+        judgment: this.calculateRecordJudgment(child.samples),
+        defectDescription: child.record?.defectDescription || '',
+        improvementDescription: child.record?.improvementDescription || '',
+        remark: child.record?.remark || '',
+        samples: child.samples.map((s: any) => ({
+          sampleNo: s.sampleNo,
+          sampleName: s.sampleName,
+          sampleValue: s.sampleValue,
+          judgment: s.judgment,
+          defectCode: s.defectCode || '',
+          defectDescription: s.defectDescription || '',
+          remark: s.remark || ''
+        }))
+      })));
+
+    const input = {
+      orderId: this.viewingOrder.id,
+      records
+    };
+
+    this.isSaving = true;
+    this.iqcInspectionService.saveAllRecords(input).subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.messageService.success('保存成功');
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isSaving = false;
+        this.messageService.error('保存失败');
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  calculateRecordJudgment(samples: any[]): number {
+    if (!samples || samples.length === 0) return ItemJudgment.Pending;
+    const hasNG = samples.some(s => s.judgment === ItemJudgment.NG);
+    return hasNG ? ItemJudgment.NG : ItemJudgment.OK;
+  }
+
+  hasNG(samples: any[]): boolean {
+    if (!samples || samples.length === 0) return false;
+    return samples.some(s => s.judgment === ItemJudgment.NG);
+  }
+
+  allOK(samples: any[]): boolean {
+    if (!samples || samples.length === 0) return false;
+    return samples.length > 0 && samples.every(s => s.judgment === ItemJudgment.OK);
+  }
+
+  onSampleValueChange(child: any, sample: any): void {
+    this.evaluateSampleValue(sample, child.originalRulesJson);
+  }
+
+  onSampleBlur(child: any, sample: any): void {
+    this.evaluateSampleValue(sample, child.originalRulesJson);
   }
 
   getJudgmentText(judgment?: number): string {
@@ -348,6 +644,24 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       case ItemJudgment.OK: return 'success';
       case ItemJudgment.NG: return 'error';
       default: return 'default';
+    }
+  }
+
+  getSampleJudgmentColor(judgment?: number): string {
+    if (judgment === undefined || judgment === null) return 'default';
+    switch (judgment) {
+      case ItemJudgment.OK: return 'success';
+      case ItemJudgment.NG: return 'error';
+      default: return 'default';
+    }
+  }
+
+  getSampleJudgmentText(judgment?: number): string {
+    if (judgment === undefined || judgment === null) return '待判定';
+    switch (judgment) {
+      case ItemJudgment.OK: return 'OK';
+      case ItemJudgment.NG: return 'NG';
+      default: return '待判定';
     }
   }
 
@@ -477,7 +791,7 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       this.matchedAqlConfig = undefined;
       this.relatedAqlConfigs = [];
       this.createForm.patchValue({
-        aqlValue: null,
+       // aqlValue: null,   这个不用清空
         sampleSize: null,
         sampleSizeCode: '',
         acceptanceNumber: null,
@@ -503,22 +817,66 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       } else {
         this.sampleSize = 0;
         this.createForm.patchValue({
-          aqlValue: null,
+         // aqlValue: null,  这个不用清空
           sampleSize: null,
           sampleSizeCode: '',
           acceptanceNumber: null,
           rejectionNumber: null
         });
       }
+    } else if (scheme.schemeType === SamplingSchemeType.AQL) {
+      
+      const aqlValue = this.createForm.get('aqlValue')?.value; 
+      this.aqlConfigService.findBestMatch(scheme.id, lotSize,aqlValue).subscribe({
+        next: (matchedConfig) => {
+          if (matchedConfig) {
+            this.matchedAqlConfig = matchedConfig;
+            this.sampleSize = matchedConfig.sampleSize;
+            this.relatedAqlConfigs = [matchedConfig];
+            this.createForm.patchValue({
+              aqlValue: matchedConfig.aqlValue,
+              sampleSize: matchedConfig.sampleSize,
+              sampleSizeCode: matchedConfig.sampleSizeCode,
+              acceptanceNumber: matchedConfig.acceptanceNumber,
+              rejectionNumber: matchedConfig.rejectionNumber
+            });
+          } else {
+            this.matchedAqlConfig = undefined;
+            this.relatedAqlConfigs = [];
+            this.sampleSize = 0;
+            this.createForm.patchValue({
+              // aqlValue: null,  这个不用清空
+              sampleSize: null,
+              sampleSizeCode: '',
+              acceptanceNumber: null,
+              rejectionNumber: null
+            });
+          }
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.matchedAqlConfig = undefined;
+          this.relatedAqlConfigs = [];
+          this.sampleSize = 0;
+          this.createForm.patchValue({
+            // aqlValue: null,  这个不用清空
+            sampleSize: null,
+            sampleSizeCode: '',
+            acceptanceNumber: null,
+            rejectionNumber: null
+          });
+          this.cdr.markForCheck();
+        }
+      });
     } else {
       this.relatedAqlConfigs = [];
       this.matchedAqlConfig = undefined;
       
-      if (scheme.schemeType === SamplingSchemeType.CZero && scheme.fixedSampleSize) {
-        this.sampleSize = scheme.fixedSampleSize;
+      if (scheme.schemeType === SamplingSchemeType.CZero) {// && scheme.fixedSampleSize
+        this.sampleSize = scheme.fixedSampleSize ?? lotSize;// C=0 抽样  就是有一个不合格就不合格，如果方案没配置样本数就是当前输入的批量
         this.createForm.patchValue({
-          aqlValue: null,
-          sampleSize: scheme.fixedSampleSize,
+          // aqlValue: null,  这个不用清空
+          sampleSize: this.sampleSize,//scheme.fixedSampleSize,
           sampleSizeCode: '',
           acceptanceNumber: scheme.acceptanceNumber,
           rejectionNumber: scheme.rejectionNumber
@@ -526,7 +884,7 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       } else if (scheme.schemeType === SamplingSchemeType.Continuous && scheme.samplePercentage) {
         this.sampleSize = Math.ceil(lotSize * scheme.samplePercentage / 100);
         this.createForm.patchValue({
-          aqlValue: null,
+          // aqlValue: null,  这个不用清空
           sampleSize: this.sampleSize,
           sampleSizeCode: '',
           acceptanceNumber: null,
@@ -535,7 +893,7 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       } else if (scheme.fixedSampleSize) {
         this.sampleSize = scheme.fixedSampleSize;
         this.createForm.patchValue({
-          aqlValue: null,
+          // aqlValue: null,  这个不用清空
           sampleSize: scheme.fixedSampleSize,
           sampleSizeCode: '',
           acceptanceNumber: scheme.acceptanceNumber,
@@ -544,7 +902,7 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       } else if (scheme.samplePercentage) {
         this.sampleSize = Math.ceil(lotSize * scheme.samplePercentage / 100);
         this.createForm.patchValue({
-          aqlValue: null,
+          // aqlValue: null,  这个不用清空
           sampleSize: this.sampleSize,
           sampleSizeCode: '',
           acceptanceNumber: null,
@@ -553,7 +911,7 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       } else {
         this.sampleSize = 0;
         this.createForm.patchValue({
-          aqlValue: null,
+          // aqlValue: null,  这个不用清空
           sampleSize: null,
           sampleSizeCode: '',
           acceptanceNumber: null,
@@ -950,9 +1308,14 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       return of(false);
     }
 
+    const formValue = {
+      ...this.createForm.value,
+      samplingSchemeName: this.getSelectedSamplingSchemeName()
+    };
+
     if (this.isEdit && this.params.id) {
       return new Observable(subscriber => {
-        this.iqcInspectionService.update(this.params.id!, this.createForm.value).subscribe({
+        this.iqcInspectionService.update(this.params.id!, formValue).subscribe({
           next: () => {
             this.messageService.success('更新成功');
             subscriber.next(true);
@@ -968,7 +1331,7 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       });
     } else {
       return new Observable(subscriber => {
-        this.iqcInspectionService.create(this.createForm.value).subscribe({
+        this.iqcInspectionService.create(formValue).subscribe({
           next: (result) => {
             this.messageService.success('创建成功');
             this.viewingOrder = result;

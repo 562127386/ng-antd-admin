@@ -12,14 +12,6 @@
     <nz-divider nzText="AQL抽样配置" *ngIf="currentSchemeType === 1"></nz-divider>
     <ng-container *ngIf="currentSchemeType === 1" formGroupName="aqlConfig">
       <nz-form-item>
-        <nz-form-label>AQL配置</nz-form-label>
-        <nz-form-control>
-          <nz-select formControlName="aqlConfigId" nzPlaceHolder="请选择AQL配置" [nzAllowClear]="true" style="width: 100%;">
-            <nz-option *ngFor="let option of aqlConfigOptions" [nzLabel]="option.code + ' - AQL:' + option.aqlValue + ' - ' + getInspectionLevelText(option.inspectionLevel)" [nzValue]="option.id"></nz-option>
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
-      <nz-form-item>
         <nz-form-label>检验水平</nz-form-label>
         <nz-form-control>
           <nz-select formControlName="inspectionLevel" nzPlaceHolder="请选择检验水平" [nzAllowClear]="true">
@@ -30,9 +22,211 @@
       <nz-form-item>
         <nz-form-label>AQL值</nz-form-label>
         <nz-form-control>
-          <nz-input-number formControlName="aqlValue" [nzMin]="0" nzPlaceHolder="请输入AQL值" style="width: 100%;"></nz-input-number>
+          <nz-select formControlName="aqlValue" nzPlaceHolder="请选择AQL值" [nzAllowClear]="true" style="width: 100%;">
+            <nz-option nzLabel="0.010" [nzValue]="0.010"></nz-option>
+            <nz-option nzLabel="0.015" [nzValue]="0.015"></nz-option>
+            <nz-option nzLabel="0.025" [nzValue]="0.025"></nz-option>
+            <nz-option nzLabel="0.040" [nzValue]="0.040"></nz-option>
+            <nz-option nzLabel="0.065" [nzValue]="0.065"></nz-option>
+            <nz-option nzLabel="0.10" [nzValue]="0.10"></nz-option>
+            <nz-option nzLabel="0.15" [nzValue]="0.15"></nz-option>
+            <nz-option nzLabel="0.25" [nzValue]="0.25"></nz-option>
+            <nz-option nzLabel="0.40" [nzValue]="0.40"></nz-option>
+            <nz-option nzLabel="0.65" [nzValue]="0.65"></nz-option>
+            <nz-option nzLabel="1.0" [nzValue]="1.0"></nz-option>
+            <nz-option nzLabel="1.5" [nzValue]="1.5"></nz-option>
+            <nz-option nzLabel="2.5" [nzValue]="2.5"></nz-option>
+            <nz-option nzLabel="4.0" [nzValue]="4.0"></nz-option>
+            <nz-option nzLabel="6.5" [nzValue]="6.5"></nz-option>
+            <nz-option nzLabel="10" [nzValue]="10"></nz-option>
+            <nz-option nzLabel="15" [nzValue]="15"></nz-option>
+            <nz-option nzLabel="25" [nzValue]="25"></nz-option>
+            <nz-option nzLabel="40" [nzValue]="40"></nz-option>
+          </nz-select>
         </nz-form-control>
       </nz-form-item>
+
+      <div *ngIf="matchedAqlConfigs.length > 0" style="margin-top: 16px;">
+        <nz-divider nzText="AQL抽样方案预览" nzOrientation="left"></nz-divider>
+        <nz-table #aqlPreviewTable [nzData]="matchedAqlConfigs" nzSize="small" [nzFrontPagination]="false" [nzShowPagination]="false" [nzScroll]="{ y: '200px' }">
+          <thead>
+            <tr>
+              <th nzWidth="80px">字码</th>
+              <th nzWidth="80px">样本量</th>
+              <th nzWidth="80px">Ac</th>
+              <th nzWidth="80px">Re</th>
+              <th nzWidth="120px">批量范围</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let config of aqlPreviewTable.data">
+              <td><nz-tag nzColor="blue">{{ config.sampleSizeCode }}</nz-tag></td>
+              <td>{{ config.sampleSize }}</td>
+              <td><nz-tag [nzColor]="config.acceptanceNumber > 0 ? 'green' : 'default'">{{ config.acceptanceNumber >= 0 ? config.acceptanceNumber : '-' }}</nz-tag></td>
+              <td><nz-tag nzColor="red">{{ config.rejectionNumber >= 0 ? config.rejectionNumber : '-' }}</nz-tag></td>
+              <td>{{ config.minLotSize }}-{{ config.maxLotSize }}</td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </div>
+
+      <nz-form-item style="margin-top: 16px;">
+        <nz-form-label>引用AQL配置</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="aqlConfigId" nzPlaceHolder="选择已配置的AQL方案(可选)" [nzAllowClear]="true" style="width: 100%;">
+            <nz-option *ngFor="let option of matchedAqlConfigs" [nzLabel]="option.code + ' - ' + option.sampleSizeCode + '(n=' + option.sampleSize + ', Ac=' + option.acceptanceNumber + ', Re=' + option.rejectionNumber + ')'" [nzValue]="option.id"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <div *ngIf="currentSchemeType === 1 && aqlDetails.length > 0" style="margin-top: 24px;">
+        <nz-divider nzText="AQL明细列表" nzOrientation="left">
+          <button nz-button nzType="primary" nzSize="small" (click)="addAqlDetail()">
+            <span nz-icon nzType="plus"></span>新建AQL
+          </button>
+        </nz-divider>
+        <nz-table #aqlDetailsTable [nzData]="aqlDetails" nzSize="small" [nzFrontPagination]="false" [nzShowPagination]="false">
+          <thead>
+            <tr>
+              <th nzWidth="60px">字码</th>
+              <th nzWidth="80px">AQL值</th>
+              <th nzWidth="80px">样本量</th>
+              <th nzWidth="60px">Ac</th>
+              <th nzWidth="60px">Re</th>
+              <th nzWidth="120px">批量范围</th>
+              <th nzWidth="60px">状态</th>
+              <th nzWidth="100px">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let aql of aqlDetailsTable.data">
+              <td><nz-tag nzColor="blue">{{ aql.sampleSizeCode }}</nz-tag></td>
+              <td>{{ aql.aqlValue }}</td>
+              <td>{{ aql.sampleSize }}</td>
+              <td><nz-tag [nzColor]="aql.acceptanceNumber > 0 ? 'green' : 'default'">{{ aql.acceptanceNumber >= 0 ? aql.acceptanceNumber : '-' }}</nz-tag></td>
+              <td><nz-tag nzColor="red">{{ aql.rejectionNumber >= 0 ? aql.rejectionNumber : '-' }}</nz-tag></td>
+              <td>{{ aql.minLotSize }}-{{ aql.maxLotSize }}</td>
+              <td><nz-tag [nzColor]="aql.isEnabled ? 'success' : 'default'">{{ aql.isEnabled ? '启用' : '禁用' }}</nz-tag></td>
+              <td>
+                <a (click)="editAqlDetail(aql)">编辑</a>
+                <nz-divider nzType="vertical"></nz-divider>
+                <a nzDanger (click)="deleteAqlDetail(aql)">删除</a>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </div>
+
+      <div *ngIf="currentSchemeType === 1 && schemeId && aqlDetails.length === 0 && !isLoadingAqlDetails" style="margin-top: 24px;">
+        <nz-divider nzText="AQL明细列表" nzOrientation="left">
+          <button nz-button nzType="primary" nzSize="small" (click)="addAqlDetail()">
+            <span nz-icon nzType="plus"></span>新建AQL
+          </button>
+        </nz-divider>
+        <nz-empty nzNotFoundContent="暂无AQL明细，请点击上方按钮添加"></nz-empty>
+      </div>
+
+      <nz-modal [(nzVisible)]="isEditingAql" [nzTitle]="editingAqlDetail?.id ? '编辑AQL明细' : '新增AQL明细'" (nzOnCancel)="cancelEditAql()" (nzOnOk)="saveAqlDetail()" [nzOkDisabled]="!editingAqlDetail?.sampleSizeCode || !editingAqlDetail?.sampleSize">
+        <ng-container *nzModalContent>
+          <nz-form-item>
+            <nz-form-label nzRequired>编码</nz-form-label>
+            <nz-form-control>
+              <input nz-input [(ngModel)]="editingAqlDetail.code" placeholder="请输入编码" />
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-form-label nzRequired>检验水平</nz-form-label>
+            <nz-form-control>
+              <nz-select [(ngModel)]="editingAqlDetail.inspectionLevel" nzPlaceHolder="请选择检验水平">
+                <nz-option *ngFor="let option of inspectionLevelOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-form-label nzRequired>AQL值</nz-form-label>
+            <nz-form-control>
+              <nz-select [(ngModel)]="editingAqlDetail.aqlValue" nzPlaceHolder="请选择AQL值">
+                <nz-option nzLabel="0.010" [nzValue]="0.010"></nz-option>
+                <nz-option nzLabel="0.015" [nzValue]="0.015"></nz-option>
+                <nz-option nzLabel="0.025" [nzValue]="0.025"></nz-option>
+                <nz-option nzLabel="0.040" [nzValue]="0.040"></nz-option>
+                <nz-option nzLabel="0.065" [nzValue]="0.065"></nz-option>
+                <nz-option nzLabel="0.10" [nzValue]="0.10"></nz-option>
+                <nz-option nzLabel="0.15" [nzValue]="0.15"></nz-option>
+                <nz-option nzLabel="0.25" [nzValue]="0.25"></nz-option>
+                <nz-option nzLabel="0.40" [nzValue]="0.40"></nz-option>
+                <nz-option nzLabel="0.65" [nzValue]="0.65"></nz-option>
+                <nz-option nzLabel="1.0" [nzValue]="1.0"></nz-option>
+                <nz-option nzLabel="1.5" [nzValue]="1.5"></nz-option>
+                <nz-option nzLabel="2.5" [nzValue]="2.5"></nz-option>
+                <nz-option nzLabel="4.0" [nzValue]="4.0"></nz-option>
+                <nz-option nzLabel="6.5" [nzValue]="6.5"></nz-option>
+                <nz-option nzLabel="10" [nzValue]="10"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label nzRequired>最小批量</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number [(ngModel)]="editingAqlDetail.minLotSize" [nzMin]="1" [ngModelOptions]="{standalone: true}" style="width: 100%;"></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label nzRequired>最大批量</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number [(ngModel)]="editingAqlDetail.maxLotSize" [nzMin]="1" [ngModelOptions]="{standalone: true}" style="width: 100%;"></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label nzRequired>样本量字码</nz-form-label>
+                <nz-form-control>
+                  <input nz-input [(ngModel)]="editingAqlDetail.sampleSizeCode" placeholder="如：A、B、C" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label nzRequired>样本量</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number [(ngModel)]="editingAqlDetail.sampleSize" [nzMin]="1" [ngModelOptions]="{standalone: true}" style="width: 100%;"></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label nzRequired>接收数(Ac)</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number [(ngModel)]="editingAqlDetail.acceptanceNumber" [nzMin]="0" [ngModelOptions]="{standalone: true}" style="width: 100%;"></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label nzRequired>拒收数(Re)</nz-form-label>
+                <nz-form-control>
+                  <nz-input-number [(ngModel)]="editingAqlDetail.rejectionNumber" [nzMin]="0" [ngModelOptions]="{standalone: true}" style="width: 100%;"></nz-input-number>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+          <nz-form-item>
+            <nz-form-label>启用状态</nz-form-label>
+            <nz-form-control>
+              <nz-switch [(ngModel)]="editingAqlDetail.isEnabled"></nz-switch>
+            </nz-form-control>
+          </nz-form-item>
+        </ng-container>
+      </nz-modal>
     </ng-container>
 
     <nz-divider nzText="C=0抽样配置" *ngIf="currentSchemeType === 2"></nz-divider>

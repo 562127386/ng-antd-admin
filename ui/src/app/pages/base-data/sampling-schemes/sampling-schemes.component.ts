@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 import { AntTableConfig, AntTableComponent } from '@shared/components/ant-table/ant-table.component';
 import { CardTableWrapComponent } from '@shared/components/card-table-wrap/card-table-wrap.component';
@@ -11,6 +12,10 @@ import { PageHeaderType, PageHeaderComponent } from '@shared/components/page-hea
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
+import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
+import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 import { NzWaveModule } from 'ng-zorro-antd/core/wave';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -54,7 +59,11 @@ import { AqlConfigService } from '../services/aql-config.service';
     NzModalModule,
     NzPopconfirmModule,
     NzSpaceModule,
-    NzDividerModule
+    NzDividerModule,
+    NzTableModule,
+    NzTagModule,
+    NzEmptyModule,
+    NzAlertModule
   ]
 })
 export class SamplingSchemesComponent implements OnInit {
@@ -76,6 +85,13 @@ export class SamplingSchemesComponent implements OnInit {
   modalForm!: FormGroup;
   destroyRef = inject(DestroyRef);
   aqlConfigOptions: AqlConfigDto[] = [];
+  aqlDetails: AqlConfigDto[] = [];
+  isAqlModalVisible = false;
+  isLoadingAqlDetails = false;
+  editingAqlDetail: Partial<AqlConfigDto> = {};
+  aqlTablePageIndex = 1;
+  aqlTablePageSize = 10;
+  aqlTableTotal = 0;
 
   schemeTypeOptions = [
     { label: 'AQL抽样', value: 1 },
@@ -159,6 +175,10 @@ export class SamplingSchemesComponent implements OnInit {
     this.editId = id;
     this.initModalForm(dataItem);
     this.isModalVisible = true;
+    this.aqlDetails = [];
+    this.aqlTablePageIndex = 1;
+    this.aqlTablePageSize = 10;
+    this.loadAqlDetails();
   }
 
   get currentSchemeType(): number {
@@ -414,6 +434,170 @@ export class SamplingSchemesComponent implements OnInit {
     this.initTable();
     this.getDataList();
     this.loadAqlConfigs();
+  }
+
+  loadAqlDetails(): void {
+    if (!this.editId) return;
+    this.isLoadingAqlDetails = true;
+    const skipCount = (this.aqlTablePageIndex - 1) * this.aqlTablePageSize;
+    this.aqlConfigService.getList({ 
+      samplingSchemeId: this.editId, 
+      skipCount: skipCount,
+      maxResultCount: this.aqlTablePageSize 
+    }).subscribe({
+      next: (result) => {
+        this.aqlDetails = result.items;
+        this.aqlTableTotal = result.totalCount;
+        this.isLoadingAqlDetails = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isLoadingAqlDetails = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  onAqlTableQueryParamsChange(params: any): void {
+    if (params.pageIndex) {
+      this.aqlTablePageIndex = params.pageIndex;
+    }
+    if (params.pageSize) {
+      this.aqlTablePageSize = params.pageSize;
+    }
+    this.loadAqlDetails();
+  }
+
+  onAqlPageIndexChange(pageIndex: number): void {
+    this.aqlTablePageIndex = pageIndex;
+    this.loadAqlDetails();
+  }
+
+  onAqlPageSizeChange(pageSize: number): void {
+    this.aqlTablePageSize = pageSize;
+    this.aqlTablePageIndex = 1;
+    this.loadAqlDetails();
+  }
+
+  addAqlDetail(): void {
+    this.editingAqlDetail = {
+      samplingSchemeId: this.editId,
+      inspectionLevel: undefined,
+      aqlValue: undefined,
+      minLotSize: undefined,
+      maxLotSize: undefined,
+      sampleSizeCode: '',
+      sampleSize: undefined,
+      acceptanceNumber: undefined,
+      rejectionNumber: undefined,
+      isEnabled: true
+    };
+    this.isAqlModalVisible = true;
+  }
+
+  editAqlDetail(aql: AqlConfigDto): void {
+    this.editingAqlDetail = { ...aql };
+    this.isAqlModalVisible = true;
+  }
+
+  saveAqlDetail(): void {
+    const validationError = this.validateAqlDetail();
+    if (validationError) {
+      this.message.error(validationError);
+      return;
+    }
+
+    if (!this.editingAqlDetail?.sampleSizeCode || !this.editingAqlDetail?.sampleSize) {
+      this.message.error('请填写必填项');
+      return;
+    }
+
+    if (!this.editingAqlDetail?.id) {
+      this.aqlConfigService.create(this.editingAqlDetail as any).subscribe({
+        next: (result) => {
+          this.aqlDetails = [...this.aqlDetails, result];
+          this.isAqlModalVisible = false;
+          this.editingAqlDetail = {};
+          this.message.success('保存成功');
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.message.error('保存失败');
+        }
+      });
+    } else {
+      this.aqlConfigService.update(this.editingAqlDetail.id, this.editingAqlDetail as any).subscribe({
+        next: (result) => {
+          const index = this.aqlDetails.findIndex(a => a.id === result.id);
+          if (index >= 0) {
+            this.aqlDetails[index] = result;
+            this.aqlDetails = [...this.aqlDetails];
+          }
+          this.isAqlModalVisible = false;
+          this.editingAqlDetail = {};
+          this.message.success('保存成功');
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.message.error('保存失败');
+        }
+      });
+    }
+  }
+
+  cancelAqlEdit(): void {
+    this.isAqlModalVisible = false;
+    this.editingAqlDetail = {};
+  }
+
+  validateAqlDetail(): string | null {
+    const { sampleSize, minLotSize, maxLotSize, acceptanceNumber, rejectionNumber } = this.editingAqlDetail;
+    
+    if (!sampleSize || !maxLotSize || acceptanceNumber === undefined || rejectionNumber === undefined) {
+      return '请填写完整的样本量和批量信息';
+    }
+
+    if (sampleSize > maxLotSize) {
+      return '样本量不能大于批量最大值';
+    }
+
+    if (acceptanceNumber >= sampleSize) {
+      return '接收数(Ac)必须小于样本量';
+    }
+
+    if (rejectionNumber !== acceptanceNumber! + 1) {
+      return '拒收数(Re)必须等于接收数(Ac)+1';
+    }
+
+    if (rejectionNumber > sampleSize!) {
+      return '拒收数(Re)不能大于样本量';
+    }
+
+    return null;
+  }
+
+  deleteAqlDetail(aql: AqlConfigDto): void {
+    this.modalSrv.confirm({
+      nzTitle: '确认删除',
+      nzContent: `确定要删除AQL配置 "${aql.code}" 吗？`,
+      nzOkDanger: true,
+      nzOnOk: () => {
+        return new Promise<void>((resolve) => {
+          this.aqlConfigService.delete(aql.id).subscribe({
+            next: () => {
+              this.aqlDetails = this.aqlDetails.filter(a => a.id !== aql.id);
+              this.message.success('删除成功');
+              this.cdr.markForCheck();
+              resolve();
+            },
+            error: () => {
+              this.message.error('删除失败');
+              resolve();
+            }
+          });
+        });
+      }
+    });
   }
 
   private initTable(): void {

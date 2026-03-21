@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -14,6 +15,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { IqcInspectionOrderDto, CreateUpdateIqcInspectionOrderDto, IqcInspectionRecordDto, CreateUpdateIqcInspectionRecordDto } from '../../models/iqc-inspection.model';
 import { IqcInspectionService } from '../../services/iqc-inspection.service';
 import { SamplingSchemeDto } from '../../models/sampling-scheme.model';
@@ -50,6 +52,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
     NzInputNumberModule,
     NzDividerModule,
     NzDescriptionsModule,
+    NzTooltipModule,
     QualityInspectionPlanSelectorComponent,
     MaterialSelectorComponent,
     SupplierSelectorComponent
@@ -86,6 +89,9 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
   isMaterialSelectorVisible = false;
   isSupplierSelectorVisible = false;
   isExecutionVisible = false;
+
+  sampleColumns: number[] = [];
+  inspectionTreeData: any[] = [];
 
   statusOptions = [
     { label: '草稿', value: InspectionStatus.Draft, color: 'default' },
@@ -137,17 +143,90 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
       arrivalDate: [null, [Validators.required]],
       samplingSchemeId: [null],
       inspectionStandardId: [null],
-      aqlValue: [null],
+      aqlValue: [0.65],
       sampleSize: [null],
       sampleSizeCode: [''],
       acceptanceNumber: [null],
       rejectionNumber: [null],
       remark: ['']
     });
+
+    this.createForm.get('lotSize')?.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.findBestMatchAqlConfig();
+    });
+
+    this.createForm.get('aqlValue')?.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.findBestMatchAqlConfig();
+    });
+
+    this.createForm.get('samplingSchemeId')?.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.findBestMatchAqlConfig();
+    });
+  }
+
+  findBestMatchAqlConfig(): void {
+    const lotSize = this.createForm.get('lotSize')?.value;
+    const aqlValue = this.createForm.get('aqlValue')?.value;
+    const samplingSchemeId = this.createForm.get('samplingSchemeId')?.value;
+
+if (samplingSchemeId === null || samplingSchemeId === undefined || samplingSchemeId === '') {
+  return;
+}
+
+    if (!lotSize || !aqlValue) {
+      this.createForm.patchValue({
+        sampleSize: null,
+        sampleSizeCode: '',
+        acceptanceNumber: null,
+        rejectionNumber: null
+      }, { emitEvent: false });
+      return;
+    }
+
+    this.aqlConfigService.findBestMatch(samplingSchemeId, lotSize, aqlValue).subscribe({
+      next: (config) => {
+        if (config) {
+          this.createForm.patchValue({
+            sampleSize: config.sampleSize,
+            sampleSizeCode: config.sampleSizeCode,
+            acceptanceNumber: config.acceptanceNumber,
+            rejectionNumber: config.rejectionNumber
+          }, { emitEvent: false });
+        } else {
+          this.createForm.patchValue({
+            sampleSize: null,
+            sampleSizeCode: '',
+            acceptanceNumber: null,
+            rejectionNumber: null
+          }, { emitEvent: false });
+        }
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.createForm.patchValue({
+          sampleSize: null,
+          sampleSizeCode: '',
+          acceptanceNumber: null,
+          rejectionNumber: null
+        }, { emitEvent: false });
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   resetForm(): void {
-    this.createForm.reset();
+    this.createForm.reset({
+      aqlValue: 0.65
+    });
     this.viewingOrder = undefined;
     this.selectedPlan = undefined;
     this.selectedMaterial = undefined;
@@ -161,6 +240,7 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
     this.iqcInspectionService.get(id).subscribe({
       next: (detail) => {
         this.viewingOrder = detail;
+        this.buildInspectionTreeData();
         
         if (detail.materialId && detail.materialCode && detail.materialName) {
           this.selectedMaterial = {
@@ -232,7 +312,7 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
         this.cdr.markForCheck();
       },
       error: () => {
-        this.messageService.error('加载检验方案失败');
+        this.messageService.error('加载质检方案失败');
         this.selectedPlan = undefined;
         this.cdr.markForCheck();
       }
@@ -249,6 +329,55 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
         this.messageService.error('加载抽样方案失败');
       }
     });
+  }
+
+  buildInspectionTreeData(): void {
+    this.inspectionTreeData = [];
+    this.sampleColumns = [];
+    
+    if (!this.viewingOrder?.records || this.viewingOrder.records.length === 0) {
+      return;
+    }
+
+    const sampleSize = this.viewingOrder.sampleSize || 0;
+    this.sampleColumns = Array.from({ length: sampleSize }, (_, i) => i + 1);
+
+    const groups = new Map<string, { stepCode: string; stepName: string; records: any[] }>();
+    
+    for (const record of this.viewingOrder.records) {
+      const key = record.stepCode || record.stepName || '未分组';
+      if (!groups.has(key)) {
+        groups.set(key, {
+          stepCode: record.stepCode || '',
+          stepName: record.stepName || '未分组',
+          records: []
+        });
+      }
+      groups.get(key)!.records.push(record);
+    }
+
+    for (const group of groups.values()) {
+      const stepNode = {
+        key: group.stepCode || group.stepName,
+        title: group.stepName,
+        stepCode: group.stepCode,
+        stepName: group.stepName,
+        isLeaf: false,
+        expand: true,
+        children: group.records.map((record, idx) => ({
+          key: `${group.stepCode || group.stepName}-${record.inspectionItemId || idx}`,
+          title: record.itemName,
+          itemCode: record.itemCode,
+          itemName: record.itemName,
+          inspectionItemId: record.inspectionItemId,
+          originalRulesJson: record.originalRulesJson,
+          isLeaf: true,
+          record: record,
+          samples: record.samples || []
+        }))
+      };
+      this.inspectionTreeData.push(stepNode);
+    }
   }
 
   getSamplingSchemeName(schemeId: string): string {
@@ -332,6 +461,34 @@ export class IqcInspectionDetailComponent implements OnInit, OnChanges {
   getStatusColor(status: number): string {
     const option = this.statusOptions.find(o => o.value === status);
     return option ? option.color : 'default';
+  }
+
+  hasNG(samples: any[]): boolean {
+    if (!samples || samples.length === 0) return false;
+    return samples.some(s => s.judgment === ItemJudgment.NG);
+  }
+
+  allOK(samples: any[]): boolean {
+    if (!samples || samples.length === 0) return false;
+    return samples.length > 0 && samples.every(s => s.judgment === ItemJudgment.OK);
+  }
+
+  getSampleJudgmentColor(judgment?: number): string {
+    if (judgment === undefined || judgment === null) return 'default';
+    switch (judgment) {
+      case ItemJudgment.OK: return 'success';
+      case ItemJudgment.NG: return 'error';
+      default: return 'default';
+    }
+  }
+
+  getSampleJudgmentText(judgment?: number): string {
+    if (judgment === undefined || judgment === null) return '待判定';
+    switch (judgment) {
+      case ItemJudgment.OK: return 'OK';
+      case ItemJudgment.NG: return 'NG';
+      default: return '待判定';
+    }
   }
 
   getResultText(result?: number): string {
