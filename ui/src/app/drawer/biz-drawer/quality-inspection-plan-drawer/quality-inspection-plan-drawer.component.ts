@@ -33,6 +33,8 @@ import { QualityIndicatorService } from '@app/pages/base-data/services/quality-i
 import { QualityIndicatorDto } from '@app/pages/base-data/models/quality-indicator.model';
 import { SamplingSchemeConfigComponent } from '@app/pages/base-data/components/sampling-scheme-config/sampling-scheme-config.component';
 import { QualityIndicatorSelectorService } from '@app/components/quality-indicator-selector';
+import { SamplingSchemeService } from '@app/pages/base-data/services/sampling-scheme.service';
+import { SamplingSchemeDto } from '@app/pages/base-data/models/sampling-scheme.model';
 
 
 @Component({
@@ -68,11 +70,15 @@ import { QualityIndicatorSelectorService } from '@app/components/quality-indicat
 export class QualityInspectionPlanDrawerComponent implements OnInit {
   private qualityInspectionPlanService = inject(QualityInspectionPlanService);
   private qualityIndicatorService = inject(QualityIndicatorService);
+  private samplingSchemeService = inject(SamplingSchemeService);
   private fb = inject(FormBuilder);
   //private modalService = inject(NzModalService);
   private messageService = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
   private qualityIndicatorSelectorService = inject(QualityIndicatorSelectorService);
+  
+  // 抽样方案列表
+  samplingSchemes: SamplingSchemeDto[] = [];
 
   params: { mode: 'view' | 'edit' | 'create'; id?: string } = { mode: 'create' };
 
@@ -109,25 +115,64 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
     { label: '计数', value: 2 }
   ];
 
+  inspectionLevelOptions = [
+    { label: '一般I', value: 0 },
+    { label: '一般II', value: 1 },
+    { label: '一般III', value: 2 },
+    { label: '特殊S-1', value: 3 },
+    { label: '特殊S-2', value: 4 },
+    { label: '特殊S-3', value: 5 },
+    { label: '特殊S-4', value: 6 }
+  ];
+
+  dataTypeOptions = [
+    { label: '文本', value: '文本' },
+    { label: '数值', value: '数值' },
+    { label: '日期', value: '日期' },
+    { label: '选择', value: '选择' }
+  ];
+
   ngOnInit(): void {
     this.initForms();
     this.isViewMode = this.params.mode === 'view';
     this.isEdit = this.params.mode === 'edit';
     
+    // 加载抽样方案数据
+    this.loadSamplingSchemes();
+    
     if ((this.params.mode === 'view' || this.params.mode === 'edit') && this.params.id) {
       this.loadQualityInspectionPlan(this.params.id);
     }
+  }
+  
+  // 加载抽样方案数据
+  loadSamplingSchemes(): void {
+    this.samplingSchemeService.getList({ skipCount: 0, maxResultCount: 1000 }).subscribe({
+      next: (result) => {
+        this.samplingSchemes = result.items;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.messageService.error('加载抽样方案失败');
+      }
+    });
   }
 
   initForms(): void {
     this.createForm = this.fb.group({
       code: ['', [Validators.required]],
+      name: ['', [Validators.required]],
       version: ['', [Validators.required]],
       effectiveDate: [null, [Validators.required]],
       expiryDate: [null],
       inspectionType: [null, [Validators.required]],
       samplingSchemeType: [null, [Validators.required]],
       samplingSchemeConfig: [''],
+      samplingSchemeId: [''],
+      samplingSchemeName: [''],
+      inspectionLevel: [''],
+      aqlValue: [''],
+      remark: [''],
       steps: this.fb.array([])
     });
   }
@@ -164,6 +209,10 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
       sortOrder: [0, [Validators.required]],
       isEnabled: [true],
       remark: [''],
+      samplingSchemeName: [''],
+      samplingSchemeId: [''],
+      inspectionLevel: [''],
+      aqlValue: [''],
       items: this.fb.array([])
     });
   }
@@ -254,9 +303,97 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
   }
 
   handleRuleModalOk(): void {
+    if (!this.rulesFormArray) {
+      this.isRuleModalVisible = false;
+      this.currentItemIndex = -1;
+      this.currentStepIndex = -1;
+      return;
+    }
+
+    let hasError = false;
+    const errorMessages: string[] = [];
+
+    this.rulesFormArray.controls.forEach((ruleGroup, index) => {
+      const group = ruleGroup as FormGroup;
+      const name = group.get('name')?.value || `规则${index + 1}`;
+      
+      Object.keys(group.controls).forEach(key => {
+        const control = group.get(key);
+        if (control?.invalid) {
+          hasError = true;
+          const errorText = this.getFieldErrorText(key, control?.errors);
+          errorMessages.push(`步骤${this.currentStepIndex + 1} - 指标${this.currentItemIndex + 1} - ${name}: ${errorText}`);
+        }
+      });
+    });
+
+    if (hasError) {
+      this.messageService.warning(errorMessages.join('\n'));
+      return;
+    }
+
     this.isRuleModalVisible = false;
     this.currentItemIndex = -1;
     this.currentStepIndex = -1;
+  }
+
+  private getFieldErrorText(fieldName: string, errors: any): string {
+    if (!errors) return `${fieldName}填写不正确`;
+    
+    const fieldLabels: Record<string, string> = {
+      name: '规则名称',
+      severityLevel: '严重程度',
+      priority: '优先级',
+      expression: '条件表达式',
+      judgment: '判定结果'
+    };
+    
+    const label = fieldLabels[fieldName] || fieldName;
+    
+    if (errors.required) return `${label}不能为空`;
+    if (errors.min) return `${label}不能小于${errors.min.min}`;
+    if (errors.max) return `${label}不能大于${errors.max.max}`;
+    if (errors.minlength) return `${label}长度不能少于${errors.minlength.requiredLength}`;
+    if (errors.maxlength) return `${label}长度不能超过${errors.maxlength.requiredLength}`;
+    if (errors.pattern) return `${label}格式不正确`;
+    
+    return `${label}填写不正确`;
+  }
+
+  private getItemFieldErrorText(fieldName: string, errors: any): string {
+    if (!errors) return `${fieldName}填写不正确`;
+    
+    const fieldLabels: Record<string, string> = {
+      code: '编码',
+      name: '名称',
+      sortOrder: '排序',
+      indicatorCategory: '指标类别',
+      inspectionType: '检验类型',
+      dataType: '数据类型',
+      unit: '单位',
+      decimalPlaces: '小数位数',
+      methodDescription: '检验方法',
+      frequency: '检验频率',
+      isCritical: '是否关键',
+      defectSeverity: '缺陷等级',
+      defectCode: '缺陷代码',
+      remark: '备注',
+      version: '版本',
+      effectiveDate: '生效日期',
+      expiryDate: '失效日期',
+      samplingSchemeType: '抽样方案类型'
+    };
+    
+    const label = fieldLabels[fieldName] || fieldName;
+    
+    if (errors.required) return `${label}不能为空`;
+    if (errors.min) return `${label}不能小于${errors.min.min}`;
+    if (errors.max) return `${label}不能大于${errors.max.max}`;
+    if (errors.minlength) return `${label}长度不能少于${errors.minlength.requiredLength}`;
+    if (errors.maxlength) return `${label}长度不能超过${errors.maxlength.requiredLength}`;
+    if (errors.pattern) return `${label}格式不正确`;
+    
+    return `${label}填写不正确`;
   }
 
   addNewRule(): void {
@@ -274,6 +411,34 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
 
   getRuleFormGroup(ruleGroup: AbstractControl): FormGroup {
     return ruleGroup as FormGroup;
+  }
+
+  getSamplingSchemeTypeText(type: number | undefined): string {
+    if (type === undefined) {
+      return '';
+    }
+    const option = this.samplingSchemeTypeOptions.find(o => o.value === type);
+    return option ? option.label : '';
+  }
+  
+  // 处理质检方案的抽样方案选择
+  onSamplingSchemeChange(samplingSchemeId: string): void {
+    const selectedScheme = this.samplingSchemes.find(s => s.id === samplingSchemeId);
+    if (selectedScheme) {
+      this.createForm.get('samplingSchemeName')?.setValue(selectedScheme.name);
+    } else {
+      this.createForm.get('samplingSchemeName')?.setValue('');
+    }
+  }
+  
+  // 处理质检步骤的抽样方案选择
+  onStepSamplingSchemeChange(samplingSchemeId: string, stepIndex: number): void {
+    const selectedScheme = this.samplingSchemes.find(s => s.id === samplingSchemeId);
+    if (selectedScheme) {
+      this.stepsFormArray.at(stepIndex).get('samplingSchemeName')?.setValue(selectedScheme.name);
+    } else {
+      this.stepsFormArray.at(stepIndex).get('samplingSchemeName')?.setValue('');
+    }
   }
 
   addStep(): void {
@@ -399,12 +564,17 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
         // 先更新表单的基本信息，不包括steps
         this.createForm.patchValue({
           code: plan.code,
+          name: plan.name,
           version: plan.version,
           effectiveDate: plan.effectiveDate,
           expiryDate: plan.expiryDate,
           inspectionType: plan.inspectionType,
           samplingSchemeType: plan.samplingSchemeType,
-          samplingSchemeConfig: plan.samplingSchemeConfig
+          samplingSchemeConfig: plan.samplingSchemeConfig,
+          samplingSchemeId: plan.samplingSchemeId,
+          inspectionLevel: plan.inspectionLevel,
+          aqlValue: plan.aqlValue,
+          remark: plan.remark
         });
 
         // 然后处理steps
@@ -578,36 +748,80 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
     }
 
     let hasInvalidItems = false;
+    const errorMessages: string[] = [];
     
     // 验证所有步骤和指标
-    this.stepsFormArray.controls.forEach(stepGroup => {
+    this.stepsFormArray.controls.forEach((stepGroup, stepIndex) => {
       const step = stepGroup as FormGroup;
+      const stepName = step.get('name')?.value || `步骤${stepIndex + 1}`;
       const itemsFormArray = step.get('items') as FormArray;
       
-      itemsFormArray.controls.forEach(itemGroup => {
-        this.validateItemValues(itemGroup as FormGroup);
-        if ((itemGroup as FormGroup).invalid) {
-          hasInvalidItems = true;
+      itemsFormArray.controls.forEach((itemGroup, itemIndex) => {
+        const group = itemGroup as FormGroup;
+        const itemName = group.get('name')?.value || `指标${itemIndex + 1}`;
+        
+        // 验证item表单
+        Object.keys(group.controls).forEach(key => {
+          if (key === 'rules') return; // 规则单独验证
+          const control = group.get(key);
+          if (control?.invalid) {
+            hasInvalidItems = true;
+            const errorText = this.getItemFieldErrorText(key, control?.errors);
+            errorMessages.push(`${stepName} - ${itemName}: ${errorText}`);
+          }
+        });
+
+        // 验证规则
+        const rulesFormArray = group.get('rules') as FormArray;
+        if (rulesFormArray) {
+          rulesFormArray.controls.forEach((ruleGroup, ruleIndex) => {
+            const rule = ruleGroup as FormGroup;
+            const ruleName = rule.get('name')?.value || `规则${ruleIndex + 1}`;
+            
+            Object.keys(rule.controls).forEach(key => {
+              const control = rule.get(key);
+              if (control?.invalid) {
+                hasInvalidItems = true;
+                const errorText = this.getFieldErrorText(key, control?.errors);
+                errorMessages.push(`${stepName} - ${itemName} - ${ruleName}: ${errorText}`);
+              }
+            });
+          });
         }
       });
     });
 
     if (this.createForm.invalid || hasInvalidItems) {
-      Object.values(this.createForm.controls).forEach(control => {
-        control.markAsDirty();
-        control.updateValueAndValidity();
+      // 验证主表单
+      Object.keys(this.createForm.controls).forEach(key => {
+        if (key === 'steps') return;
+        const control = this.createForm.get(key);
+        if (control?.invalid) {
+          const errorText = this.getItemFieldErrorText(key, control?.errors);
+          errorMessages.push(`基本信息 - ${errorText}`);
+        }
       });
       
       // 验证步骤表单
-      this.stepsFormArray.controls.forEach(stepGroup => {
-        Object.values((stepGroup as FormGroup).controls).forEach(control => {
-          control.markAsDirty();
-          control.updateValueAndValidity();
+      this.stepsFormArray.controls.forEach((stepGroup, stepIndex) => {
+        const step = stepGroup as FormGroup;
+        const stepName = step.get('name')?.value || `步骤${stepIndex + 1}`;
+        
+        Object.keys(step.controls).forEach(key => {
+          if (key === 'items') return;
+          const control = step.get(key);
+          if (control?.invalid) {
+            const errorText = this.getItemFieldErrorText(key, control?.errors);
+            errorMessages.push(`${stepName}: ${errorText}`);
+          }
         });
       });
       
-      if (hasInvalidItems) {
-        this.messageService.warning('存在检验项目校验不通过，请检查');
+      if (errorMessages.length > 0) {
+        const uniqueErrors = [...new Set(errorMessages)];
+        this.messageService.warning(uniqueErrors.join('\n'));
+      } else {
+        this.messageService.warning('存在校验不通过，请检查');
       }
       return of(false);
     }
@@ -616,6 +830,10 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
     const formValue = this.createForm.value;
     const input: CreateUpdateQualityInspectionPlanDto = {
       ...formValue,
+      // 处理aqlValue为空的情况
+      aqlValue: formValue.aqlValue === '' || formValue.aqlValue === null || formValue.aqlValue === undefined ? null : formValue.aqlValue,
+      // 处理inspectionLevel为空的情况
+      inspectionLevel: formValue.inspectionLevel === '' || formValue.inspectionLevel === null || formValue.inspectionLevel === undefined ? null : formValue.inspectionLevel,
       steps: formValue.steps?.map((step: any) => ({
         id: step.id,
         code: step.code,
@@ -623,6 +841,12 @@ export class QualityInspectionPlanDrawerComponent implements OnInit {
         sortOrder: step.sortOrder,
         isEnabled: step.isEnabled,
         remark: step.remark,
+        samplingSchemeName: step.samplingSchemeName,
+        samplingSchemeId: step.samplingSchemeId,
+        // 处理步骤中inspectionLevel为空的情况
+        inspectionLevel: step.inspectionLevel === '' || step.inspectionLevel === null || step.inspectionLevel === undefined ? null : step.inspectionLevel,
+        // 处理步骤中aqlValue为空的情况
+        aqlValue: step.aqlValue === '' || step.aqlValue === null || step.aqlValue === undefined ? null : step.aqlValue,
         indicatorIds: step.items?.map((item: any) => item.id) || [],
         items: step.items?.map((item: any) => ({
           ...item,

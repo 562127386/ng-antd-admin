@@ -139,7 +139,7 @@ export class QualityIndicatorsComponent implements OnInit {
       name: ['', Validators.required],
       inspectionType: ['', Validators.required],
       defaultValue: [''],
-      dataType: [''],
+      dataType: ['数值'],
       unit: [''],
       decimalPlaces: [0],
       isCritical: [false],
@@ -333,7 +333,7 @@ export class QualityIndicatorsComponent implements OnInit {
       name: '',
       inspectionType: '',
       defaultValue: '',
-      dataType: '',
+      dataType: '数值',
       unit: '',
       decimalPlaces: 0,
       isCritical: false,
@@ -383,10 +383,15 @@ export class QualityIndicatorsComponent implements OnInit {
           }),
           takeUntilDestroyed(this.destroyRef)
         )
-        .subscribe(() => {
-          this.getDataList();
-          this.isModalVisible = false;
-          this.messageService.success('更新成功');
+        .subscribe({
+          next: () => {
+            this.getDataList();
+            this.isModalVisible = false;
+            this.messageService.success('更新成功');
+          },
+          error: (err) => {
+            // 错误已在全局拦截器中处理，这里不需要额外处理
+          }
         });
     } else {
       this.qualityIndicatorService.create(param)
@@ -396,10 +401,15 @@ export class QualityIndicatorsComponent implements OnInit {
           }),
           takeUntilDestroyed(this.destroyRef)
         )
-        .subscribe(() => {
-          this.getDataList();
-          this.isModalVisible = false;
-          this.messageService.success('创建成功');
+        .subscribe({
+          next: () => {
+            this.getDataList();
+            this.isModalVisible = false;
+            this.messageService.success('创建成功');
+          },
+          error: (err) => {
+            // 错误已在全局拦截器中处理，这里不需要额外处理
+          }
         });
     }
   }

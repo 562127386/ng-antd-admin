@@ -11,6 +11,14 @@
       </div>
       <div nz-col nzSpan="6">
         <nz-form-item>
+          <nz-form-label nzRequired>方案名称</nz-form-label>
+          <nz-form-control [nzErrorTip]="createForm.get('name')?.dirty && createForm.get('name')?.hasError('required') ? '请输入方案名称' : undefined">
+            <input nz-input formControlName="name" placeholder="请输入方案名称" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="6">
+        <nz-form-item>
           <nz-form-label nzRequired>版本</nz-form-label>
           <nz-form-control [nzErrorTip]="createForm.get('version')?.dirty && createForm.get('version')?.hasError('required') ? '请输入版本' : undefined">
             <input nz-input formControlName="version" placeholder="请输入版本" />
@@ -27,6 +35,9 @@
           </nz-form-control>
         </nz-form-item>
       </div>
+    </div>
+    
+    <div nz-row class="form-row">
       <div nz-col nzSpan="6">
         <nz-form-item>
           <nz-form-label nzRequired>抽样方案类型</nz-form-label>
@@ -34,6 +45,53 @@
             <nz-select formControlName="samplingSchemeType" nzPlaceHolder="请选择" nzStyle="width: 100%;">
               <nz-option *ngFor="let option of samplingSchemeTypeOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
             </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>抽样方案</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="samplingSchemeId" nzPlaceHolder="请选择" nzStyle="width: 100%;" (ngModelChange)="onSamplingSchemeChange($event)">
+              <nz-option *ngFor="let scheme of samplingSchemes" [nzLabel]="scheme.name" [nzValue]="scheme.id"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <!-- <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>抽样方案名称</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="samplingSchemeName" placeholder="抽样方案名称" readonly />
+          </nz-form-control>
+        </nz-form-item>
+      </div> -->
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>检验水平</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="inspectionLevel" nzPlaceHolder="请选择" nzStyle="width: 100%;">
+              <nz-option *ngFor="let option of inspectionLevelOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>AQL值</nz-form-label>
+          <nz-form-control>
+            <nz-input-number formControlName="aqlValue" [nzStep]="0.01" nzStyle="width: 100%;"></nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+    
+    <div nz-row class="form-row">
+      <div nz-col nzSpan="24">
+        <nz-form-item>
+          <nz-form-label>备注</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="remark" placeholder="请输入备注" />
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -56,17 +114,14 @@
           </nz-form-control>
         </nz-form-item>
       </div>
-    </div>
-    
-    <div nz-row class="form-row">
-      <div nz-col nzSpan="24">
+      <!-- <div nz-col nzSpan="12">
         <nz-form-item>
           <nz-form-label>抽样方案配置</nz-form-label>
           <nz-form-control>
             <app-sampling-scheme-config [config]="createForm.get('samplingSchemeConfig')?.value" (configChange)="createForm.get('samplingSchemeConfig')?.setValue($event)"></app-sampling-scheme-config>
           </nz-form-control>
         </nz-form-item>
-      </div>
+      </div> -->
     </div>
     
     <div class="steps-section">
@@ -125,7 +180,43 @@
             </div>
             
             <div nz-row class="form-row">
-              <div nz-col nzSpan="24">
+              <div nz-col nzSpan="6">
+                <nz-form-item>
+                  <nz-form-label>抽样方案</nz-form-label>
+                  <nz-form-control>
+                    <nz-select formControlName="samplingSchemeId" nzPlaceHolder="请选择" nzStyle="width: 100%;" (ngModelChange)="onStepSamplingSchemeChange($event, i)">
+                      <nz-option *ngFor="let scheme of samplingSchemes" [nzLabel]="scheme.name" [nzValue]="scheme.id"></nz-option>
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <!-- <div nz-col nzSpan="6">
+                <nz-form-item>
+                  <nz-form-label>抽样方案名称</nz-form-label>
+                  <nz-form-control>
+                    <input nz-input formControlName="samplingSchemeName" placeholder="抽样方案名称" readonly />
+                  </nz-form-control>
+                </nz-form-item>
+              </div> -->
+              <div nz-col nzSpan="6">
+                <nz-form-item>
+                  <nz-form-label>检验水平</nz-form-label>
+                  <nz-form-control>
+                    <nz-select formControlName="inspectionLevel" nzPlaceHolder="请选择" nzStyle="width: 100%;">
+                      <nz-option *ngFor="let option of inspectionLevelOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col nzSpan="6">
+                <nz-form-item>
+                  <nz-form-label>AQL值</nz-form-label>
+                  <nz-form-control>
+                    <nz-input-number formControlName="aqlValue" [nzStep]="0.01" nzStyle="width: 100%;"></nz-input-number>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col nzSpan="6">
                 <nz-form-item>
                   <nz-form-label>备注</nz-form-label>
                   <nz-form-control>
@@ -134,6 +225,7 @@
                 </nz-form-item>
               </div>
             </div>
+            
             
             <div class="items-section">
               <div class="items-header">
@@ -157,23 +249,23 @@
               >
                 <thead>
                   <tr>
-                    <th nzWidth="80px">序号</th>
-                    <th nzWidth="120px">指标编码</th>
-                    <th nzWidth="150px">指标名称</th>
-                    <th nzWidth="100px">检验方式</th>
+                    <th nzWidth="40px">序号</th>
+                    <th nzWidth="80px">指标编码</th>
+                    <th nzWidth="260px">指标名称</th>
+                    <th nzWidth="80px">检验方式</th>
                     <!-- <th nzWidth="100px">标准值</th>
                     <th nzWidth="100px">USL</th>
                     <th nzWidth="100px">LSL</th>
                     <th nzWidth="100px">UCL</th>
                     <th nzWidth="100px">LCL</th> -->
-                    <th nzWidth="100px">排序</th>
+                    <th nzWidth="60px">排序</th>
                     <th nzWidth="80px">指标类别</th>
                     <th nzWidth="80px">数据类型</th>
                     <th nzWidth="60px">单位</th>
-                    <th nzWidth="60px">小数位</th>
-                    <th nzWidth="60px">破坏性</th>
-                    <th nzWidth="60px">启用</th>
-                    <th nzWidth="100px">判定规则</th>
+                    <th nzWidth="80px">小数位</th>
+                    <th nzWidth="50px">破坏性</th>
+                    <th nzWidth="40px">启用</th>
+                    <th nzWidth="80px">判定规则</th>
                     <th nzWidth="80px">操作</th>
                   </tr>
                 </thead>
@@ -220,7 +312,9 @@
                       <input nz-input formControlName="indicatorCategory" placeholder="类别" />
                     </td>
                     <td>
-                      <input nz-input formControlName="dataType" placeholder="数据类型" />
+                      <nz-select formControlName="dataType" nzPlaceHolder="数据类型" style="width: 100%;">
+                        <nz-option *ngFor="let item of dataTypeOptions" [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
+                      </nz-select>
                     </td>
                     <td>
                       <input nz-input formControlName="unit" placeholder="单位" />

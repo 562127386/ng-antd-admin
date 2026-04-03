@@ -105,7 +105,7 @@
         </div>
         <div nz-col [nzSpan]="8">
           <nz-form-item>
-            <nz-form-label>排序</nz-form-label>
+            <nz-form-label>抽检次数</nz-form-label>
             <nz-form-control>
               <nz-input-number formControlName="sortOrder" [nzMin]="0" [nzStep]="1" style="width: 100%"></nz-input-number>
             </nz-form-control>
@@ -139,6 +139,10 @@
               <button nz-button nzType="primary" nzSize="small" (click)="addAqlDetail()">
               <span nz-icon nzType="plus"></span>新建AQL
             </button>
+           <!-- 总数模板写在表格外面 -->
+<ng-template #totalTemplate let-total>
+  共 {{ total }} 条
+</ng-template>
           <nz-table 
             #aqlDetailsTable 
             [nzData]="aqlDetails" 
@@ -148,6 +152,7 @@
             [nzPageSize]="aqlTablePageSize"
             [(nzPageIndex)]="aqlTablePageIndex"
             [nzTotal]="aqlTableTotal"
+             [nzShowTotal]="totalTemplate"
             (nzPageIndexChange)="onAqlPageIndexChange($event)"
             (nzPageSizeChange)="onAqlPageSizeChange($event)"
             [nzScroll]="{ y: '240px' }">

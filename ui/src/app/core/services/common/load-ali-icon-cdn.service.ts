@@ -11,8 +11,12 @@ export class LoadAliIconCdnService {
 
   load(): void {
     // 这个js你要自己去阿里图标库的官网自己生成
-    this.iconService.fetchFromIconfont({
-      scriptUrl: 'https://at.alicdn.com/t/font_3303907_htrdo3n69kc.js'
-    });
+    try {
+      this.iconService.fetchFromIconfont({
+        scriptUrl: 'https://at.alicdn.com/t/font_3303907_htrdo3n69kc.js'
+      });
+    } catch (error) {
+      console.warn('阿里图标库加载失败:', error);
+    }
   }
 }

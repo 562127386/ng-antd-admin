@@ -102,13 +102,13 @@ export class SamplingSchemesComponent implements OnInit {
   ];
 
   inspectionLevelOptions = [
-    { label: 'S-1', value: 1 },
-    { label: 'S-2', value: 2 },
-    { label: 'S-3', value: 3 },
-    { label: 'S-4', value: 4 },
-    { label: 'I', value: 5 },
-    { label: 'II', value: 6 },
-    { label: 'III', value: 7 }
+    { label: '一般I', value: 0 },
+    { label: '一般II', value: 1 },
+    { label: '一般III', value: 2 },
+    { label: '特殊S-1', value: 3 },
+    { label: '特殊S-2', value: 4 },
+    { label: '特殊S-3', value: 5 },
+    { label: '特殊S-4', value: 6 }
   ];
 
   private samplingSchemeService = inject(SamplingSchemeService);
@@ -613,7 +613,8 @@ export class SamplingSchemesComponent implements OnInit {
           { label: '连续抽样', value: 4 },
           { label: '跳批抽样', value: 5 }
         ]},
-        { title: '排序', field: 'sortOrder', width: 80 },
+        { title: '抽检次数', field: 'sortOrder', width: 80 },
+        { title: '描述', field: 'description', width: 180 },
         { title: '状态', field: 'isEnabled', width: 80, fieldType: 'switch' },
         { title: '操作', tdTemplate: this.operationTpl(), width: 120, fixed: true }
       ],

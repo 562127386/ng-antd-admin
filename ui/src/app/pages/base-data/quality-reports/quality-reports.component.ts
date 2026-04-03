@@ -312,8 +312,8 @@ export class QualityReportsComponent implements OnInit {
     const monthMap = new Map<string, { pass: number; fail: number; concession: number; sorting: number }>();
 
     inspections.forEach(inspection => {
-      if (inspection.inspectionDate) {
-        const date = new Date(inspection.inspectionDate);
+      if (inspection.startInspectionTime) {
+        const date = new Date(inspection.startInspectionTime);
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         
         if (!monthMap.has(monthKey)) {

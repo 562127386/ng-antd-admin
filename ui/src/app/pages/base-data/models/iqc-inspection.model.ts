@@ -24,6 +24,11 @@ export interface IqcInspectionRecordDto {
   ruleEvaluationResultJson?: string;
   stepCode?: string;
   stepName?: string;
+ 
+  samplingSchemeId?: string; 
+  inspectionLevel?: number;
+  aqlValue?: number;
+
   sortOrder: number;
   samples?: IqcInspectionSampleDto[];
 }
@@ -112,16 +117,33 @@ export interface IqcInspectionOrderDto {
   rejectionNumber?: number;
   status: number;
   result?: number;
-  inspectionDate?: Date;
+  startInspectionTime?: Date;
+  completedInspectionTime?: Date;
+  supplierCode?: string;
+  samplingSchemeCode?: string;
+  inspectionPlanCode?: string;
+  inspectionPlanName?: string;
+  processId?: string;
+  processName?: string;
+  processCode?: string;
+  organizationId?: string;
+  organizationCode?: string;
+  organizationName?: string;
   inspectorId?: string;
   inspectorName?: string;
   remark?: string;
+  businessDate?: Date;
+  documentType?: string;
+  inspectionCategory?: string;
+  sourceOrderNo?: string;
+  sourceDocumentType?: string;
   qualifiedSampleCount?: number;
   unqualifiedSampleCount?: number;
   incompleteSampleCount?: number;
   unqualifiedItemCount?: number;
   qualifiedItemCount?: number;
   pendingItemCount?: number;
+  nonConformingOrderNo?: string;
   creationTime: Date;
   creatorId?: string;
   lastModificationTime?: Date;
@@ -142,13 +164,29 @@ export interface CreateUpdateIqcInspectionOrderDto {
   batchNo?: string;
   qualityInspectionPlanId?: string;
   samplingSchemeId?: string;
+  samplingSchemeName?: string;
+  samplingSchemeCode?: string;
   inspectionLevel?: number;
   aqlValue?: number;
   sampleSize?: number;
   sampleSizeCode?: string;
   acceptanceNumber?: number;
   rejectionNumber?: number;
+  inspectionPlanCode?: string;
+  inspectionPlanName?: string;
+  processId?: string;
+  processName?: string;
+  processCode?: string;
+  organizationId?: string;
+  organizationCode?: string;
+  organizationName?: string;
+  supplierCode?: string;
   remark?: string;
+  businessDate?: Date;
+  documentType?: string;
+  inspectionCategory?: string;
+  sourceOrderNo?: string;
+  sourceDocumentType?: string;
   records?: CreateUpdateIqcInspectionRecordDto[];
 }
 
@@ -158,6 +196,7 @@ export interface GetIqcInspectionOrderListDto {
   result?: number;
   startDate?: Date;
   endDate?: Date;
+  documentType?: string;
   sorting?: string;
   skipCount?: number;
   maxResultCount?: number;

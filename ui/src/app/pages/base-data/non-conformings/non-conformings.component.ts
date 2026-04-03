@@ -102,7 +102,7 @@ export class NonConformingsComponent implements OnInit {
   ];
 
   inspectionResultOptions = [
-    { label: '待判定', value: 0 },
+   // { label: '待判定', value: 0 },
     { label: '合格', value: InspectionResult.Accepted },
     { label: '不合格', value: InspectionResult.Rejected },
     { label: '特采', value: InspectionResult.Concession },
@@ -243,8 +243,8 @@ export class NonConformingsComponent implements OnInit {
   }
 
   showReviewModal(item: NonConformingDto): void {
-    if (item.status !== NonConformingStatus.PendingReview) {
-      this.messageService.warning('只有待审核状态的单据可以开始审核');
+    if (item.status !== NonConformingStatus.PendingReview && item.status !== NonConformingStatus.Reviewing) {
+      this.messageService.warning('只有待审核或审核中状态的单据可以审核');
       return;
     }
     this.isEdit = false;
@@ -254,12 +254,24 @@ export class NonConformingsComponent implements OnInit {
     this.editId = item.id;
     this.viewingItem = item;
     this.reviewForm.reset();
+    // 如果已经是审核中状态，填充已有数据
+    if (item.status === NonConformingStatus.Reviewing) {
+      this.reviewForm.patchValue({
+        reviewResult: item.reviewResult,
+        reworkQty: item.reworkQty,
+        repairQty: item.repairQty,
+        scrapQty: item.scrapQty,
+        responsiblePerson: item.responsiblePerson,
+        responsibleDept: item.responsibleDept,
+        responsibleSupplier: item.responsibleSupplier
+      });
+    }
     this.isModalVisible = true;
   }
 
   showDisposalModal(item: NonConformingDto): void {
-    if (item.status !== NonConformingStatus.PendingDisposal) {
-      this.messageService.warning('只有待处理状态的单据可以开始处理');
+    if (item.status !== NonConformingStatus.PendingDisposal && item.status !== NonConformingStatus.Disposing) {
+      this.messageService.warning('只有待处理或处理中状态的单据可以处理');
       return;
     }
     this.isEdit = false;
@@ -269,6 +281,12 @@ export class NonConformingsComponent implements OnInit {
     this.editId = item.id;
     this.viewingItem = item;
     this.disposalForm.reset();
+    // 如果已经是处理中状态，填充已有数据
+    if (item.status === NonConformingStatus.Disposing) {
+      this.disposalForm.patchValue({
+        reInspectionResult: item.reInspectionResult
+      });
+    }
     this.isModalVisible = true;
   }
 
@@ -339,18 +357,21 @@ export class NonConformingsComponent implements OnInit {
   handleReview(): void {
     if (!this.editId) return;
 
-    if (this.viewingItem?.status === NonConformingStatus.PendingReview) {
-      this.nonConformingService.startReview(this.editId).subscribe({
-        next: () => {
-          this.messageService.success('开始审核成功');
-          this.loadData();
-        },
-        error: () => {
-          this.messageService.error('开始审核失败');
-        }
-      });
-      return;
-    }
+    //注释下面一段  没有开始审核这个动作
+    // if (this.viewingItem?.status === NonConformingStatus.PendingReview) {
+    //   this.nonConformingService.startReview(this.editId).subscribe({
+    //     next: () => {
+    //       this.messageService.success('开始审核成功');
+    //       this.isModalVisible = false;
+    //       this.cdr.markForCheck();
+    //       this.loadData();
+    //     },
+    //     error: () => {
+    //       this.messageService.error('开始审核失败');
+    //     }
+    //   });
+    //   return;
+    // }
 
     if (this.reviewForm.invalid) {
       Object.values(this.reviewForm.controls).forEach(control => {
@@ -377,18 +398,21 @@ export class NonConformingsComponent implements OnInit {
   handleDisposal(): void {
     if (!this.editId) return;
 
-    if (this.viewingItem?.status === NonConformingStatus.PendingDisposal) {
-      this.nonConformingService.startDisposal(this.editId).subscribe({
-        next: () => {
-          this.messageService.success('开始处理成功');
-          this.loadData();
-        },
-        error: () => {
-          this.messageService.error('开始处理失败');
-        }
-      });
-      return;
-    }
+    ////注释下面一段  没有开始审核这个动作
+    // if (this.viewingItem?.status === NonConformingStatus.PendingDisposal) {
+    //   this.nonConformingService.startDisposal(this.editId).subscribe({
+    //     next: () => {
+    //       this.messageService.success('开始处理成功');
+    //       this.isModalVisible = false;
+    //       this.cdr.markForCheck();
+    //       this.loadData();
+    //     },
+    //     error: () => {
+    //       this.messageService.error('开始处理失败');
+    //     }
+    //   });
+    //   return;
+    // }
 
     const input: CompleteDisposalInput = this.disposalForm.value;
     this.nonConformingService.completeDisposal(this.editId, input).subscribe({

@@ -17,9 +17,9 @@
       </div>
       <div nz-col nzSpan="12">
         <nz-form-item>
-          <nz-form-label nzRequired>批次号</nz-form-label>
+          <nz-form-label nzRequired>批次号/计划号</nz-form-label>
           <nz-form-control>
-            <input nz-input formControlName="batchNo" placeholder="请输入批次号" />
+            <input nz-input formControlName="batchNo" placeholder="请输入批次号/计划号" />
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -170,7 +170,56 @@
       </div>
     </div>
 
-    
+    <div nz-row [nzGutter]="16" style="margin-top: 16px;">
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>业务日期</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker formControlName="businessDate" style="width: 100%;"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>单据类型</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="documentType" style="width: 100%;">
+              <nz-option nzLabel="IQC" nzValue="IQC"></nz-option>
+              <nz-option nzLabel="IPQC" nzValue="IPQC"></nz-option>
+              <nz-option nzLabel="FQC" nzValue="FQC"></nz-option>
+              <nz-option nzLabel="OQC" nzValue="OQC"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>质检类型</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="inspectionCategory" placeholder="请输入质检类型" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzSpan="6">
+        <nz-form-item>
+          <nz-form-label>来源单号</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="sourceOrderNo" placeholder="请输入来源单号" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label>来源单据类型</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="sourceDocumentType" placeholder="请输入来源单据类型" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
     <nz-form-item>
       <nz-form-label>备注</nz-form-label>
       <nz-form-control>
@@ -357,7 +406,7 @@
   <div *ngIf="!isLoading && isViewMode && !isInspectMode && viewingOrder">
     <nz-descriptions [nzColumn]="2" nzBordered>
       <nz-descriptions-item nzTitle="单号">{{ viewingOrder.orderNo }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="批次号">{{ viewingOrder.batchNo }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="批次号/计划号">{{ viewingOrder.batchNo }}</nz-descriptions-item>
       <nz-descriptions-item nzTitle="物料">
         <nz-tag nzColor="blue">{{ viewingOrder.materialCode }} {{ viewingOrder.materialName }}</nz-tag>
       </nz-descriptions-item>
@@ -397,6 +446,13 @@
       <ng-container *ngIf="recordStepGroups.length > 0">
         <nz-divider nzText="检验记录"></nz-divider>
         
+        <!-- <div style="margin-bottom: 12px; display: flex; gap: 16px; align-items: center;">
+          <span style="font-size: 12px; color: #666;">检验值颜色说明：</span>
+          <nz-tag [nzColor]="'default'" style="background-color: #fffbe6; border-color: #ffe58f;">待判定</nz-tag>
+          <nz-tag [nzColor]="'success'" style="background-color: #f6ffed; border-color: #b7eb8f;">合格</nz-tag>
+          <nz-tag [nzColor]="'error'" style="background-color: #fff1f0; border-color: #ff4d4f;">不合格</nz-tag>
+        </div>  -->
+
         <nz-table
           #inspectionTreeTable
           [nzData]="inspectionTreeData"
@@ -456,9 +512,13 @@
                   </td>
                   <td *ngFor="let col of sampleColumns; let idx = index">
                     <div *ngIf="child.samples && child.samples[idx]" style="text-align: center;">
-                      <div>{{ child.samples[idx].sampleValue || '-' }}</div>
-                      <nz-tag [nzColor]="getSampleJudgmentColor(child.samples[idx].judgment)" nzMode="default">
-                        {{ getSampleJudgmentText(child.samples[idx].judgment) }}
+                      <div [style.background-color]="child.samples[idx].sampleValue ? (child.samples[idx].judgment === 1 ? '#f6ffed' : (child.samples[idx].judgment === 2 ? '#fff1f0' : '#fffbe6')) : '#ffffff'"
+                           [style.border-color]="child.samples[idx].sampleValue ? (child.samples[idx].judgment === 1 ? '#b7eb8f' : (child.samples[idx].judgment === 2 ? '#ff4d4f' : '#ffe58f')) : '#d9d9d9'"
+                           [style.padding]="'4px 8px'" [style.border-radius]="'4px'" [style.border-width]="'1px'" [style.border-style]="'solid'">
+                        {{ child.samples[idx].sampleValue || '-' }}
+                      </div>
+                      <nz-tag *ngIf="child.samples[idx].sampleValue" [nzColor]="getSampleJudgmentColor(child.samples[idx].judgment)" nzMode="default">
+                        {{ getSampleJudgmentText(child.samples[idx].judgment, child.samples[idx].sampleValue) }}
                       </nz-tag>
                     </div>
                     <div *ngIf="!child.samples || !child.samples[idx]" style="text-align: center; color: #999;">
@@ -537,7 +597,7 @@
     <div *ngIf="!isLoading && viewingOrder">
       <nz-descriptions [nzColumn]="2" nzBordered>
         <nz-descriptions-item nzTitle="单号">{{ viewingOrder.orderNo }}</nz-descriptions-item>
-        <nz-descriptions-item nzTitle="批次号">{{ viewingOrder.batchNo }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="批次号/计划号">{{ viewingOrder.batchNo }}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="物料">
           <nz-tag nzColor="blue">{{ viewingOrder.materialCode }} {{ viewingOrder.materialName }}</nz-tag>
         </nz-descriptions-item>
@@ -570,12 +630,31 @@
     <div *ngIf="viewingOrder?.records && viewingOrder?.records?.length" style="margin-top: 24px;">
       <nz-divider nzText="检验记录"></nz-divider>
       
+      <!-- <div style="margin-bottom: 12px; display: flex; gap: 16px; align-items: center;">
+        <span style="font-size: 12px; color: #666;">检验值颜色说明：</span>
+       
+      </div> 
       <div style="margin-bottom: 16px; text-align: right;">
+        
+      </div> -->
+      
+    <div nz-row>
+      <div nz-col nzSpan="16">检验值颜色说明： 
+        <nz-tag [nzColor]="'default'" style="background-color: #fffbe6; border-color: #ffe58f;">待判定</nz-tag>
+        <nz-tag [nzColor]="'success'" style="background-color: #f6ffed; border-color: #b7eb8f;">合格</nz-tag>
+        <nz-tag [nzColor]="'error'" style="background-color: #fff1f0; border-color: #ff4d4f;">不合格</nz-tag>
+      </div>
+      <!-- <div nz-col nzSpan="2"><nz-alert nzType="success" nzMessage="合格" nzShowIcon /> </div>
+      <div nz-col nzSpan="2"><nz-alert nzType="warning" nzMessage="待判定" nzShowIcon /></div>
+      <div nz-col nzSpan="2"><nz-alert nzType="error" nzMessage="不合格" nzShowIcon /></div> -->
+      <div nz-col nzSpan="8" style="text-align: right;">
         <button nz-button nzType="primary" (click)="saveAllRecords()" [nzLoading]="isSaving">
           批量保存
         </button>
       </div>
-      
+    </div>
+
+
       <nz-table
          #inspectionTreeTable
          [nzData]="inspectionTreeData"
@@ -641,8 +720,8 @@
                   <input nz-input 
                          [(ngModel)]="child.samples[idx].sampleValue" 
                          (blur)="onSampleBlur(child, child.samples[idx])"
-                         [style.background-color]="child.samples[idx]?.judgment === 2 && child.samples[idx]?.sampleValue ? '#fff1f0' : ''"
-                         [style.border-color]="child.samples[idx]?.judgment === 2 && child.samples[idx]?.sampleValue ? '#ff4d4f' : ''"
+                         [style.background-color]="child.samples[idx]?.sampleValue ? (child.samples[idx]?.judgment === 1 ? '#f6ffed' : (child.samples[idx]?.judgment === 2 ? '#fff1f0' : '#fffbe6')) : '#ffffff'"
+                         [style.border-color]="child.samples[idx]?.sampleValue ? (child.samples[idx]?.judgment === 1 ? '#b7eb8f' : (child.samples[idx]?.judgment === 2 ? '#ff4d4f' : '#ffe58f')) : '#d9d9d9'"
                          placeholder="值" 
                          style="width: 100%;" />
                 </td>

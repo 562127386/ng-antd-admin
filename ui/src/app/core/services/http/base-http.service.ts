@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { filter, map, finalize } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { filter, map, finalize, catchError } from 'rxjs/operators';
 
 import { environment } from '@env/environment';
 import { TokenKey, TokenPre } from '@config/constant';
@@ -62,7 +62,11 @@ export class BaseHttpService {
 
     if (config.isAbpApi) {
       return this.http.get<T>(reqPath, { params, headers }).pipe(
-        finalize(closeLoading)
+        finalize(closeLoading),
+        catchError((error: any) => {
+          this.handleAbpError(error);
+          return throwError(() => error);
+        })
       );
     }
 
@@ -87,7 +91,11 @@ export class BaseHttpService {
 
     if (config.isAbpApi) {
       return this.http.delete<T>(reqPath, { params, headers }).pipe(
-        finalize(closeLoading)
+        finalize(closeLoading),
+        catchError((error: any) => {
+          this.handleAbpError(error);
+          return throwError(() => error);
+        })
       );
     }
 
@@ -111,7 +119,11 @@ export class BaseHttpService {
 
     if (config.isAbpApi) {
       return this.http.post<T>(reqPath, param, { headers }).pipe(
-        finalize(closeLoading)
+        finalize(closeLoading),
+        catchError((error: any) => {
+          this.handleAbpError(error);
+          return throwError(() => error);
+        })
       );
     }
 
@@ -135,7 +147,11 @@ export class BaseHttpService {
 
     if (config.isAbpApi) {
       return this.http.put<T>(reqPath, param, { headers }).pipe(
-        finalize(closeLoading)
+        finalize(closeLoading),
+        catchError((error: any) => {
+          this.handleAbpError(error);
+          return throwError(() => error);
+        })
       );
     }
 
@@ -209,12 +225,31 @@ export class BaseHttpService {
     };
   }
 
-  handleFilter<T>(item: ActionResult<T>, needSuccessInfo: boolean): boolean {
+  handleFilter<T>(item: ActionResult<T> | null, needSuccessInfo: boolean): boolean {
+    if (!item) {
+      return false;
+    }
     if (![200, 201].includes(item.code)) {
       this.message.error(item.msg);
     } else if (needSuccessInfo) {
       this.message.success('操作成功');
     }
     return true;
+  }
+
+  private handleAbpError(error: any): void {
+    if (error?.error) {
+      const abpError = error.error;
+      const message = abpError.message || abpError.details;
+      if (message) {
+        this.message.error(message);
+      }
+    } else if (error?.status === 0) {
+      this.message.error('网络连接失败，请检查您的网络');
+    } else if (error?.status >= 500) {
+      this.message.error('服务器发生错误，请稍后重试');
+    } else if (error?.status >= 400) {
+      this.message.error(error?.message || '请求失败');
+    }
   }
 }

@@ -1,0 +1,51 @@
+<nz-card nzTitle="缺陷管理" [nzBordered]="false">
+  <div class="table-toolbar" style="margin-bottom: 16px;">
+    <button nz-button nzType="primary" (click)="openModal()">
+      <span nz-icon nzType="plus"></span>
+      新增缺陷
+    </button>
+  </div>
+
+  <abp-advanced-filters
+    [entityName]="entityName"
+    [filterItems]="filterItems"
+    (filterChange)="onFilterChange($event)"
+  >
+  </abp-advanced-filters>
+
+  <abp-dynamic-list
+    [entityName]="entityName"
+    [apiUrl]="'https://localhost:44312/api/defects'"
+    [columns]="abpColumns"
+    (onCreate)="openModal()"
+    (onEdit)="openModal($event)"
+    (onDelete)="deleteDefect($event)"
+  >
+  </abp-dynamic-list>
+
+  <!-- 表单模态框 -->
+  <nz-modal
+    [(nzVisible)]="isVisible"
+    [nzTitle]="isEditMode ? '编辑缺陷' : '新增缺陷'"
+    [nzWidth]="600"
+    [nzFooter]="null"
+    (nzOnCancel)="closeModal()">
+    <ng-container *nzModalContent>
+      <abp-dynamic-detail-form
+        [fields]="detailFields"
+        [values]="currentDefect || {}"
+        [submitButtonText]="isEditMode ? '保存' : '新增'"
+        [showCancelButton]="true"
+        [showResetButton]="false"
+        [submitting]="loading"
+        [isEditMode]="isEditMode"
+        [cardTitle]="isEditMode ? '编辑缺陷' : '新增缺陷'"
+        (onSubmit)="submitForm($event)"
+        (onCancel)="closeModal()"
+        (onFieldChange)="onFieldChange($event)"
+        (onLookupOpen)="onLookupOpen($event)"
+      >
+      </abp-dynamic-detail-form>
+    </ng-container>
+  </nz-modal>
+</nz-card>

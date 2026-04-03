@@ -1,0 +1,315 @@
+<form nz-form [formGroup]="form" (ngSubmit)="submit()">
+      <nz-card [nzTitle]="cardTitle" [nzExtra]="cardExtra">
+        <div nz-row [nzGutter]="16">
+          <ng-container *ngFor="let field of sortedFields">
+            <div
+              *ngIf="isFieldVisible(field)"
+              [nzSpan]="getColSpan(field)"
+              nz-col>
+              <nz-form-item>
+                <nz-form-label
+                  [nzRequired]="field.required"
+                  [nzFor]="field.key"
+                  [nzSm]="getLabelSpan(field)"
+                  [nzXs]="24">
+                  {{ field.label }}
+                </nz-form-label>
+                <nz-form-control
+                  [nzSm]="getControlSpan(field)"
+                  [nzXs]="24"
+                  [nzErrorTip]="getErrorTip(field)">
+                  <!-- Text Input -->
+                  <input
+                    *ngIf="field.type === 'text'"
+                    nz-input
+                    [formControlName]="field.key"
+                    [id]="field.key"
+                    [placeholder]="field.placeholder || ''"
+                    [disabled]="isFieldDisabled(field)" />
+
+                  <!-- Textarea -->
+                  <textarea
+                    *ngIf="field.type === 'textarea'"
+                    nz-input
+                    [formControlName]="field.key"
+                    [id]="field.key"
+                    [placeholder]="field.placeholder || ''"
+                    [disabled]="isFieldDisabled(field)"
+                    [nzAutosize]="{ minRows: 2, maxRows: 6 }">
+                  </textarea>
+
+                  <!-- Number Input -->
+                  <nz-input-number
+                    *ngIf="field.type === 'number'"
+                    [formControlName]="field.key"
+                    [id]="field.key"
+                    [nzPlaceHolder]="field.placeholder || ''"
+                    [nzDisabled]="isFieldDisabled(field)"
+                    [nzMin]="getValidationValue(field, 'min')"
+                    [nzMax]="getValidationValue(field, 'max')"
+                    [nzPrecision]="getPrecision(field) || null"
+                    style="width: 100%;">
+                  </nz-input-number>
+
+                  <!-- Currency -->
+                  <nz-input-number
+                    *ngIf="field.type === 'currency'"
+                    [formControlName]="field.key"
+                    [id]="field.key"
+                    [nzPrecision]="2"
+                    nzPrefix="¥"
+                    style="width: 100%;">
+                  </nz-input-number>
+
+                  <!-- Percentage -->
+                  <nz-input-number
+                    *ngIf="field.type === 'percentage'"
+                    [formControlName]="field.key"
+                    [id]="field.key"
+                    [nzMin]="0"
+                    [nzMax]="100"
+                    [nzPrecision]="2"
+                    nzSuffix="%"
+                    style="width: 100%;">
+                  </nz-input-number>
+
+                  <!-- Email Input -->
+                  <input
+                    *ngIf="field.type === 'email'"
+                    nz-input
+                    type="email"
+                    [formControlName]="field.key"
+                    [id]="field.key"
+                    [placeholder]="field.placeholder || ''"
+                    [disabled]="isFieldDisabled(field)" />
+
+                  <!-- Password Input -->
+                  <nz-input-group *ngIf="field.type === 'password'" [nzSuffix]="suffixTemplate">
+                    <input
+                      nz-input
+                      [type]="passwordVisible ? 'text' : 'password'"
+                      [formControlName]="field.key"
+                      [id]="field.key"
+                      [placeholder]="field.placeholder || ''"
+                      [disabled]="isFieldDisabled(field)" />
+                  </nz-input-group>
+                  <ng-template #suffixTemplate>
+                    <span
+                      nz-icon
+                      [nzType]="passwordVisible ? 'eye' : 'eye-invisible'"
+                      (click)="passwordVisible = !passwordVisible"
+                      style="cursor: pointer;">
+                    </span>
+                  </ng-template>
+
+                  <!-- Date Picker -->
+                  <nz-date-picker
+                    *ngIf="field.type === 'date'"
+                    [formControlName]="field.key"
+                    [id]="field.key"
+                    [disabled]="isFieldDisabled(field)"
+                    style="width: 100%;">
+                  </nz-date-picker>
+
+                  <!-- DateTime Picker -->
+                  <nz-date-picker
+                    *ngIf="field.type === 'datetime'"
+                    nzShowTime
+                    [formControlName]="field.key"
+                    [id]="field.key"
+                    [disabled]="isFieldDisabled(field)"
+                    style="width: 100%;">
+                  </nz-date-picker>
+
+                  <!-- Time Picker -->
+                  <nz-time-picker
+                    *ngIf="field.type === 'time'"
+                    [formControlName]="field.key"
+                    [id]="field.key"
+                    [disabled]="isFieldDisabled(field)"
+                    style="width: 100%;">
+                  </nz-time-picker>
+
+                  <!-- Select -->
+                  <nz-select
+                    *ngIf="field.type === 'select'"
+                    [formControlName]="field.key"
+                    [id]="field.key"
+                    [disabled]="isFieldDisabled(field)"
+                    [nzPlaceHolder]="field.placeholder || '请选择'"
+                    nzAllowClear
+                    style="width: 100%;">
+                    <nz-option
+                      *ngFor="let opt of field.options"
+                      [nzValue]="opt.value"
+                      [nzLabel]="opt.label"
+                      [nzDisabled]="opt.disabled || false">
+                    </nz-option>
+                  </nz-select>
+
+                  <!-- Multi Select -->
+                  <nz-select
+                    *ngIf="field.type === 'multi-select'"
+                    [formControlName]="field.key"
+                    [id]="field.key"
+                    [disabled]="isFieldDisabled(field)"
+                    [nzPlaceHolder]="field.placeholder || '请选择'"
+                    nzMode="multiple"
+                    nzAllowClear
+                    style="width: 100%;">
+                    <nz-option
+                      *ngFor="let opt of field.options"
+                      [nzValue]="opt.value"
+                      [nzLabel]="opt.label"
+                      [nzDisabled]="opt.disabled || false">
+                    </nz-option>
+                  </nz-select>
+
+                  <!-- Switch -->
+                  <nz-switch
+                    *ngIf="field.type === 'switch'"
+                    [formControlName]="field.key"
+                    [id]="field.key"
+                    [nzDisabled]="isFieldDisabled(field)"
+                    [nzCheckedChildren]="checkedChildren"
+                    [nzUnCheckedChildren]="unCheckedChildren">
+                  </nz-switch>
+                  <ng-template #checkedChildren>
+                    <span nz-icon nzType="check"></span>
+                  </ng-template>
+                  <ng-template #unCheckedChildren>
+                    <span nz-icon nzType="close"></span>
+                  </ng-template>
+
+                  <!-- Checkbox -->
+                  <nz-checkbox-wrapper
+                    *ngIf="field.type === 'checkbox'"
+                    [formControlName]="field.key"
+                    (nzOnChange)="onCheckboxChange($event, field)">
+                    <label nz-checkbox
+                           *ngFor="let opt of field.options"
+                           [nzValue]="opt.value"
+                           [nzDisabled]="(opt.disabled || false) || isFieldDisabled(field)">
+                      {{ opt.label }}
+                    </label>
+                  </nz-checkbox-wrapper>
+
+                  <!-- Radio Group -->
+                  <nz-radio-group
+                    *ngIf="field.type === 'radio'"
+                    [formControlName]="field.key"
+                    [id]="field.key"
+                    [nzDisabled]="isFieldDisabled(field)">
+                    <label nz-radio *ngFor="let opt of field.options" [nzValue]="opt.value">
+                      {{ opt.label }}
+                    </label>
+                  </nz-radio-group>
+
+                  <!-- Lookup (Entity Reference) -->
+                  <div *ngIf="field.type === 'lookup'" class="lookup-container">
+                    <nz-input-group [nzSuffix]="lookupSuffix">
+                      <input
+                        nz-input
+                        [formControlName]="field.key + '_display'"
+                        [id]="field.key"
+                        [placeholder]="field.placeholder || '请选择'"
+                        [readonly]="true"
+                        [disabled]="isFieldDisabled(field)"
+                        (click)="!isFieldDisabled(field) && openLookup(field)" />
+                    </nz-input-group>
+                    <ng-template #lookupSuffix>
+                      <span
+                        nz-icon
+                        nzType="search"
+                        (click)="!isFieldDisabled(field) && openLookup(field)"
+                        style="cursor: pointer;">
+                      </span>
+                    </ng-template>
+                    <input type="hidden" [formControlName]="field.key" />
+                  </div>
+
+                  <!-- Typeahead -->
+                  <input
+                    *ngIf="field.type === 'typeahead'"
+                    nz-input
+                    [formControlName]="field.key"
+                    [id]="field.key"
+                    [placeholder]="field.placeholder || '请输入'"
+                    [disabled]="isFieldDisabled(field)"
+                    style="width: 100%;" />
+
+                  <!-- File Upload -->
+                  <div *ngIf="field.type === 'upload'" class="upload-container">
+                    <nz-upload
+                      [nzAction]="uploadUrl"
+                      [nzHeaders]="uploadHeaders"
+                      [nzAccept]="uploadAccept"
+                      [nzFileList]="fileList[field.key] || []"
+                      (nzChange)="onFileChange($event, field)"
+                      [nzDisabled]="isFieldDisabled(field)">
+                      <button nz-button type="button">
+                        <span nz-icon nzType="upload"></span>
+                        上传文件
+                      </button>
+                    </nz-upload>
+                    <input type="hidden" [formControlName]="field.key" />
+                  </div>
+
+                  <!-- Tooltip -->
+                  <div *ngIf="field.tooltip" style="margin-top: 4px;">
+                    <span nz-icon nzType="info-circle" style="margin-left: 8px;" nz-tooltip [nzTooltipTitle]="field.tooltip"></span>
+                  </div>
+
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions" style="margin-top: 24px; text-align: center;">
+          <nz-space>
+            <button
+              *nzSpaceItem
+              nz-button
+              nzType="primary"
+              type="submit"
+              [nzLoading]="submitting"
+              [disabled]="form.invalid && !submitting">
+              {{ submitButtonText }}
+            </button>
+            <ng-container *ngIf="showCancelButton">
+                <button
+                  *nzSpaceItem
+                  nz-button
+                  type="button"
+                  (click)="cancel()">
+                  取消
+                </button>
+              </ng-container>
+              <ng-container *ngIf="showResetButton">
+                <button
+                  *nzSpaceItem
+                  nz-button
+                  type="button"
+                  (click)="reset()">
+                  重置
+                </button>
+              </ng-container>
+          </nz-space>
+        </div>
+      </nz-card>
+
+      <ng-template #cardExtra>
+        <nz-space>
+          <button
+            *nzSpaceItem
+            nz-button
+            nzType="link"
+            (click)="toggleAdvanced()">
+            {{ advancedVisible ? '收起高级' : '展开高级' }}
+            <span nz-icon [nzType]="advancedVisible ? 'up' : 'down'"></span>
+          </button>
+        </nz-space>
+      </ng-template>
+    </form>

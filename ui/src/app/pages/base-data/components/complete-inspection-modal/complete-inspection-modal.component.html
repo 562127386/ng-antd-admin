@@ -7,7 +7,7 @@
       <nz-descriptions-item nzTitle="物料">
         <nz-tag nzColor="blue">{{ inspectionOrder.materialCode }} {{ inspectionOrder.materialName }}</nz-tag>
       </nz-descriptions-item>
-      <nz-descriptions-item nzTitle="批次号">
+      <nz-descriptions-item nzTitle="批次号/计划号">
         {{ inspectionOrder.batchNo || '-' }}
       </nz-descriptions-item>
       <nz-descriptions-item nzTitle="批量">
@@ -97,6 +97,32 @@
       nzMessage="所有检验项目均已合格，建议选择合格"
       style="margin-top: 16px;">
     </nz-alert>
+
+    <!-- 不合格检验项列表 -->
+    <nz-divider nzText="不合格检验项" *ngIf="getUnqualifiedItems().length > 0"></nz-divider>
+    <div *ngIf="getUnqualifiedItems().length > 0" style="margin-bottom: 16px;">
+      <nz-list nzBordered nzSize="small" nzHeader="不合格检验项列表">
+        <nz-list-item *ngFor="let item of getUnqualifiedItems()">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #ff4d4f; font-weight: 500;">{{ item.itemName }}</span>
+            <span>样品: {{ getSampleNames(item.samples, 2) }}</span>
+          </div>
+        </nz-list-item>
+      </nz-list>
+    </div>
+
+    <!-- 待判定检验项列表 -->
+    <nz-divider nzText="待判定检验项" *ngIf="getPendingItems().length > 0"></nz-divider>
+    <div *ngIf="getPendingItems().length > 0" style="margin-bottom: 16px;">
+      <nz-list nzBordered nzSize="small" nzHeader="待判定检验项列表">
+        <nz-list-item *ngFor="let item of getPendingItems()">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #faad14; font-weight: 500;">{{ item.itemName }}</span>
+            <span>样品: {{ getSampleNames(item.samples, 0) }}</span>
+          </div>
+        </nz-list-item>
+      </nz-list>
+    </div>
 
     <nz-divider nzText="选择检验结果"></nz-divider>
 

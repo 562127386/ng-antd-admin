@@ -42,9 +42,13 @@ export class JudgeAuthGuardService {
 
   // 保存当前的menu到this.selMenu
   getMenu(menu: Menu[], url: string): void {
+    // 解析URL，获取路径部分（忽略查询参数）
+    const urlPath = new URL(url, window.location.origin).pathname;
     // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let i = 0; i < menu.length; i++) {
-      if (url === menu[i].path) {
+      // 解析菜单项路径
+      const menuPath = new URL(menu[i].path, window.location.origin).pathname;
+      if (urlPath === menuPath) {
         this.selMenu = menu[i];
         return;
       } else {

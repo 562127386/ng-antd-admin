@@ -11,6 +11,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzListModule } from 'ng-zorro-antd/list';
 import { Observable, of } from 'rxjs';
 import { BasicConfirmModalComponent } from '@widget/base-modal';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
@@ -34,7 +35,8 @@ import { InspectionResult, ItemJudgment } from '../../models/enums';
     NzIconModule,
     NzDividerModule,
     NzAlertModule,
-    NzInputModule
+    NzInputModule,
+    NzListModule
   ],
   templateUrl: './complete-inspection-modal.component.html',
   styleUrls: ['./complete-inspection-modal.component.less']
@@ -69,6 +71,28 @@ export class CompleteInspectionModalComponent extends BasicConfirmModalComponent
     return this.nzModalData.inspectionOrder;
   }
 
+  getUnqualifiedItems(): any[] {
+    if (!this.inspectionOrder?.records) {
+      return [];
+    }
+    // 基于 samples 集合中的 judgment 来统计不合格样品
+    return this.inspectionOrder.records.filter(r => {
+      const samples = r.samples || [];
+      return samples.some(s => s.judgment === ItemJudgment.NG);
+    });
+  }
+
+  getPendingItems(): any[] {
+    if (!this.inspectionOrder?.records) {
+      return [];
+    }
+    // 基于 samples 集合中的 judgment 来统计待判定样品
+    return this.inspectionOrder.records.filter(r => {
+      const samples = r.samples || [];
+      return samples.some(s => s.judgment === ItemJudgment.Pending  && s.sampleValue != null && s.sampleValue.trim() !== '');//|| s.judgment === undefined || s.judgment === null
+    });
+  }
+
   ngOnInit(): void {
     this.initForm();
     this.calculateStatistics();
@@ -92,12 +116,22 @@ export class CompleteInspectionModalComponent extends BasicConfirmModalComponent
     this.pendingCount = this.inspectionOrder.records.filter(r => r.judgment === ItemJudgment.Pending || r.judgment === undefined || r.judgment === null).length;
 
     this.totalSamples = this.inspectionOrder.sampleSize || 0;
-    this.calculateSampleStatistics();
-
+    if(this.totalSamples === 0)
+    { 
+      this.totalSamples =Math.max(//取样本数最多的一个 当样本数
+          // 先把所有 samples 长度取出来，没有则为 0
+          ...(this.inspectionOrder.records?.map(record => record.samples?.length || 0) || [0])
+        );
+        this.inspectionOrder.sampleSize=this.totalSamples;
+    }
     const ac = this.inspectionOrder.acceptanceNumber || 0;
-    const re = this.inspectionOrder.rejectionNumber || 0;
+    let re = this.inspectionOrder.rejectionNumber || 0;
+    if (re === 0) {
+      re = 1;
+      this.inspectionOrder.rejectionNumber =1;
+    }
 
-    if (this.unqualifiedSamples >= re) {
+    if (this.unqualifiedSamples >= re || this.ngCount > 0) {
       this.suggestedResult = InspectionResult.Rejected;
     } else if (this.unqualifiedSamples <= ac) {
       this.suggestedResult = InspectionResult.Accepted;
@@ -105,6 +139,7 @@ export class CompleteInspectionModalComponent extends BasicConfirmModalComponent
       this.suggestedResult = InspectionResult.Concession; 
     }
 
+    this.calculateSampleStatistics();
     const remark = this.generateRemark(ac, re);
     this.completeForm.patchValue({
       result: this.suggestedResult,
@@ -166,9 +201,10 @@ export class CompleteInspectionModalComponent extends BasicConfirmModalComponent
     const sampleSize = this.inspectionOrder.sampleSize || 0;
     const remark = `检验样本数${sampleSize}，合格${this.qualifiedSamples}样品，不合格${this.unqualifiedSamples}样品，未检测完成${this.incompleteSamples}样品，`;
     const rate = this.unqualifiedRate > 0 ? `不合格率${this.unqualifiedRate}%` : '无不合格';
+    const unqualifiedItemsRemark = this.ngCount > 0 ? `不合格检验项${this.ngCount}项，` : '';
     
     let judgment = '';
-    if (this.unqualifiedSamples >= re) {
+    if (this.unqualifiedSamples >= re || this.ngCount > 0) {
       judgment = '判定为不合格';
     } else if (this.unqualifiedSamples <= ac) {
       judgment = '判定为合格';
@@ -176,7 +212,7 @@ export class CompleteInspectionModalComponent extends BasicConfirmModalComponent
       judgment = '判定为特采';
     }
 
-    return `${remark}${rate}，根据AC=${ac}/RE=${re}，${judgment}。`;
+    return `${remark}${unqualifiedItemsRemark}${rate}，根据AC=${ac}/RE=${re}，${judgment}。`;
   }
 
   getResultColor(result?: number): string {
@@ -189,6 +225,22 @@ export class CompleteInspectionModalComponent extends BasicConfirmModalComponent
     if (result === undefined || result === null) return '';
     const option = this.resultOptions.find(o => o.value === result);
     return option ? option.label : '';
+  }
+
+  getSampleNames(samples: any[], judgment: number): string {
+    if (!samples || samples.length === 0) {
+      return '无';
+    }
+    const filteredSamples = samples.filter(s => {
+      if (judgment === 0 ) {
+        return (s.judgment === 0 || !s.judgment) && s.sampleValue != null && s.sampleValue.trim() !== '';
+      }
+      return s.judgment === judgment ;
+    });
+    if (filteredSamples.length === 0) {
+      return '无';
+    }
+    return filteredSamples.map(s => s.sampleName).join(', ');
   }
 
   getCurrentValue(): Observable<NzSafeAny> {

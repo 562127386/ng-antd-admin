@@ -57,7 +57,7 @@ export class LoginService {
   }
 
   public loginOut(): Observable<string> {
-    return this.http.post('/api/account/logout', null, { needSuccessInfo: false });
+    return this.http.get('/api/account/logout', { needSuccessInfo: false });
   }
 
   public getMenuByUserAuthCode(userAuthCode: string[]): Observable<Menu[]> {

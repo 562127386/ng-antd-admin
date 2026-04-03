@@ -58,4 +58,8 @@ export class NonConformingService {
   createFromIqcInspection(inspectionOrderId: string): Observable<NonConformingDto> {
     return this.http.post<NonConformingDto>(`${this.apiUrl}/create-from-iqc-inspection/${inspectionOrderId}`, {});
   }
+
+  getByOrderNo(orderNo: string): Observable<NonConformingDto> {
+    return this.http.get<NonConformingDto>(`${this.apiUrl}/by-order-no/${orderNo}`);
+  }
 }

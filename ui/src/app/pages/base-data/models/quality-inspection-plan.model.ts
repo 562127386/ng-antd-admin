@@ -80,6 +80,10 @@ export interface InspectionStepDto {
   sortOrder: number;
   isEnabled: boolean;
   remark?: string;
+  samplingSchemeName?: string;
+  samplingSchemeId?: string;
+  inspectionLevel?: number;
+  aqlValue?: number;
   items?: InspectionItemDto[];
 }
 
@@ -90,6 +94,10 @@ export interface CreateUpdateInspectionStepDto {
   sortOrder: number;
   isEnabled: boolean;
   remark?: string;
+  samplingSchemeName?: string;
+  samplingSchemeId?: string;
+  inspectionLevel?: number;
+  aqlValue?: number;
   items?: CreateUpdateInspectionItemDto[];
   indicatorIds?: string[];
 }
@@ -97,12 +105,18 @@ export interface CreateUpdateInspectionStepDto {
 export interface QualityInspectionPlanDto {
   id: string;
   code: string;
+  name: string;
   version: string;
   effectiveDate: Date;
   expiryDate?: Date;
   inspectionType: number;
   samplingSchemeType: number;
   samplingSchemeConfig?: string;
+  samplingSchemeId?: string;
+  samplingSchemeName?: string;
+  inspectionLevel?: number;
+  aqlValue?: number;
+  remark?: string;
   status: number;
   steps?: InspectionStepDto[];
   creationTime: Date;
@@ -113,12 +127,18 @@ export interface QualityInspectionPlanDto {
 
 export interface CreateUpdateQualityInspectionPlanDto {
   code: string;
+  name: string;
   version: string;
   effectiveDate: Date;
   expiryDate?: Date;
   inspectionType: number;
   samplingSchemeType: number;
   samplingSchemeConfig?: string;
+  samplingSchemeId?: string;
+  samplingSchemeName?: string;
+  inspectionLevel?: number;
+  aqlValue?: number;
+  remark?: string;
   steps?: CreateUpdateInspectionStepDto[];
   //items?: CreateUpdateInspectionItemDto[];
 }

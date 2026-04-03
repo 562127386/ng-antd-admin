@@ -6,6 +6,18 @@ export default [
     pathMatch: 'full',
     redirectTo: 'defects'
   },
+    {
+    path: 'dynamic-config',
+    title: '物料管理',
+    data: { key: 'materials' },
+    loadComponent: () => import('../../lib/components/config/dynamic-config-list.component').then(m => m.DynamicConfigListComponent)
+  },
+  {
+    path: 'dynamic-form',
+    title: '缺陷管理',
+    data: { key: 'defects' },
+    loadComponent: () => import('./dynamic-form-demo/dynamic-form-demo.component').then(m => m.DynamicFormDemoComponent)
+  },
   {
     path: 'defects',
     title: '缺陷管理',
@@ -47,6 +59,12 @@ export default [
     title: 'IQC来料检验',
     data: { key: 'iqc-inspections' },
     loadComponent: () => import('./iqc-inspections/iqc-inspections.component').then(m => m.IqcInspectionsComponent)
+  },
+    {
+    path: 'iqc-inspections-v2',
+    title: '检验单',
+    data: { key: 'iqc-inspections-v2' },
+    loadComponent: () => import('./iqc-inspections/iqc-inspections-v2.component').then(m => m.IqcInspectionsV2Component)
   },
   {
     path: 'suppliers',

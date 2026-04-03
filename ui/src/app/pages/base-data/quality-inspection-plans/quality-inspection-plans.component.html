@@ -49,10 +49,15 @@
     <thead>
       <tr>
         <th>方案编码</th>
+        <th>方案名称</th>
         <th>版本</th>
         <th>检验类型</th>
+        <th>抽样方案类型</th>
         <th>抽样方案</th>
+        <th>检验水平</th>
+        <th>AQL值</th>
         <th>生效日期</th>
+        <th>失效日期</th>
         <th>状态</th>
         <th>操作</th>
       </tr>
@@ -60,10 +65,15 @@
     <tbody>
       <tr *ngFor="let data of inspectionPlanTable.data">
         <td>{{ data.code }}</td>
+        <td>{{ data.name }}</td>
         <td>{{ data.version }}</td>
         <td>{{ getInspectionTypeText(data.inspectionType) }}</td>
-        <td>{{ data.samplingSchemeType }}</td>
+        <td>{{ getSamplingSchemeTypeText(data.samplingSchemeType) }}</td>
+        <td>{{ data.samplingSchemeName }}</td>
+        <td>{{ getInspectionLevelText(data.inspectionLevel) }}</td>
+        <td>{{ data.aqlValue }}</td>
         <td>{{ data.effectiveDate | date:'yyyy-MM-dd' }}</td>
+        <td>{{ data.expiryDate | date:'yyyy-MM-dd' }}</td>
         <td>
           <nz-tag [nzColor]="getStatusColor(data.status)">
             {{ getStatusText(data.status) }}

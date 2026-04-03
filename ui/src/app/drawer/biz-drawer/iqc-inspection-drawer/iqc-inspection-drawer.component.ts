@@ -192,7 +192,12 @@ export class IqcInspectionDrawerComponent implements OnInit, OnDestroy {
       sampleSizeCode: [{ value: '', disabled: true }],
       acceptanceNumber: [null],
       rejectionNumber: [null],
-      remark: ['']
+      remark: [''],
+      businessDate: [null],
+      documentType: ['IQC'],
+      inspectionCategory: [''],
+      sourceOrderNo: [''],
+      sourceDocumentType: ['']
     });
     this.initValueChanges();
   }
@@ -271,7 +276,8 @@ if (samplingSchemeId === null || samplingSchemeId === undefined || samplingSchem
   resetForm(): void {
     this.createForm.reset({
       orderNo: '自动生成',
-      aqlValue: 0.65
+      aqlValue: 0.65,
+      documentType: 'IQC'
     });
     this.viewingOrder = undefined;
     this.selectedPlan = undefined;
@@ -544,6 +550,12 @@ if (samplingSchemeId === null || samplingSchemeId === undefined || samplingSchem
                 else 
                   {
                     //sample.isPassed= true;
+                    if(results.length==1) //单条件就取反
+                     {
+                       if(results[0].judgmentResult === '合格' || results[0].judgmentResult === 'OK')sample.judgment = ItemJudgment.NG;
+                       if(results[0].judgmentResult === '不合格' || results[0].judgmentResult === 'NG')sample.judgment = ItemJudgment.OK;
+                     }
+                    else  //多条件都没命中
                     sample.judgment = ItemJudgment.Pending;//带判定
                   }
             } 
@@ -656,8 +668,9 @@ if (samplingSchemeId === null || samplingSchemeId === undefined || samplingSchem
     }
   }
 
-  getSampleJudgmentText(judgment?: number): string {
-    if (judgment === undefined || judgment === null) return '待判定';
+  getSampleJudgmentText(judgment?: number, sampleValue?: any): string {
+    if (sampleValue === undefined || sampleValue === null || sampleValue === '') return '';
+    if (judgment === undefined || judgment === null) return '';
     switch (judgment) {
       case ItemJudgment.OK: return 'OK';
       case ItemJudgment.NG: return 'NG';
@@ -1239,7 +1252,17 @@ if (samplingSchemeId === null || samplingSchemeId === undefined || samplingSchem
                   return isPassed && (judgmentResult === '合格' || judgmentResult === 'OK');
                 });
                 if(okPassed)record.judgment = ItemJudgment.OK;// 有一个条件触发合格 就合格
-                else record.judgment = ItemJudgment.Pending;//带判定
+                else 
+                {
+                    //sample.isPassed= true;
+                    if(results.length==1) //单条件就取反
+                     {
+                       if(results[0].judgmentResult === '合格' || results[0].judgmentResult === 'OK')record.judgment = ItemJudgment.NG;
+                       if(results[0].judgmentResult === '不合格' || results[0].judgmentResult === 'NG')record.judgment = ItemJudgment.OK;
+                     }
+                    else  //多条件都没命中
+                    record.judgment = ItemJudgment.Pending;//带判定
+                }
             }
             
             record.ruleEvaluationResultJson = JSON.stringify(results);

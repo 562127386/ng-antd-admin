@@ -1,0 +1,61 @@
+<div class="non-conforming-view-modal">
+  <div class="modal-header">
+    <h2>不合格处理单详情</h2>
+  </div>
+  
+  <div class="modal-content">
+    <nz-descriptions nzBordered [nzColumn]="{ xs: 1, sm: 2, md: 3, lg: 3, xl: 3, xxl: 3 }">
+      <nz-descriptions-item nzTitle="单号">{{ nonConforming.orderNo }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="来源模块">{{ getSourceModuleText(nonConforming.sourceModule) }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="关联单号">{{ nonConforming.relatedOrderNo }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="物料代码">{{ nonConforming.materialCode }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="批次号">{{ nonConforming.batchNo || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="数量">{{ nonConforming.quantity }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="不合格数量">{{ nonConforming.defectiveQuantity }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="严重程度">
+        <nz-tag [nzColor]="getSeverityColor(nonConforming.severity)">
+          {{ getSeverityText(nonConforming.severity) }}
+        </nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="状态">
+        <nz-tag [nzColor]="getStatusColor(nonConforming.status)">
+          {{ getStatusText(nonConforming.status) }}
+        </nz-tag>
+      </nz-descriptions-item>
+    </nz-descriptions>
+    
+    <nz-divider nzText="不合格描述" nzOrientation="left"></nz-divider>
+    <div class="description">
+      {{ nonConforming.description }}
+    </div>
+    
+    <nz-divider nzText="审核信息" nzOrientation="left"></nz-divider>
+    <nz-descriptions nzBordered [nzColumn]="{ xs: 1, sm: 2, md: 3, lg: 3, xl: 3, xxl: 3 }">
+      <nz-descriptions-item nzTitle="审核结果">{{ getReviewResultText(nonConforming.reviewResult) }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="返工数量">{{ nonConforming.reworkQty || 0 }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="返修数量">{{ nonConforming.repairQty || 0 }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="报废数量">{{ nonConforming.scrapQty || 0 }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="责任人">{{ nonConforming.responsiblePerson || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="责任部门">{{ nonConforming.responsibleDept || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="责任供应商">{{ nonConforming.responsibleSupplier || '-' }}</nz-descriptions-item>
+    </nz-descriptions>
+    
+    <nz-divider nzText="处理信息" nzOrientation="left"></nz-divider>
+    <nz-descriptions nzBordered [nzColumn]="{ xs: 1, sm: 2, md: 3, lg: 3, xl: 3, xxl: 3 }">
+      <nz-descriptions-item nzTitle="完成时间">{{ nonConforming.completionTime | date: 'yyyy-MM-dd HH:mm:ss' }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="复检结果">{{ getInspectionResultText(nonConforming.reInspectionResult) }}</nz-descriptions-item>
+    </nz-descriptions>
+    
+    <nz-divider nzText="基本信息" nzOrientation="left"></nz-divider>
+    <nz-descriptions nzBordered [nzColumn]="{ xs: 1, sm: 2, md: 3, lg: 3, xl: 3, xxl: 3 }">
+      <nz-descriptions-item nzTitle="创建时间">{{ nonConforming.creationTime | date: 'yyyy-MM-dd HH:mm:ss' }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="创建人">{{ nonConforming.creatorId || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="最后修改时间">{{ nonConforming.lastModificationTime | date: 'yyyy-MM-dd HH:mm:ss' }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="最后修改人">{{ nonConforming.lastModifierId || '-' }}</nz-descriptions-item>
+    </nz-descriptions>
+  </div>
+  
+  <!-- <div class="modal-footer">
+    <button nz-button nzType="default" (click)="handleCancel()">关闭</button>
+  </div> -->
+</div>

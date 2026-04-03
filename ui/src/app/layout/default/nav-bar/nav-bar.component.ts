@@ -218,12 +218,27 @@ export class NavBarComponent implements OnInit {
     menus.forEach(item => {
       item.selected = false;
       item.open = false;
-      if (routePath.includes(item.path) && !item.newLinkFlag) {
+      
+      // 精确匹配当前菜单项
+      if (routePath === item.path && !item.newLinkFlag) {
         item.selected = true;
         item.open = true;
+      } else if (routePath.startsWith(item.path + '/') && !item.newLinkFlag) {
+        // 匹配子路径
+        item.open = true;
       }
+
+      // 递归处理子菜单
+      let hasSelectedChild = false;
       if (!!item.children && item.children.length > 0) {
         this.flatMenu(item.children, routePath);
+        // 检查是否有子菜单被选中
+        hasSelectedChild = item.children.some(child => child.selected || child.open);
+      }
+
+      // 如果有子菜单被选中，父菜单需要展开
+      if (hasSelectedChild) {
+        item.open = true;
       }
     });
   }
@@ -263,8 +278,36 @@ export class NavBarComponent implements OnInit {
       window.open(menu.path, '_blank');
       return;
     }
-    this.router.navigate([menu.path]);
+    //this.router.navigateByUrl(menu.path);
+//上面一行也可以跳转  但是就是不安全和方便！！
+
+    // 假设 menu 是当前点击的菜单对象
+    const { path, queryParams } = this.parseMenuPath(menu.path);
+    // 用 navigate 跳转，自动拼接参数
+    this.router.navigate(path, {
+      queryParams: queryParams
+    });
+
   }
+
+  /**
+ * 解析带查询参数的路由地址  add by tca 20260327
+ * @param fullPath 完整路径，如 /default/base-data/xxx?a=1&b=2
+ * @returns { path: string[], queryParams: object }
+ */
+parseMenuPath(fullPath: string): { path: string[], queryParams: Record<string, string> } {
+  const [pathPart, queryPart] = fullPath.split('?');
+  // 拆分路径为数组（支持多级路由）
+  const path = pathPart.split('/').filter(Boolean);
+  // 解析查询参数
+  const queryParams: Record<string, string> = {};
+  if (queryPart) {
+    new URLSearchParams(queryPart).forEach((v, k) => {
+      queryParams[k] = v;
+    });
+  }
+  return { path, queryParams };
+}
 
   closeMenu(): void {
     this.clickMenuItem(this.menus());

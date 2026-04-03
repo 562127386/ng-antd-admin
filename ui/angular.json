@@ -39,6 +39,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "sourceMap": true,
             "outputPath": {
               "base": "dist",
               "browser": ""

@@ -42,11 +42,14 @@ export class AqlConfigService {
     return this.http.put<AqlConfigDto>(`${this.apiUrl}/${id}/set-enabled`, isEnabled);
   }
 
-  findBestMatch(samplingSchemeId: string | null, lotSize: number, aqlValue?: number): Observable<AqlConfigDto | null> {
+  findBestMatch(samplingSchemeId: string | null, lotSize: number, aqlValue?: number, inspectionLevel?: number): Observable<AqlConfigDto | null> {
     let params = new HttpParams();
     params = params.append('lotSize', lotSize.toString());
     if (aqlValue !== undefined && aqlValue !== null) {
       params = params.append('aqlValue', aqlValue.toString());
+    }
+    if (inspectionLevel !== undefined && inspectionLevel !== null) {
+      params = params.append('inspectionLevel', inspectionLevel.toString());
     }
     const url = samplingSchemeId 
       ? `${this.apiUrl}/find-best-match/${samplingSchemeId}`

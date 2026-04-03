@@ -76,6 +76,24 @@ export class QualityInspectionPlansComponent implements OnInit {
     { label: '已失效', value: 3 }
   ];
 
+  inspectionLevelOptions = [
+    { label: '一般I', value: 0 },
+    { label: '一般II', value: 1 },
+    { label: '一般III', value: 2 },
+    { label: '特殊S-1', value: 3 },
+    { label: '特殊S-2', value: 4 },
+    { label: '特殊S-3', value: 5 },
+    { label: '特殊S-4', value: 6 }
+  ];
+
+  samplingSchemeTypeOptions = [
+    { label: 'AQL', value: 1 },
+    { label: 'C=0', value: 2 },
+    { label: '计量型', value: 3 },
+    { label: '连续生产', value: 4 },
+    { label: '跳批', value: 5 }
+  ];
+
   ngOnInit(): void {
     this.initForms();
     this.loadData();
@@ -239,5 +257,21 @@ export class QualityInspectionPlansComponent implements OnInit {
       default:
         return 'default';
     }
+  }
+
+  getInspectionLevelText(level: number | undefined): string {
+    if (level === undefined) {
+      return '';
+    }
+    const option = this.inspectionLevelOptions.find(o => o.value === level);
+    return option ? option.label : '';
+  }
+
+  getSamplingSchemeTypeText(type: number | undefined): string {
+    if (type === undefined) {
+      return '';
+    }
+    const option = this.samplingSchemeTypeOptions.find(o => o.value === type);
+    return option ? option.label : '';
   }
 }

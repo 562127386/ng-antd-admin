@@ -3,7 +3,7 @@
   <div *ngIf="isViewMode && viewingOrder">
     <nz-descriptions [nzColumn]="2" nzBordered>
       <nz-descriptions-item nzTitle="单号">{{ viewingOrder.orderNo }}</nz-descriptions-item>
-      <nz-descriptions-item nzTitle="批次号">{{ viewingOrder.batchNo }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="批次号/计划号">{{ viewingOrder.batchNo }}</nz-descriptions-item>
       <nz-descriptions-item nzTitle="物料">
         <nz-tag nzColor="blue">{{ viewingOrder.materialCode }} {{ viewingOrder.materialName }}</nz-tag>
       </nz-descriptions-item>
@@ -28,6 +28,14 @@
         <nz-tag [nzColor]="getResultColor(viewingOrder.result)" *ngIf="viewingOrder.result !== null && viewingOrder.result !== undefined">{{ getResultText(viewingOrder.result) }}</nz-tag>
         <span *ngIf="viewingOrder.result === null || viewingOrder.result === undefined">-</span>
       </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="业务日期">
+        <span *ngIf="viewingOrder.businessDate">{{ viewingOrder.businessDate | date:'yyyy-MM-dd' }}</span>
+        <span *ngIf="!viewingOrder.businessDate">-</span>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="单据类型">{{ viewingOrder.documentType || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="质检类型">{{ viewingOrder.inspectionCategory || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="来源单号">{{ viewingOrder.sourceOrderNo || '-' }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="来源单据类型">{{ viewingOrder.sourceDocumentType || '-' }}</nz-descriptions-item>
       <nz-descriptions-item nzTitle="备注" [nzSpan]="2">{{ viewingOrder.remark || '-' }}</nz-descriptions-item>
     </nz-descriptions>
     
@@ -123,9 +131,9 @@
       </div>
       <div nz-col nzSpan="12">
         <nz-form-item>
-          <nz-form-label nzRequired>批次号</nz-form-label>
+          <nz-form-label nzRequired>批次号/计划号</nz-form-label>
           <nz-form-control>
-            <input nz-input formControlName="batchNo" placeholder="请输入批次号" />
+            <input nz-input formControlName="batchNo" placeholder="请输入批次号/计划号" />
           </nz-form-control>
         </nz-form-item>
       </div>
