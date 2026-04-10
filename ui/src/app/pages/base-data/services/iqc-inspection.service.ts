@@ -10,7 +10,7 @@ import { RuleEvaluationResult } from '../components/judgment-rules-display/judgm
   providedIn: 'root',
 })
 export class IqcInspectionService {
-  private apiUrl = environment.apiUrl + '/api/iqc-inspections';
+  private apiUrl = environment['apiUrl']+ '/api/iqc-inspections';
 
   constructor(private http: HttpClient) {}
 
@@ -65,7 +65,7 @@ export class IqcInspectionService {
     if (rulesJson) params = params.set('rulesJson', rulesJson);
     if (actualValue) params = params.set('actualValue', actualValue);
     
-    const evaluateRuleUrl = environment.apiUrl + '/api/iqc-inspections/evaluate-rule';
+    const evaluateRuleUrl = environment['apiUrl'] + '/api/iqc-inspections/evaluate-rule';
     return this.http.post<RuleEvaluationResult[]>(evaluateRuleUrl, {}, { params });
   }
 

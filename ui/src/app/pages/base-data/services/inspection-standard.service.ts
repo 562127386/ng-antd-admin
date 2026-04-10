@@ -13,7 +13,7 @@ import {
   providedIn: 'root',
 })
 export class InspectionStandardService {
-  private apiUrl = environment.apiUrl + '/api/app/inspection-standard';
+  private apiUrl = environment['apiUrl'] + '/api/app/inspection-standard';
 
   constructor(private http: HttpClient) {}
 

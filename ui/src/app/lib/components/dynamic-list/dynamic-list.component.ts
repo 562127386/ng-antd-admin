@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetect
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { NzTableQueryParams } from 'ng-zorro-antd/table';
+import { CoreModule } from '@abp/ng.core';
 import {
   DynamicListService,
   ConfigSchemeService,
@@ -33,13 +34,22 @@ import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-
+import { InjectionToken } from '@angular/core';
+import { NgxValidateCoreModule } from '@ngx-validate/core';
+// 定义缺失的令牌（复制即可）
+//const VALIDATION_BLUEPRINTS = new InjectionToken('validation.blueprints');
+  import { VALIDATION_BLUEPRINTS } from '@ngx-validate/core';
+ // const VALIDATION_BLUEPRINTS = new InjectionToken('validation.blueprints');
+const VALIDATION_INVALID_CLASSES = new InjectionToken('validation.invalid.classes');
+const VALIDATION_VALID_CLASSES = new InjectionToken('validation.valid.classes');
 @Component({
   selector: 'abp-dynamic-list',
   standalone: true,
   imports: [
     CommonModule,
     FormsModule,
+    CoreModule,
+    NgxValidateCoreModule,
     //A11yModule,
     NzButtonModule,
     NzTableModule,
@@ -58,177 +68,13 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
     NzCollapseModule,
     NzCheckboxModule
   ],
-  template: `
-    <nz-card [nzBordered]="false">
-      <!-- Filter Section -->
-      <nz-collapse nzBordered="false">
-        <nz-collapse-panel nzHeader="高级查询" [nzActive]="true">
-          <div class="filter-container">
-            <form nz-form [nzLayout]="'inline'" (ngSubmit)="search()">
-              <nz-form-item *ngFor="let filter of activeFilters">
-                <nz-form-label>{{ filter.label }}</nz-form-label>
-                <nz-form-control>
-                  <nz-select
-                    *ngIf="filter.type === 'select'"
-                    [(ngModel)]="filterParams[filter.field]"
-                    [name]="filter.field"
-                    [nzPlaceHolder]="filter.placeholder || '请选择'"
-                    nzAllowClear
-                    style="width: 150px;">
-                    <nz-option
-                      *ngFor="let opt of filter.options"
-                      [nzValue]="opt.value"
-                      [nzLabel]="opt.label">
-                    </nz-option>
-                  </nz-select>
 
-                  <input
-                    *ngIf="filter.type === 'text'"
-                    nz-input
-                    [(ngModel)]="filterParams[filter.field]"
-                    [name]="filter.field"
-                    [placeholder]="filter.placeholder || '请输入'"
-                    style="width: 150px;" />
-
-                  <nz-range-picker
-                    *ngIf="filter.type === 'dateRange'"
-                    [(ngModel)]="filterParams[filter.field]"
-                    [name]="filter.field"
-                    style="width: 250px;">
-                  </nz-range-picker>
-                </nz-form-control>
-              </nz-form-item>
-
-              <nz-form-item>
-                <nz-form-control>
-                  <button nz-button nzType="primary" type="submit">
-                    <span nz-icon nzType="search"></span>
-                    查询
-                  </button>
-                  <button nz-button type="button" (click)="reset()" style="margin-left: 8px;">
-                    重置
-                  </button>
-                </nz-form-control>
-              </nz-form-item>
-            </form>
-          </div>
-        </nz-collapse-panel>
-      </nz-collapse>
-
-      <!-- Table Toolbar -->
-      <div class="table-toolbar" style="margin: 16px 0;">
-        <nz-space>
-          <button *nzSpaceItem nz-button nzType="primary" (click)="create()">
-            <span nz-icon nzType="plus"></span>
-            新增
-          </button>
-          <button *nzSpaceItem nz-button (click)="refresh()">
-            <span nz-icon nzType="reload"></span>
-            刷新
-          </button>
-          <button *nzSpaceItem nz-button nz-dropdown [nzDropdownMenu]="columnMenu">
-            <span nz-icon nzType="setting"></span>
-            列配置
-          </button>
-          <button *nzSpaceItem nz-button nz-dropdown [nzDropdownMenu]="filterMenu">
-            <span nz-icon nzType="filter"></span>
-            查询方案
-          </button>
-        </nz-space>
-
-        <!-- Batch Operations -->
-        <div *ngIf="selectedRowKeys.length > 0" class="batch-operations">
-          <nz-space>
-            <span>已选择 {{ selectedRowKeys.length }} 项</span>
-            <button nz-button nzType="default" nz-popconfirm nzPopconfirmTitle="确认批量删除?" (nzOnConfirm)="batchDelete()">
-              <span nz-icon nzType="delete"></span>
-              批量删除
-            </button>
-            <button nz-button nzType="default" (click)="batchExport()">
-              <span nz-icon nzType="download"></span>
-              批量导出
-            </button>
-          </nz-space>
-        </div>
-
-        <nz-dropdown-menu #columnMenu="nzDropdownMenu">
-          <ul nz-menu>
-            <li nz-menu-item *ngFor="let col of columns">
-              <label nz-checkbox [(ngModel)]="col.visible" [name]="'col-' + col.field" (ngModelChange)="updateColumnVisibility()">
-                {{ col.headerName }}
-              </label>
-            </li>
-          </ul>
-        </nz-dropdown-menu>
-
-        <nz-dropdown-menu #filterMenu="nzDropdownMenu">
-          <ul nz-menu>
-            <li nz-menu-item *ngFor="let scheme of filterSchemes" (click)="applyFilterScheme(scheme)">
-              <span>{{ scheme.name }}</span>
-              <span *ngIf="scheme.isDefault" nz-icon nzType="check" style="margin-left: 8px;"></span>
-            </li>
-          </ul>
-        </nz-dropdown-menu>
-      </div>
-
-      <!-- Data Table -->
-      <nz-table
-        #nzTable
-        [nzData]="data"
-        [nzTotal]="totalCount"
-        [(nzPageIndex)]="pageIndex"
-        [(nzPageSize)]="pageSize"
-        [nzPageSizeOptions]="pageSizeOptions"
-        [nzLoading]="loading"
-        [nzShowSizeChanger]="true"
-        [nzShowQuickJumper]="true"
-        [nzFrontPagination]="false"
-        (nzQueryParams)="onQueryParamsChange($event)"
-        (nzPageIndexChange)="loadData()"
-        (nzPageSizeChange)="loadData()">
-        <thead>
-          <tr>
-            <th nzWidth="50px" nzAlign="center">
-              <label nz-checkbox [ngModel]="allChecked" [name]="'all-checked'" (change)="onCheckAllChange($event)"></label>
-            </th>
-            <th
-              *ngFor="let col of visibleColumns"
-              [nzWidth]="col.width ? col.width.toString() : null"
-              [nzLeft]="col.frozen === 'left'"
-              [nzRight]="col.frozen === 'right'"
-              [nzSortFn]="col.sortable ? sortFn : null"
-              [nzAlign]="col.align || 'left'">
-              {{ col.headerName }}
-            </th>
-            <th nzWidth="150px" nzAlign="center">操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of nzTable.data; trackBy: trackByFn" (dblclick)="edit(row)">
-            <td nzAlign="center">
-              <label nz-checkbox [ngModel]="isSelected(row)" [name]="'row-' + (row.id || row)" (change)="onCheckRowChange($event, row)"></label>
-            </td>
-            <td
-              *ngFor="let col of visibleColumns"
-              [nzLeft]="col.frozen === 'left'"
-              [nzRight]="col.frozen === 'right'"
-              [nzAlign]="col.align || 'left'">
-              <ng-container [ngSwitch]="col.formatter">
-                <span *ngSwitchDefault>{{ row[col.field] }}</span>
-              </ng-container>
-            </td>
-            <td nzAlign="center">
-              <a (click)="edit(row)">编辑</a>
-              <nz-divider nzType="vertical"></nz-divider>
-              <a nz-popconfirm nzPopconfirmTitle="确认删除?" (nzOnConfirm)="delete(row)">删除</a>
-            </td>
-          </tr>
-        </tbody>
-      </nz-table>
-
-      <nz-empty *ngIf="!loading && data.length === 0" nzNotFoundContent="暂无数据"></nz-empty>
-    </nz-card>
-  `,
+  providers: [
+    { provide: VALIDATION_BLUEPRINTS, useValue: [] },
+    { provide: VALIDATION_INVALID_CLASSES, useValue: ['is-invalid'] },
+    { provide: VALIDATION_VALID_CLASSES, useValue: ['is-valid'] },
+  ],
+  templateUrl: './dynamic-list.component.html',
   styles: [`
     .filter-container {
       padding: 8px 0;
@@ -245,7 +91,7 @@ export class DynamicListComponent implements OnInit, OnDestroy {
   @Input() apiUrl: string = '';
   @Input() columns: ColumnConfig[] = [];
   @Input() filterSchemes: FilterConfigScheme[] = [];
-  @Input() tableSchemes: TableConfigScheme[] = [];
+  @Input() tableSchemes?: TableConfigScheme;//[] = [];
 
   @Output() onCreate = new EventEmitter<void>();
   @Output() onEdit = new EventEmitter<any>();
@@ -306,8 +152,8 @@ export class DynamicListComponent implements OnInit, OnDestroy {
   }
 
   loadData(): void {
-    debugger;
-    console.log('9999999999999999');
+    // debugger;
+    // console.log('9999999999999999');
     if (!this.apiUrl || this.isLoading) return;
 
     this.isLoading = true;
@@ -339,13 +185,33 @@ export class DynamicListComponent implements OnInit, OnDestroy {
     if (!this.entityName) return;
 
     this.configSchemeService.getFilterSchemes(this.entityName).subscribe(schemes => {
-      this.filterSchemes = schemes;
+        this.filterSchemes = schemes;
       const defaultScheme = schemes.find(s => s.isDefault);
       if (defaultScheme) {
         this.applyFilterScheme(defaultScheme);
       }
     });
   }
+
+
+  //明天继续
+  loadTableSchemes(): void {
+    if (!this.entityName) return;
+    this.configSchemeService.getTableScheme(this.entityName).subscribe(schemes => {
+        this.tableSchemes = schemes;
+        this.applyColumnScheme(this.tableSchemes);
+      // const defaultScheme = schemes.find(s => s.isDefault);
+      // if (defaultScheme) {
+      //   this.applyFilterScheme(defaultScheme);
+      // }
+    });
+  }
+  applyColumnScheme(scheme: TableConfigScheme): void {
+    this.columns = [];
+    this.columns =scheme.columns;
+  }
+
+
 
   search(): void {
     this.searchSubject.next(this.filterParams);

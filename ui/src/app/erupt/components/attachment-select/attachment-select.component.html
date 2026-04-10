@@ -1,0 +1,7 @@
+<nz-list nzBordered headerRowOutlet>
+  @for (path of paths; track path) {
+    <nz-list-item>
+      <a href="javascript:void(0)" (click)="open(path)">{{ path }}</a>
+    </nz-list-item>
+  }
+</nz-list>

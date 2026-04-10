@@ -137,8 +137,12 @@ export class DynamicDetailFormComponent extends BasicConfirmModalComponent imple
   constructor(private fb: FormBuilder, private cdr: ChangeDetectorRef) {
     super();
   }
-
+  // 1. 注入 NZ_MODAL_DATA
+  readonly data = inject(NZ_MODAL_DATA);
   ngOnInit(): void {
+     // 从注入的数据中赋值给 @Input() fields
+    this.fields = this.data?.fields || [];
+    this.values = this.data?.values || {};
     console.log('DynamicDetailFormComponent - ngOnInit called');
     console.log('DynamicDetailFormComponent - fields:', this.fields);
     console.log('DynamicDetailFormComponent - values:', this.values);

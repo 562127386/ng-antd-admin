@@ -28,7 +28,7 @@ export class WebsocketComponent implements OnDestroy, AfterViewInit {
     title: 'websocket',
     breadcrumb: ['首页', '功能', 'websocket']
   };
-  subject = webSocket(`${environment.wsUrl}/webSocket`);
+  subject = webSocket(`${environment['wsUrl']}/webSocket`);
   result = signal<string[]>([]);
   msg = '';
 
@@ -42,7 +42,7 @@ export class WebsocketComponent implements OnDestroy, AfterViewInit {
   }
 
   reconnect(): void {
-    this.subject = webSocket(`${environment.wsUrl}/webSocket`);
+    this.subject = webSocket(`${environment['wsUrl']}/webSocket`);
     this.subject.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(res => {
       const prev = this.result();
       this.result.set([...prev, res as string]);

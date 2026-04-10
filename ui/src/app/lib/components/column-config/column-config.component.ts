@@ -197,10 +197,10 @@ export class ColumnConfigComponent implements OnInit {
 
   private initDefaultColumns(): void {
     this.columns = [
-      { field: 'id', headerName: 'ID', width: 80, sortable: true, visible: true, order: 1 },
-      { field: 'name', headerName: '名称', width: 200, sortable: true, visible: true, order: 2 },
-      { field: 'code', headerName: '编码', width: 120, sortable: true, visible: true, order: 3 },
-      { field: 'creationTime', headerName: '创建时间', width: 150, sortable: true, visible: true, order: 4 },
+      { field: 'id', headerName: 'ID', width: '80', sortable: true, visible: true, order: 1 },
+      { field: 'name', headerName: '名称', width: '200', sortable: true, visible: true, order: 2 },
+      { field: 'code', headerName: '编码', width: '120', sortable: true, visible: true, order: 3 },
+      { field: 'creationTime', headerName: '创建时间', width: '150', sortable: true, visible: true, order: 4 },
     ];
   }
 

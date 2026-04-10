@@ -1,5 +1,4 @@
-<form nz-form [formGroup]="form" (ngSubmit)="submit()">
-      <nz-card [nzTitle]="cardTitle" [nzExtra]="cardExtra">
+ <form nz-form [formGroup]="form" (ngSubmit)="submit()">
         <div nz-row [nzGutter]="16">
           <ng-container *ngFor="let field of sortedFields">
             <div
@@ -140,7 +139,7 @@
                     nzAllowClear
                     style="width: 100%;">
                     <nz-option
-                      *ngFor="let opt of field.options"
+                      *ngFor="let opt of getFieldOptions(field)"
                       [nzValue]="opt.value"
                       [nzLabel]="opt.label"
                       [nzDisabled]="opt.disabled || false">
@@ -158,7 +157,7 @@
                     nzAllowClear
                     style="width: 100%;">
                     <nz-option
-                      *ngFor="let opt of field.options"
+                      *ngFor="let opt of getFieldOptions(field)"
                       [nzValue]="opt.value"
                       [nzLabel]="opt.label"
                       [nzDisabled]="opt.disabled || false">
@@ -187,7 +186,7 @@
                     [formControlName]="field.key"
                     (nzOnChange)="onCheckboxChange($event, field)">
                     <label nz-checkbox
-                           *ngFor="let opt of field.options"
+                           *ngFor="let opt of getFieldOptions(field)"
                            [nzValue]="opt.value"
                            [nzDisabled]="(opt.disabled || false) || isFieldDisabled(field)">
                       {{ opt.label }}
@@ -200,7 +199,7 @@
                     [formControlName]="field.key"
                     [id]="field.key"
                     [nzDisabled]="isFieldDisabled(field)">
-                    <label nz-radio *ngFor="let opt of field.options" [nzValue]="opt.value">
+                    <label nz-radio *ngFor="let opt of getFieldOptions(field)" [nzValue]="opt.value">
                       {{ opt.label }}
                     </label>
                   </nz-radio-group>
@@ -265,51 +264,4 @@
             </div>
           </ng-container>
         </div>
-
-        <!-- Form Actions -->
-        <div class="form-actions" style="margin-top: 24px; text-align: center;">
-          <nz-space>
-            <button
-              *nzSpaceItem
-              nz-button
-              nzType="primary"
-              type="submit"
-              [nzLoading]="submitting"
-              [disabled]="form.invalid && !submitting">
-              {{ submitButtonText }}
-            </button>
-            <ng-container *ngIf="showCancelButton">
-                <button
-                  *nzSpaceItem
-                  nz-button
-                  type="button"
-                  (click)="cancel()">
-                  取消
-                </button>
-              </ng-container>
-              <ng-container *ngIf="showResetButton">
-                <button
-                  *nzSpaceItem
-                  nz-button
-                  type="button"
-                  (click)="reset()">
-                  重置
-                </button>
-              </ng-container>
-          </nz-space>
-        </div>
-      </nz-card>
-
-      <ng-template #cardExtra>
-        <nz-space>
-          <button
-            *nzSpaceItem
-            nz-button
-            nzType="link"
-            (click)="toggleAdvanced()">
-            {{ advancedVisible ? '收起高级' : '展开高级' }}
-            <span nz-icon [nzType]="advancedVisible ? 'up' : 'down'"></span>
-          </button>
-        </nz-space>
-      </ng-template>
     </form>

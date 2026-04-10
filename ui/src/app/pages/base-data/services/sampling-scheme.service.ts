@@ -9,7 +9,7 @@ import { PagedResultDto } from '../models/aql-config.model';
   providedIn: 'root',
 })
 export class SamplingSchemeService {
-  private apiUrl = environment.apiUrl + '/api/sampling-schemes';
+  private apiUrl = environment['apiUrl'] + '/api/sampling-schemes';
 
   constructor(private http: HttpClient) {}
 

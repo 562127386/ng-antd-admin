@@ -26,7 +26,7 @@ export class UploadComponent implements OnInit {
     breadcrumb: ['首页', '功能', '文件上传'],
     desc: '简单弄一下，返回的都是服务器统一返回的文件'
   };
-  uploadUrl = environment.apiUrl + '/api/file/test/upload/document/';
+  uploadUrl = environment['apiUrl'] + '/api/file/test/upload/document/';
   fileList: NzUploadFile[] = [];
   fileFormList: NzUploadFile[] = [];
   validateForm!: FormGroup;

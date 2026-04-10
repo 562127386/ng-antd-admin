@@ -35,7 +35,7 @@ export class BaseHttpService {
   windowServe = inject(WindowService);
 
   protected constructor() {
-    this.uri = environment.apiUrl;
+    this.uri = environment['apiUrl'];
   }
 
   private getAuthHeaders(): HttpHeaders {

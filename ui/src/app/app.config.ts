@@ -1,5 +1,5 @@
 import { registerLocaleData } from '@angular/common';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors,withInterceptorsFromDi } from '@angular/common/http';
 import zh from '@angular/common/locales/zh';
 import {
   ApplicationConfig,
@@ -38,6 +38,31 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 const icons = [MenuFoldOutline, MenuUnfoldOutline, DashboardOutline, FormOutline];
 
 registerLocaleData(zh);
+
+
+import { registerLocaleForEsBuild } from '@abp/ng.core/locale';
+import { CORE_OPTIONS, provideAbpCore, withOptions } from '@abp/ng.core'; 
+// 👇 ngx-validate 修复（动态表单必备）
+import {
+  VALIDATION_BLUEPRINTS,
+  VALIDATION_ERROR_TEMPLATE,
+  VALIDATION_INVALID_CLASSES,
+  VALIDATION_MAP_ERRORS_FN,
+  VALIDATION_TARGET_SELECTOR,
+  VALIDATION_VALIDATE_ON_SUBMIT
+} from '@ngx-validate/core';
+import { environment } from '@env/environment';
+// import { provideAbpOAuth } from '@abp/ng.oauth';
+// import { provideSettingManagementConfig } from '@abp/ng.setting-management/config';
+// import { provideAccountConfig } from '@abp/ng.account/config';
+// import { provideIdentityConfig } from '@abp/ng.identity/config';
+// import { provideTenantManagementConfig } from '@abp/ng.tenant-management/config';
+// import { provideFeatureManagementConfig } from '@abp/ng.feature-management';
+// import { provideThemeLeptonX } from '@abp/ng.theme.lepton-x';
+// import { provideSideMenuLayout } from '@abp/ng.theme.lepton-x/layouts';
+
+
+
 
 export function StartupServiceFactory(startupService: StartupService) {
   return () => startupService.load();
@@ -98,6 +123,14 @@ const APPINIT_PROVIDES: EnvironmentProviders[] = [
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideAbpCore(
+      withOptions({
+        environment: environment,
+        registerLocaleFn: registerLocaleForEsBuild(),
+      })
+    ),
+
+
     // 在无 Zone.js (Zoneless) 的新模式下，Angular 不再依赖 Zone.js 来感知异步操作和错误。这就导致了原生异步任务（如 setTimeout 或 Promise）中未处理的错误会“逃逸”出 Angular 的管理范围。
     provideBrowserGlobalErrorListeners(), // 在浏览器环境中，设置全局的错误监听器，并自动将捕获到的未处理错误和 Promise 拒绝 (rejection) 转发给 Angular 的 ErrorHandler 进行统一处理。
     { provide: RouteReuseStrategy, useClass: SimpleReuseStrategy, deps: [DOCUMENT, ScrollService] }, // 路由复用
@@ -131,5 +164,47 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(), // 开启延迟加载动画，ng17新增特性，如果想要项目启动时就加载动画，可以使用provideAnimations()
     provideHttpClient(withInterceptors([httpInterceptorService])),
     provideZonelessChangeDetection() // 开启 zoneless
+
+
+
+
+  
+    
+    // provideThemeLeptonX(),
+    // provideSideMenuLayout(),
+    // provideAbpOAuth(),
+    // provideSettingManagementConfig(),
+    // provideAccountConfig(),
+    // provideIdentityConfig(),
+    // provideTenantManagementConfig(),
+    // provideFeatureManagementConfig(),
+    // provideAnimations(),
+    // provideLogo(withEnvironmentOptions(environment)),
+    // provideAbpThemeShared(
+    //   withValidationBluePrint({
+    //     wrongPassword: 'Please choose 1q2w3E*',
+    //   })
+    // ), 
+     // --------------------------
+    // 1. ABP 核心配置（修复 RestService / CORE_OPTIONS 报错）
+    // --------------------------
+    // ,//{ provide: CORE_OPTIONS, useValue: environment },
+
+    // // --------------------------
+    // // 2. HTTP 客户端（修复 HttpClient 报错）
+    // // --------------------------
+    // provideHttpClient(withFetch(), withInterceptorsFromDi()),
+
+    // // --------------------------
+    // // 3. 动态表单验证修复（全部正确值）
+    // // --------------------------
+    // { provide: VALIDATION_BLUEPRINTS, useValue: [] },
+    // { provide: VALIDATION_ERROR_TEMPLATE, useValue: null },
+    // { provide: VALIDATION_INVALID_CLASSES, useValue: ['is-invalid'] },
+    // { provide: VALIDATION_MAP_ERRORS_FN, useValue: (e:any) => e },
+    // { provide: VALIDATION_TARGET_SELECTOR, useValue: '.form-control' },
+    // { provide: VALIDATION_VALIDATE_ON_SUBMIT, useValue: false },
+
+
   ]
 };

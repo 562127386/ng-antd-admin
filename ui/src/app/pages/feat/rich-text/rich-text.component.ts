@@ -23,7 +23,7 @@ export class RichTextComponent {
     title: '富文本，人们总是喜欢用花里胡哨的文字，表达自己空虚的情感',
     breadcrumb: ['首页', '扩展功能', '富文本']
   };
-  uploadRichFileUrl = environment.apiUrl + '/rich-upload';
+  uploadRichFileUrl = environment['apiUrl'] + '/rich-upload';
   validateForm = this.fb.group({
     detail: ['', [Validators.required]]
   });

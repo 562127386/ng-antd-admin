@@ -11,6 +11,9 @@ import { SpinService } from '@store/common-store/spin.service';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 import { NzFloatButtonTopComponent } from 'ng-zorro-antd/float-button';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { environment } from '../environments/environment';
+import { CORE_OPTIONS, CoreModule } from '@abp/ng.core';
+import { NgxValidateCoreModule } from '@ngx-validate/core';
 
 @Component({
   selector: 'app-root',
@@ -31,7 +34,13 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LockScreenComponent, RouterOutlet, NzSpinModule, NzFloatButtonTopComponent]
+  providers: [
+    //新版本核心配置（官方推荐，无警告）
+    { provide: CORE_OPTIONS, useValue: environment },
+    { provide: 'validation.blueprints', useValue: [] }
+  ],
+  imports: [CoreModule, NgxValidateCoreModule ,
+    LockScreenComponent, RouterOutlet, NzSpinModule, NzFloatButtonTopComponent]
 })
 export class App implements OnInit, AfterViewInit {
   private preloader = inject(PreloaderService);

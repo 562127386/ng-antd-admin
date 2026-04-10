@@ -8,7 +8,7 @@ import { AqlConfigDto, CreateUpdateAqlConfigDto, GetAqlConfigListDto, PagedResul
   providedIn: 'root',
 })
 export class AqlConfigService {
-  private apiUrl = environment.apiUrl + '/api/app/aql-config';
+  private apiUrl = environment['apiUrl'] + '/api/app/aql-config';
 
   constructor(private http: HttpClient) {}
 

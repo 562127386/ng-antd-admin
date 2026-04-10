@@ -9,7 +9,7 @@ import { PagedResultDto } from '../models/aql-config.model';
   providedIn: 'root',
 })
 export class SupplierService {
-  private apiUrl = environment.apiUrl + '/api/suppliers';
+  private apiUrl = environment['apiUrl'] + '/api/suppliers';
 
   constructor(private http: HttpClient) {}
 

@@ -8,7 +8,7 @@ import { FormSchemaDto, ColumnSchemaDto, LookupSchemaDto } from '../models/schem
   providedIn: 'root',
 })
 export class SchemeService {
-  private apiUrl = environment.apiUrl + '/api/app/scheme';
+  private apiUrl = environment['apiUrl'] + '/api/app/scheme';
 
   constructor(private http: HttpClient) {}
 
@@ -34,5 +34,17 @@ export class SchemeService {
       params = params.append('entityName', entityName);
     }
     return this.http.get<LookupSchemaDto[]>(`${this.apiUrl}/lookup-schemas`, { params });
+  }
+
+  // saveFilterScheme(scheme: { name: string; isPublic: boolean; filters: any[] }): Observable<any> {
+  //   return this.http.post(`${environment.apiUrl}/filter-scheme/filter-scheme`, scheme);
+  // }
+
+  getFilterSchemes(entityName: string): Observable<any[]> {
+    let params = new HttpParams();
+    if (entityName) {
+      params = params.append('entityName', entityName);
+    }
+    return this.http.get<any[]>(`${environment['apiUrl']}/filter-scheme/filter-schemes`, { params });
   }
 }

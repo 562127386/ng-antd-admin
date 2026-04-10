@@ -9,7 +9,7 @@ import { PagedResultDto } from '../models/defect.model';
   providedIn: 'root',
 })
 export class ProcessService {
-  private apiUrl = environment.apiUrl + '/api/processes';
+  private apiUrl = environment['apiUrl']+ '/api/processes';
 
   constructor(private http: HttpClient) {}
 

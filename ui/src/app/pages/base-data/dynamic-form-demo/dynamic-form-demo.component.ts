@@ -21,6 +21,8 @@ import { finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DynamicDetailFormComponent } from '@app/lib/components/dynamic-detail-form/dynamic-detail-form.component';
 import { AbpDynamicDetailFormComponent } from '@app/lib/components/dynamic-detail-form/abp-dynamic-detail-form.component';
+import { ConfigSchemeService } from '@app/lib/services';
+import { NzDynamicFormComponent } from '@app/dynamic-form-ng-zorro/src/components/main-form/nz-dynamic-form.component';
 
 interface FormField {
   key: string;
@@ -57,7 +59,6 @@ interface DynamicListColumn {
   selector: 'app-dynamic-form-demo',
   standalone: true,
   imports: [
-    HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
     NzButtonModule,
@@ -70,6 +71,7 @@ interface DynamicListColumn {
     NzModalModule,
     NzPopconfirmModule,
     NzDividerModule,
+    NzDynamicFormComponent,
     AbpDynamicDetailFormComponent,
     DynamicDetailFormComponent,
     DynamicListComponent,
@@ -92,6 +94,8 @@ export class DynamicFormDemoComponent implements OnInit {
   entityName = 'Defect';
   filterItems: any[] = [];
   private schemeService = inject(SchemeService);
+   private configSchemeService = inject(ConfigSchemeService);
+  @ViewChild('dynamicList') dynamicList: any;
   constructor(private fb: FormBuilder, private message: NzMessageService) {
     //this.form = this.fb.group({});
   }
@@ -132,7 +136,7 @@ export class DynamicFormDemoComponent implements OnInit {
             .filter(schema => schema.isVisible)
             .sort((a, b) => a.displayOrder - b.displayOrder)
             .map(schema => ({
-              key: schema.fieldName.toLowerCase(),
+              key: schema.fieldName,
               label: schema.fieldLabel,
               type: this.mapFieldType(schema.fieldType),
               required: schema.isRequired,
@@ -142,7 +146,7 @@ export class DynamicFormDemoComponent implements OnInit {
               disabled: schema.isReadOnly,
               hidden: !schema.isVisible,
               order: schema.displayOrder,
-              colSpan: schema.colSpan
+              gridSize: schema.colSpan
             }));
           
           // 生成符合abp-advanced-filters要求的过滤字段配置
@@ -203,7 +207,7 @@ export class DynamicFormDemoComponent implements OnInit {
             .filter(schema => schema.isVisible)
             .sort((a, b) => a.displayOrder - b.displayOrder)
             .map(schema => ({
-              field: schema.fieldName.toLowerCase(),
+              field: schema.fieldName,
               headerName: schema.headerName,
               displayName: schema.headerName,
               width: schema.width,
@@ -278,11 +282,13 @@ export class DynamicFormDemoComponent implements OnInit {
     console.log('openModal - detailFields:', this.detailFields);
     // 确保 values 格式正确
     console.log('openModal - currentDefect:', this.currentDefect);
-    this.isVisible = true;
+   // this.isVisible = true;
     console.log('openModal - isVisible set to:', this.isVisible);
 
-    let modalOptions: ModalOptions = {};
-    this.modalWrapService.show<DynamicDetailFormComponent,any>(DynamicDetailFormComponent, modalOptions, this.currentDefect).pipe(
+    let modalOptions: ModalOptions = { nzTitle:this.isEditMode?'编辑':'新增'};
+   // this.modalWrapService.show<DynamicDetailFormComponent,any>(DynamicDetailFormComponent, modalOptions,
+    this.modalWrapService.show<NzDynamicFormComponent,any>(NzDynamicFormComponent, modalOptions,
+      { fields: this.detailFields,values: this.currentDefect}).pipe(
         finalize(() => {
           //this.tableLoading(false);
         }),
@@ -290,9 +296,11 @@ export class DynamicFormDemoComponent implements OnInit {
       )
       .subscribe(res => {
         if (!res || res.status === ModalBtnStatus.Cancel) {
+          this.currentDefect = null;
           return;
         }
         const param = { ...res.modalValue };
+         this.submitForm(param);
         // this.tableLoading(true);
         // this.addEditData(param, 'addRoles');
     });
@@ -322,17 +330,29 @@ export class DynamicFormDemoComponent implements OnInit {
         });
         
         if (response.ok) {
-          const index = this.defects.findIndex(d => d.id === this.currentDefect?.id);
-          if (index !== -1) {
-            this.defects[index] = { ...this.currentDefect, ...formValue };
+          if(this.isEditMode)
+          {
             this.message.success('编辑成功');
+            // 刷新列表数据
+            if (this.dynamicList) {
+              this.dynamicList.refresh();
+            }
           }
+          // const index = this.defects.findIndex(d => d.id === this.currentDefect?.id);
+          // if (index !== -1) {
+          //   this.defects[index] = { ...this.currentDefect, ...formValue };
+          //   this.message.success('编辑成功');
+          //   // 刷新列表数据
+          //   if (this.dynamicList) {
+          //     this.dynamicList.refresh();
+          //   }
+          // }
         } else {
           throw new Error('Failed to update defect');
         }
       } else {
         // 新增缺陷 - 调用后端API
-        const response = await fetch('/api/defects', {
+        const response = await fetch('https://localhost:44312/api/defects', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -341,12 +361,16 @@ export class DynamicFormDemoComponent implements OnInit {
         });
         
         if (response.ok) {
-          const newDefect: Defect = {
-            id: this.defects.length + 1,
-            ...formValue
-          };
-          this.defects.push(newDefect);
+          // const newDefect: Defect = {
+          //   id: this.defects.length + 1,
+          //   ...formValue
+          // };
+          // this.defects.push(newDefect);
           this.message.success('新增成功');
+          // 刷新列表数据
+          if (this.dynamicList) {
+            this.dynamicList.refresh();
+          }
         } else {
           throw new Error('Failed to create defect');
         }
@@ -373,7 +397,7 @@ export class DynamicFormDemoComponent implements OnInit {
       
       this.loading = true;
       // 调用后端API删除缺陷
-      const response = await fetch(`/api/defects/${defect.id}`, {
+      const response = await fetch(`https://localhost:44312/api/defects/${defect.id}`, {
         method: 'DELETE'
       });
       
@@ -382,6 +406,10 @@ export class DynamicFormDemoComponent implements OnInit {
         if (index !== -1) {
           this.defects.splice(index, 1);
           this.message.success('删除成功');
+          // 刷新列表数据
+          if (this.dynamicList) {
+            this.dynamicList.refresh();
+          }
         }
       } else {
         throw new Error('Failed to delete defect');
@@ -423,6 +451,39 @@ export class DynamicFormDemoComponent implements OnInit {
     console.log('Filter changed:', filters);
     // 这里可以将过滤条件传递给abp-dynamic-list组件
     // 或者直接调用API获取过滤后的数据
+  }
+
+  onSchemeChange(event: { type: 'save' | 'load'; scheme?: any }): void {
+    console.log('Scheme changed:', event);
+    if (event.type === 'save') {
+      // 保存查询方案
+      console.log('Saving scheme:', event.scheme);
+      // 拼接新属性 → 生成新对象
+      const userScheme = {
+        ...event.scheme, // 展开原有属性
+        // name: string;
+         entityName: this.entityName,
+        //   isPublic: boolean;
+          columns: JSON.stringify(this.dynamicList.columns),
+          pageSize: this.dynamicList.pageSize,//这个后端目前没这列！！！！！！！！！！
+          description: JSON.stringify(this.dynamicList.pageSizeOptions),
+          isDefault: true
+      };
+      // 这里可以调用后端API保存查询方案
+      this.configSchemeService.createTableScheme(userScheme).subscribe(
+        (response) => {
+          this.message.success('查询方案保存成功');
+        },
+        (error) => {
+          console.error('Error saving scheme:', error);
+          this.message.error('查询方案保存失败');
+        }
+      );
+    } else if (event.type === 'load') {
+      // 加载查询方案
+      console.log('Loading scheme:', event.scheme);
+      // 这里可以调用后端API加载查询方案
+    }
   }
 
   private mapFieldType(fieldType: string): 'text' | 'number' | 'select' | 'date' |'switch'|'boolean'{

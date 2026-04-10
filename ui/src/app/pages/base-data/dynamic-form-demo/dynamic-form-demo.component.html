@@ -10,10 +10,12 @@
     [entityName]="entityName"
     [filterItems]="filterItems"
     (filterChange)="onFilterChange($event)"
+    (schemeChange)="onSchemeChange($event)"
   >
   </abp-advanced-filters>
 
   <abp-dynamic-list
+    #dynamicList
     [entityName]="entityName"
     [apiUrl]="'https://localhost:44312/api/defects'"
     [columns]="abpColumns"

@@ -28,7 +28,7 @@ export class DownloadComponent {
 
   fileStreamDownload(): void {
     const downloadDto = {
-      downloadUrl: `${environment.apiUrl}/api/file/图纸实际材料量导入模板.xlsx`
+      downloadUrl: `${environment['apiUrl']}/api/file/图纸实际材料量导入模板.xlsx`
     };
     this.downloadService
       .fileStreamDownload(downloadDto)

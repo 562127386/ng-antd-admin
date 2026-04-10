@@ -45,6 +45,10 @@ export default [
         path: 'base-data',
         loadChildren: () => import('../../pages/base-data/base-data-routing')
       },
+      {
+        path: 'attendance',
+        loadChildren: () => import('../../pages/attendance/attendance-routing')
+      },
       // 此路由用于tab刷新时占位组件
       {
         path: 'refresh-empty',

@@ -1,0 +1,100 @@
+import {Component, Input, OnInit, ViewChild} from '@angular/core';
+import {Edit} from "../../model/erupt-field.model";
+import {CacheService} from "@delon/cache";
+import {JoinedEditorOptions, NzCodeEditorComponent} from "ng-zorro-antd/code-editor";
+import {NzConfigService} from "ng-zorro-antd/core/config";
+
+let codeEditorDarkKey = "code_editor_dark";
+
+@Component({
+    standalone: false,
+    selector: 'erupt-code-editor',
+    templateUrl: './code-editor.component.html',
+    styleUrls: ["./code-editor.component.less"]
+})
+export class CodeEditorComponent implements OnInit {
+
+    /**
+     * choice field or value
+     */
+    @Input() edit: Edit;
+
+    @Input() language: string;
+
+    @Input() readonly: boolean = false;
+
+    @Input() height: number = 300;
+
+    @Input() parentEruptName: string;
+
+    @ViewChild(NzCodeEditorComponent, {static: false}) editorComponent?: NzCodeEditorComponent;
+
+    initComplete: boolean = false;
+
+    dark = false;
+
+    theme: 'vs-dark' | 'vs';
+
+    fullScreen = false;
+
+    editorOption: JoinedEditorOptions;
+
+    constructor(private cacheService: CacheService, private nzConfigService: NzConfigService) {
+
+    }
+
+    ngOnInit() {
+        this.dark = this.cacheService.getNone(codeEditorDarkKey) || false;
+        this.theme = this.dark ? 'vs-dark' : 'vs';
+        this.editorOption = {
+            language: this.language,
+            theme: this.theme,
+            readOnly: this.readonly,
+            suggestOnTriggerCharacters: true,
+            automaticLayout: true,  // 自动调整布局
+            minimap: {enabled: true},  // 启用小地图
+            scrollBeyondLastLine: false
+        };
+        // monaco.languages.registerCompletionItemProvider(this.edit.codeEditType.language, {
+        //     provideCompletionItems(model, position) {
+        //         return {
+        //             suggestions: []
+        //         };
+        //     },
+        //     triggerCharacters: ['$'] // 触发提示的字符，可以写多个
+        // });
+    }
+
+    codeEditorInit(event) {
+        this.initComplete = true;
+        // 确保编辑器正确布局
+        setTimeout(() => {
+            this.editorComponent?.layout();
+        }, 100);
+    }
+
+    switchChange(bool: boolean) {
+        this.dark = bool;
+        this.theme = this.dark ? 'vs-dark' : 'vs';
+        this.cacheService.set(codeEditorDarkKey, this.dark);
+        const defaultEditorOption = this.nzConfigService.getConfigForComponent('codeEditor')?.defaultEditorOption || {};
+        this.nzConfigService.set('codeEditor', {
+            defaultEditorOption: {
+                ...defaultEditorOption,
+                theme: this.theme
+            }
+        });
+        // 切换主题后重新布局
+        setTimeout(() => {
+            this.editorComponent?.layout();
+        }, 100);
+    }
+
+    toggleFullScreen(): void {
+        // this.fullScreen = !this.fullScreen;
+        // this.renderer.setStyle(this.document.body, 'overflow-y', this.fullScreen ? 'hidden' : null);
+        // this.editorComponent?.layout();
+        // this.tooltip?.hide();
+    }
+
+}

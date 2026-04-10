@@ -21,7 +21,7 @@ import type { ConfigType } from './dynamic-config-list.component';
   ],
   template: `
     <nz-card [nzTitle]="isEdit ? '编辑配置方案' : '新建配置方案'">
-      <abp-dynamic-detail-form
+      <dynamic-detail-form
         [fields]="formFields"
         [values]="initialValues"
         [submitButtonText]="'保存'"
@@ -29,7 +29,7 @@ import type { ConfigType } from './dynamic-config-list.component';
         [isEditMode]="isEdit"
         (onSubmit)="handleSubmit($event)"
         (onCancel)="handleCancel()">
-      </abp-dynamic-detail-form>
+      </dynamic-detail-form>
     </nz-card>
   `
 })

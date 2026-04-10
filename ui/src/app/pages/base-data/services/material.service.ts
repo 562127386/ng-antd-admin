@@ -9,7 +9,7 @@ import { PagedResultDto } from '../models/defect.model';
   providedIn: 'root',
 })
 export class MaterialService {
-  private apiUrl = environment.apiUrl + '/api/materials';
+  private apiUrl = environment['apiUrl'] + '/api/materials';
 
   constructor(private http: HttpClient) {}
 

@@ -1,0 +1,23 @@
+<div class="code-editor-container" [style.height.px]="height">
+    <nz-code-editor #codeEditor
+                    [ngStyle]="{height:height+'px', width: '100%'}" 
+                    class="code-editor-style"
+                    (nzEditorInitialized)="codeEditorInit($event)"
+                    [(ngModel)]="edit.$value"
+                    [nzLoading]="!initComplete"
+                    [nzEditorOption]="editorOption">
+    </nz-code-editor>
+    <div class="toolbar">
+        <nz-switch nzSize="small" [ngModel]="dark"
+                   [nzUnCheckedChildren]="unchecked"
+                   [nzCheckedChildren]="checked"
+                   (ngModelChange)="switchChange($event)"
+        ></nz-switch>
+        <ng-template #unchecked>
+            <i nz-icon nzType="bulb"></i>
+        </ng-template>
+        <ng-template #checked>
+            <i nz-icon nzType="poweroff"></i>
+        </ng-template>
+    </div>
+</div>

@@ -2,7 +2,7 @@ export interface ColumnConfig {
   field: string;
   headerName: string;
   displayName?: string;
-  width?: number;
+  width?: string;
   sortable?: boolean;
   visible: boolean;
   frozen?: 'left' | 'right' | null;

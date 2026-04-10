@@ -8,7 +8,7 @@ import { DefectDto, CreateUpdateDefectDto, GetDefectListDto, PagedResultDto } fr
   providedIn: 'root',
 })
 export class DefectService {
-  private apiUrl = environment.apiUrl + '/api/defects';
+  private apiUrl = environment['apiUrl'] + '/api/defects';
 
   constructor(private http: HttpClient) {}
 

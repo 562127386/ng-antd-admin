@@ -33,7 +33,7 @@ export class LoginService {
   // private menus = inject(MENU_TOKEN);
 
   private getTokenUrl(): string {
-    return environment.apiUrl + '/connect/token';
+    return environment['apiUrl'] + '/connect/token';
   }
 
   private clientId = 'TQMS_App';

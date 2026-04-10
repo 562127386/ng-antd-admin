@@ -9,7 +9,7 @@ import { PagedResultDto } from '../models/aql-config.model';
   providedIn: 'root',
 })
 export class NonConformingService {
-  private apiUrl = environment.apiUrl + '/api/non-conformings';
+  private apiUrl = environment['apiUrl'] + '/api/non-conformings';
 
   constructor(private http: HttpClient) {}
 
