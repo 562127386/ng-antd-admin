@@ -1,25 +1,23 @@
 import {Injectable} from "@angular/core";
 
-//Global Context Service
-
 export enum ContextKey {
-    INIT_MICRO_APP
+    INIT_MICRO_APP = 'INIT_MICRO_APP'
 }
 
 @Injectable()
 export class EruptContextService {
 
-    private contextValue = {};
+    private contextValue: Record<string, any> = {};
 
-    set(key: ContextKey, value: any) {
-        this.contextValue[key] = value;
+    set(key: ContextKey, value: any): void {
+        this.contextValue[key as unknown as string] = value;
     }
 
-    get(key: ContextKey) {
-        return this.contextValue[key];
+    get(key: ContextKey): any {
+        return this.contextValue[key as unknown as string];
     }
 
     has(key: ContextKey): boolean {
-        return !!this.contextValue[key];
+        return !!this.contextValue[key as unknown as string];
     }
 }

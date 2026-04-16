@@ -15,15 +15,15 @@ export class UtilsService {
     }
 
     isTenantToken(): boolean {
-        return this.tokenService.get().token.split(".").length == 3
+        const token = this.tokenService.get()?.token;
+        return !!token && token.split(".").length === 3;
     }
 
-    async loadScript(src: string) {
+    async loadScript(src: string): Promise<void> {
         await this.lazy.loadScript(src).then(res => res);
     }
 
-    async loadStyle(src: string) {
+    async loadStyle(src: string): Promise<void> {
         await this.lazy.loadStyle(src).then(res => res);
     }
-
 }

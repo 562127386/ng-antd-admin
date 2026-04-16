@@ -1,19 +1,17 @@
 import {Inject, Injectable} from "@angular/core";
 import {NzMessageService} from "ng-zorro-antd/message";
 import {DA_SERVICE_TOKEN, ITokenService} from "@delon/auth";
-import { WindowModel } from "../model/window.model";
+import {WindowModel} from "../model/window.model";
 
 @Injectable()
 export class SocketService {
 
-    private socket: WebSocket;
+    private socket?: WebSocket;
 
-    private heartBeatTimer: any;
+    private heartBeatTimer?: any;
 
-    // 重连间隔时间（毫秒）
     private reconnectInterval: number = 5000;
 
-    // 重连次数
     private reconnectAttempts: number = 0;
 
     constructor(
@@ -30,63 +28,59 @@ export class SocketService {
         } else {
             websocketUrl = (location.protocol === 'http:' ? 'ws:' : 'wss:') + "//" + location.host + location.pathname;
         }
-        this.socket = new WebSocket(websocketUrl + 'erupt-websocket?token=' + this.tokenService.get().token);
+        const token = this.tokenService.get()?.token || '';
+        this.socket = new WebSocket(websocketUrl + 'erupt-websocket?token=' + token);
 
         this.socket.onopen = () => {
-            // 启动心跳
             this.startHeartbeat();
         };
 
         this.socket.onmessage = (event) => {
-            let data = <any[]>JSON.parse(event.data);
+            const data = <any[]>JSON.parse(event.data);
             if (data?.[0] == "js") {
                 try {
-                    new Function(data[1])()
+                    new Function(data[1])();
                 } catch (e) {
                     this.msg.warning("socket js err: " + e);
                 }
             }
-            // TODO broadcast
         };
 
         this.socket.onerror = (event) => {
-            console.error("socket error", event)
+            console.error("socket error", event);
         };
 
         this.socket.onclose = (event) => {
             console.log("WebSocket连接已关闭，关闭原因：", event.code, event.reason);
-            //1002 token error
             if (event.code != 1002) {
-                setTimeout(reconnect, this.reconnectInterval);
+                this.reconnect();
             }
         };
-
-        let reconnect = () => {
-            this.reconnectAttempts++;
-            this.clearHeartbeatTimer();
-            console.log("正在进行第", this.reconnectAttempts, "次 websocket 重连尝试...");
-            this.closeSocket();
-            this.initWebSocket();
-        }
-
     }
 
-    closeSocket() {
+    private reconnect(): void {
+        this.reconnectAttempts++;
+        this.clearHeartbeatTimer();
+        console.log("正在进行第", this.reconnectAttempts, "次 websocket 重连尝试...");
+        this.closeSocket();
+        this.initWebSocket();
+    }
+
+    closeSocket(): void {
         if (this.socket) {
             this.socket.close();
         }
     }
 
-    clearHeartbeatTimer() {
+    clearHeartbeatTimer(): void {
         if (this.heartBeatTimer) {
             clearInterval(this.heartBeatTimer);
-            this.heartBeatTimer = null;
+            this.heartBeatTimer = undefined;
         }
     }
 
-    startHeartbeat() {
+    startHeartbeat(): void {
         this.clearHeartbeatTimer();
-        // 设置心跳定时器，每隔HEARTBEAT_INTERVAL毫秒发送一次心跳
         this.heartBeatTimer = setInterval(() => {
             if (this.socket && this.socket.readyState === WebSocket.OPEN) {
                 this.socket.send(JSON.stringify(["ping"]));
@@ -96,12 +90,11 @@ export class SocketService {
         }, 5000);
     }
 
-    sendMessage(command: string, data: any) {
+    sendMessage(command: string, data: any): void {
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify([command, data]));
         } else {
             console.log("WebSocket未连接，无法发送消息。", data);
         }
     }
-
 }

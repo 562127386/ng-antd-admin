@@ -1,0 +1,116 @@
+<div class="page-header">
+  <h1>考勤规则管理</h1>
+</div>
+
+<div class="page-content">
+  <nz-card>
+    <div class="card-header">
+      <button nz-button nzType="primary" (click)="openCreateModal()">
+        <i nz-icon nzType="plus"></i>
+        新增考勤规则
+      </button>
+    </div>
+    <div class="card-body">
+      <nz-table #basicTable [nzData]="attendanceRules" nzBordered>
+        <thead>
+          <tr>
+            <th>规则名称</th>
+            <th>描述</th>
+            <th>上班时间</th>
+            <th>下班时间</th>
+            <th>迟到阈值</th>
+            <th>早退阈值</th>
+            <th>缺勤阈值</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let rule of basicTable.data">
+            <td>{{ rule.ruleName }}</td>
+            <td>{{ rule.description }}</td>
+            <td>{{ rule.shiftStartTime }}</td>
+            <td>{{ rule.shiftEndTime }}</td>
+            <td>{{ rule.lateThreshold }} 分钟</td>
+            <td>{{ rule.earlyLeaveThreshold }} 分钟</td>
+            <td>{{ rule.absentThreshold }} 分钟</td>
+            <td>
+              <nz-tag [nzColor]="rule.isEnabled ? 'green' : 'red'">
+                {{ rule.isEnabled ? '启用' : '禁用' }}
+              </nz-tag>
+            </td>
+            <td>
+              <button nz-button nzSize="small" nzType="primary" (click)="openEditModal(rule)">
+                编辑
+              </button>
+              <button nz-button nzSize="small" nzDanger (click)="deleteRule(rule.id)">
+                删除
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </div>
+  </nz-card>
+</div>
+
+<nz-modal
+  [(nzVisible)]="isModalVisible"
+  [nzTitle]="modalTitle"
+  [nzWidth]="600"
+  (nzOnCancel)="handleCancel()"
+  (nzOnOk)="handleOk()"
+>
+  <div *nzModalContent>
+    <form nz-form [formGroup]="form">
+      <nz-form-item>
+        <nz-form-label nzRequired>规则名称</nz-form-label>
+        <nz-form-control>
+          <input nz-input formControlName="ruleName" placeholder="请输入规则名称" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>描述</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="description" placeholder="请输入描述" rows="2"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzRequired>上班时间</nz-form-label>
+        <nz-form-control>
+          <nz-time-picker formControlName="shiftStartTime" nzFormat="HH:mm"></nz-time-picker>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzRequired>下班时间</nz-form-label>
+        <nz-form-control>
+          <nz-time-picker formControlName="shiftEndTime" nzFormat="HH:mm"></nz-time-picker>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzRequired>迟到阈值</nz-form-label>
+        <nz-form-control>
+          <input nz-input formControlName="lateThreshold" type="number" placeholder="请输入迟到阈值（分钟）" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzRequired>早退阈值</nz-form-label>
+        <nz-form-control>
+          <input nz-input formControlName="earlyLeaveThreshold" type="number" placeholder="请输入早退阈值（分钟）" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzRequired>缺勤阈值</nz-form-label>
+        <nz-form-control>
+          <input nz-input formControlName="absentThreshold" type="number" placeholder="请输入缺勤阈值（分钟）" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>状态</nz-form-label>
+        <nz-form-control>
+          <nz-switch formControlName="isEnabled"></nz-switch>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </div>
+</nz-modal>

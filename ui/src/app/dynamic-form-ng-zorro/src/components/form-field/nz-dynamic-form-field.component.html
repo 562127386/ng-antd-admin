@@ -1,0 +1,170 @@
+@if (visible()) {
+  <div [formGroup]="fieldFormGroup">
+    <nz-form-item>
+      <nz-form-label [nzRequired]="field().required" [nzFor]="field().key">
+        {{ field().label | abpLocalization }}
+      </nz-form-label>
+
+      <nz-form-control [nzErrorTip]="errorTpl">
+
+        <!-- Text Input -->
+        @if (field().type === 'text') {
+          <input nz-input [formControlName]="'value'"
+                 [placeholder]="(field().placeholder || '') | abpLocalization" />
+        }
+
+        <!-- Email -->
+        @else if (field().type === 'email') {
+          <input nz-input type="email" [formControlName]="'value'"
+                 [placeholder]="(field().placeholder || '') | abpLocalization" />
+        }
+
+        <!-- Number -->
+        @else if (field().type === 'number') {
+          <nz-input-number [formControlName]="'value'"
+                           [nzMin]="field()?.min" [nzMax]="field()?.max"
+                           [nzStep]="field()?.step" style="width: 100%" />
+        }
+
+        <!-- Select -->
+        @else if (field().type === 'select') {
+          <nz-select [formControlName]="'value'"
+                     [nzPlaceHolder]="(field().placeholder || ('::Select' | abpLocalization))!"
+                     [nzAllowClear]="!field().required"
+                     [nzShowSearch]="true"
+                     [nzMode]="field().nzConfig?.nzMode || 'default'"
+                     style="width: 100%">
+            @for (opt of options$ | async; track opt.key) {
+              <nz-option [nzValue]="opt.key" [nzLabel]="(opt.value | abpLocalization)!"
+                         [nzDisabled]="opt.disabled" />
+            }
+          </nz-select>
+        }
+
+        <!-- Checkbox -->
+        @else if (field().type === 'checkbox') {
+          <label nz-checkbox [formControlName]="'value'">
+            {{ field().label | abpLocalization }}
+          </label>
+        }
+
+        <!-- Switch -->
+        @else if (field().type === 'switch') {
+          <nz-switch [formControlName]="'value'" />
+        }
+
+        <!-- Date Picker -->
+        @else if (field().type === 'date') {
+          <nz-date-picker [formControlName]="'value'" [nzDisabledDate]="disabledDate"
+                          style="width: 100%" />
+        }
+
+        <!-- DateTime -->
+        @else if (field().type === 'datetime-local') {
+          <nz-date-picker [formControlName]="'value'" [nzShowTime]="true"
+                          style="width: 100%" />
+        }
+
+        <!-- Time Picker -->
+        @else if (field().type === 'time') {
+          <nz-time-picker [formControlName]="'value'"
+                          style="width: 100%" />
+        }
+
+        <!-- Radio Group -->
+        @else if (field().type === 'radio') {
+          <nz-radio-group [formControlName]="'value'">
+            @for (opt of options$ | async; track opt.key) {
+              <label nz-radio [nzValue]="opt.key" [nzDisabled]="opt.disabled">
+                {{ opt.value | abpLocalization }}
+              </label>
+            }
+          </nz-radio-group>
+        }
+
+        <!-- Textarea -->
+        @else if (field().type === 'textarea') {
+          <textarea nz-input [formControlName]="'value'" rows="4"
+                    [placeholder]="(field().placeholder || '') | abpLocalization"></textarea>
+        }
+
+        <!-- Password -->
+        @else if (field().type === 'password') {
+          <input nz-input type="password" [formControlName]="'value'"
+                 [placeholder]="(field().placeholder || '') | abpLocalization" />
+        }
+
+        <!-- Tel -->
+        @else if (field().type === 'tel') {
+          <input nz-input type="tel" [formControlName]="'value'"
+                 [placeholder]="(field().placeholder || '') | abpLocalization" />
+        }
+
+        <!-- URL -->
+        @else if (field().type === 'url') {
+          <input nz-input type="url" [formControlName]="'value'"
+                 [placeholder]="(field().placeholder || '') | abpLocalization" />
+        }
+
+        <!-- File Upload -->
+        @else if (field().type === 'file') {
+          <nz-upload [nzMultiple]="field().multiple" [nzAccept]="field().accept"
+                     (nzChange)="onFileChange($event.fileList)">
+            <button nz-button><span nz-icon nzType="upload"></span> Upload</button>
+          </nz-upload>
+        }
+
+        <!-- Range Slider -->
+        @else if (field().type === 'range') {
+          <nz-slider [formControlName]="'value'"
+                     [nzMin]="field().min || 0" [nzMax]="field().max || 100"
+                     [nzStep]="field().step || 1" />
+        }
+
+        <!-- Color Picker (fallback to native input) -->
+        @else if (field().type === 'color') {
+          <input type="color" [formControlName]="'value'" class="form-control-color" />
+        }
+
+        <!-- Tree Select -->
+        @else if (field().type === 'tree-select') {
+          <nz-tree-select [formControlName]="'value'"
+                          [nzNodes]="field().nzConfig?.nzTreeData || []"
+                          [nzPlaceHolder]="(field().placeholder || '') | abpLocalization"
+                          [nzAllowClear]="field().nzConfig?.nzAllowClear ?? true"
+                          [nzShowSearch]="field().nzConfig?.nzShowSearch ?? true"
+                          style="width: 100%" />
+        }
+
+        <!-- Cascader -->
+        @else if (field().type === 'cascader') {
+          <nz-cascader [formControlName]="'value'"
+                       [nzOptions]="field().nzConfig?.nzCascaderData || []"
+                       [nzPlaceHolder]="(field().placeholder || '') | abpLocalization"
+                       [nzAllowClear]="field().nzConfig?.nzAllowClear ?? true"
+                       style="width: 100%" />
+        }
+
+        <!-- Transfer -->
+        @else if (field().type === 'transfer') {
+          <nz-transfer [formControlName]="'value'"
+                       [nzDataSource]="field().nzConfig?.nzTransferData || []" />
+        }
+
+        <!-- Auto Complete -->
+        @else if (field().type === 'auto-complete') {
+          <input nz-input [formControlName]="'value'"
+                 [placeholder]="(field().placeholder || '') | abpLocalization" />
+          <!-- Auto-complete functionality temporarily disabled -->
+        }
+
+      </nz-form-control>
+    </nz-form-item>
+  </div>
+}
+
+<ng-template #errorTpl let-control>
+  @for (error of errors; track error) {
+    <div>{{ error | abpLocalization }}</div>
+  }
+</ng-template>

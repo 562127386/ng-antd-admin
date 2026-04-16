@@ -1,0 +1,42 @@
+<form [formGroup]="dynamicForm" (ngSubmit)="submit()" nz-form>
+  <nz-row [nzGutter]="16">
+      @for (field of sortedFields; track field.key) {
+        @if (isFieldVisible(field)) {
+          <nz-col [nzSpan]="field.gridSize ? field.gridSize : 24">
+
+            @if (field.type === 'group') {
+              <nz-dynamic-form-group
+                [groupConfig]="field"
+                [formGroup]="getFieldFormGroup(dynamicForm, field.key)" />
+            } @else if (field.type === 'array') {
+              <nz-dynamic-form-array
+                [arrayConfig]="field"
+                [formGroup]="dynamicForm" />
+            } @else {
+              <nz-dynamic-form-field
+                [field]="field"
+                [formControlName]="field.key"
+                [visible]="isFieldVisible(field)" />
+            }
+
+          </nz-col>
+        }
+      }
+    </nz-row>
+
+  <!-- 先注释下面的操作按钮  使用模特框的弹窗底部确认 取消 按钮   后期可以完善
+    <nz-card>
+    <div class="form-actions mt-4">
+      <ng-content select="[actions]">
+        @if (showCancelButton()) {
+          <button nz-button nzType="default" type="button" (click)="onCancel()" class="me-2">
+            Cancel
+          </button>
+        }
+        <button nz-button nzType="primary" type="submit" [nzLoading]="submitInProgress()">
+          {{ submitButtonText() | abpLocalization }}
+        </button>
+      </ng-content>
+    </div>
+  </nz-card> -->
+</form>

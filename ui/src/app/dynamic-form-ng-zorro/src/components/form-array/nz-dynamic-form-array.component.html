@@ -1,0 +1,49 @@
+@if (visible()) {
+  <div class="array-container">
+    <div class="array-header mb-3">
+      <h4>{{ arrayConfig().label | abpLocalization }}</h4>
+      <button nz-button nzType="primary" nzSize="small" (click)="addItem()" [disabled]="!canAddItem">
+        <span nz-icon nzType="plus"></span> Add Item
+      </button>
+    </div>
+
+    @if (formArray.length === 0) {
+      <nz-empty nzNotFoundContent="No items yet"></nz-empty>
+    } @else {
+      @for (item of formArray.controls; track trackByIndex($index)) {
+        <nz-card nzSize="small" class="array-item mb-2">
+          <div class="array-item-header d-flex justify-content-between align-items-center mb-2">
+            <span>{{ arrayConfig().label | abpLocalization }} #{{ $index + 1 }}</span>
+            <button nz-button nzDanger nzSize="small" (click)="removeItem($index)" [disabled]="!canRemoveItem">
+              <span nz-icon nzType="delete"></span>
+            </button>
+          </div>
+
+          <form [formGroup]="getItemFormGroup($index)">
+            <nz-row [nzGutter]="16">
+              @for (field of sortedChildren; track field.key) {
+                <nz-col [nzSpan]="field.gridSize ? field.gridSize * 2 : 24">
+
+                  @if (field.type === 'group') {
+                    <nz-dynamic-form-group
+                      [groupConfig]="field"
+                      [formGroup]="getFieldFormGroup(getItemFormGroup($index), field.key)" />
+                  } @else if (field.type === 'array') {
+                    <nz-dynamic-form-array
+                      [arrayConfig]="field"
+                      [formGroup]="getItemFormGroup($index)" />
+                  } @else {
+                    <nz-dynamic-form-field
+                      [field]="field"
+                      [formControlName]="field.key" />
+                  }
+
+                </nz-col>
+              }
+            </nz-row>
+          </form>
+        </nz-card>
+      }
+    }
+  </div>
+}

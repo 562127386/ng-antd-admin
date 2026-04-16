@@ -1,0 +1,27 @@
+{
+  "name": "@abp/ng.dynamic-form-ng-zorro",
+  "version": "10.2.0",
+  "description": "ABP Dynamic Form component with NG-ZORRO UI",
+  "homepage": "https://abp.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abpframework/abp.git"
+  },
+  "license": "LGPL-3.0",
+  "peerDependencies": {
+    "@angular/core": "^17.0.0",
+    "@angular/common": "^17.0.0",
+    "@angular/forms": "^17.0.0",
+    "@abp/ng.core": ">=10.2.0",
+    "@abp/ng.theme.shared": ">=10.2.0",
+    "ng-zorro-antd": "^17.0.0",
+    "rxjs": "~7.8.0"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false
+}

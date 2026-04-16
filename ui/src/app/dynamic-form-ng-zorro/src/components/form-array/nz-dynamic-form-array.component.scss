@@ -1,0 +1,18 @@
+/* Array container styles */
+.array-container {
+  width: 100%;
+}
+
+.array-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.array-item {
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+  }
+}

@@ -25,6 +25,7 @@ export interface ColumnSchemaDto {
   align: string;
   formatter: string;
   displayOrder: number;
+  type: string;
 }
 
 export interface LookupSchemaDto {

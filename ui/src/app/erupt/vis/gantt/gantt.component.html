@@ -1,6 +1,6 @@
 <div class="gantt-container">
     <ngx-gantt #gantt [items]="items || []" [groups]="groups" [showToolbar]="true"
-               [viewType]="GanttViewType.day" [draggable]="eruptBuildModel.eruptModel.eruptJson.power.edit"
+               [viewType]="GanttViewType.day" [draggable]="eruptBuildModel?.eruptModel?.eruptJson?.power?.edit"
                [toolbarOptions]="{viewTypes:[GanttViewType.day, GanttViewType.week, GanttViewType.month,GanttViewType.quarter, GanttViewType.year]}"
                [ngStyle]="{height: (44 * 13) + 'px'}"
                [virtualScrollEnabled]="true"
@@ -39,12 +39,12 @@
                     </ng-template>
                 </ngx-gantt-column>
             }
-            @for (field of eruptBuildModel.eruptModel.eruptFieldModels; track field.fieldName;) {
+            @for (field of eruptBuildModel?.eruptModel?.eruptFieldModels; track field.fieldName;) {
                 @for (view of field.eruptFieldJson.views;track view) {
                     @if ((vis.fieldVisibility == FieldVisibility.EXCLUDE) ? vis.fields.indexOf(view.column) === -1 : vis.fields.indexOf(view.column) !== -1) {
                         <ngx-gantt-column [name]="view.title">
                             <ng-template #cell let-item="item">
-                                <div (click)="columnMap.get(field.fieldName)?.click(item?.origin)"
+                                <div (click)="columnMap.get(field.fieldName)?.click?.(item?.origin)"
                                      style="cursor: pointer;">
                                     @if (columnMap.get(field.fieldName)?.format) {
                                         <div style="text-align: center"
@@ -59,7 +59,7 @@
                     }
                 }
             }
-            @if (eruptBuildModel.eruptModel.eruptJson.power.edit) {
+            @if (eruptBuildModel?.eruptModel?.eruptJson?.power?.edit) {
                 <ngx-gantt-column [width]="50">
                     <ng-template #header>
                         <div style="text-align: center;width: 100%">

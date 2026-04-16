@@ -10,16 +10,15 @@ export interface EruptAppModel {
     properties: object;
 }
 
-let eruptAppConfig: EruptAppModel = window["eruptApp"] || {};
+let eruptAppConfig: EruptAppModel = (window as any)["eruptApp"] || {} as EruptAppModel;
 
 export class EruptAppData {
 
-    static get() {
+    static get(): EruptAppModel {
         return eruptAppConfig;
     }
 
-    static put(value: EruptAppModel) {
+    static put(value: EruptAppModel): void {
         eruptAppConfig = value;
     }
-
 }

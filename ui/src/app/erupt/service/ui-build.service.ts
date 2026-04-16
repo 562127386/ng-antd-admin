@@ -1,6 +1,8 @@
 import {EruptBuildModel} from "../model/erupt-build.model";
 import {DateEnum, EditType, PagingType, ViewType} from "../model/erupt.enum";
-
+import {ViewTypeComponent} from "../components/view-type/view-type.component";
+//import {MarkdownComponent} from "../components/markdown/markdown.component";
+import {CodeEditorComponent} from "../components/code-editor/code-editor.component";
 import {Inject, Injectable} from "@angular/core";
 //import {I18NService} from "@core";
 import {STColumn, STData} from "@delon/abc/st";
@@ -8,17 +10,11 @@ import {NzModalService} from "ng-zorro-antd/modal";
 import {NzMessageService} from "ng-zorro-antd/message";
 import {NzImageService} from "ng-zorro-antd/image";
 import {OpenWay, PageEmbedType, Tpl, View} from "../model/erupt-field.model";
-
+import {AttachmentSelectComponent} from "../components/attachment-select/attachment-select.component";
 import {NzDrawerService} from "ng-zorro-antd/drawer";
 import {Router} from "@angular/router";
 import { DataService } from "@app/shared/zero-code/data.service";
-
-import {ViewTypeComponent} from "../components/view-type/view-type.component";
-//import {MarkdownComponent} from "../components/markdown/markdown.component";
-import {CodeEditorComponent} from "../components/code-editor/code-editor.component";
-import {AttachmentSelectComponent} from "../components/attachment-select/attachment-select.component";
-
-
+import { LocalizationService } from "@abp/ng.core";
 
 @Injectable()
 export class UiBuildService {
@@ -26,6 +22,7 @@ export class UiBuildService {
     constructor(
         private imageService: NzImageService,
         //private i18n: I18NService,
+        public readonly l: LocalizationService,
         private dataService: DataService,
         private router: Router,
         @Inject(NzDrawerService) private drawerService: NzDrawerService,
@@ -44,7 +41,7 @@ export class UiBuildService {
      */
     viewToAlainTableConfig(eruptBuildModel: EruptBuildModel, lineData: boolean, dataConvert?: boolean): STColumn[] {
         let cols: STColumn[] = [];
-        const views = eruptBuildModel.eruptModel.tableColumns;
+        const views = eruptBuildModel.eruptModel.tableColumns??[];
         let layout = eruptBuildModel.eruptModel.eruptJson.layout;
         let i = 0;
         for (let view of views) {
@@ -58,7 +55,7 @@ export class UiBuildService {
             if (view.desc) {
                 titleWidth += 18;
             }
-            let edit = view.eruptFieldModel.eruptFieldJson.edit;
+            let edit = view.eruptFieldModel?.eruptFieldJson.edit;
             let obj: STColumn = {
                 title: {
                     text: view.title,
@@ -67,7 +64,7 @@ export class UiBuildService {
                 },
                 iif: () => view.show,
             };
-            obj["show"] = view.show;
+            //obj["show"] = view.show;    这个先注释20260411
             if (lineData) {
                 //修复表格显示子类属性时无法正确检索到属性值的缺陷
                 obj.index = view.column.replace(/\./g, "_");
@@ -87,14 +84,14 @@ export class UiBuildService {
                 };
             }
 
-            switch (view.eruptFieldModel.eruptFieldJson.edit.type) {
+            switch (view.eruptFieldModel?.eruptFieldJson.edit?.type) {
                 case EditType.TAGS:
                     obj.className = "text-center";
                     obj.format = (item: any) => {
                         let value = item[view.column];
                         if (value) {
                             let result = "";
-                            for (let ele of value.split(view.eruptFieldModel.eruptFieldJson.edit.tagsType.joinSeparator)) {
+                            for (let ele of value.split(view.eruptFieldModel?.eruptFieldJson.edit?.tagsType?.joinSeparator)) {
                                 result += "<span class='e-tag'>" + ele + "</span>";
                             }
                             return result;
@@ -107,11 +104,11 @@ export class UiBuildService {
                     obj.format = (item: any) => {
                         if (item[view.column] != null) {
                             if (dataConvert) {
-                                return "<span style='color:" + view.eruptFieldModel.choiceMap.get(item[view.column] + "")?.color + "'>"
-                                    + view.eruptFieldModel.choiceMap.get(item[view.column] + "")?.label
+                                return "<span style='color:" + view.eruptFieldModel?.choiceMap?.get(item[view.column] + "")?.color + "'>"
+                                    + view.eruptFieldModel?.choiceMap?.get(item[view.column] + "")?.label
                                     + "</span>";
                             } else {
-                                return "<span style='color:" + view.eruptFieldModel.choiceLabelMap.get(item[view.column] + "")?.color + "'>"
+                                return "<span style='color:" + view.eruptFieldModel?.choiceLabelMap?.get(item[view.column] + "")?.color + "'>"
                                     + item[view.column]
                                     + "</span>";
                             }
@@ -126,11 +123,11 @@ export class UiBuildService {
             //展示类型
             switch (view.viewType) {
                 case ViewType.TEXT:
-                    obj.width = null;
+                    obj.width = undefined;
                     obj.className = "text-col";
                     break;
                 case ViewType.SAFE_TEXT:
-                    obj.width = null;
+                    obj.width = undefined;
                     obj.className = "text-col";
                     obj.safeType = "text"
                     break
@@ -154,7 +151,7 @@ export class UiBuildService {
                     obj.format = (item: any) => {
                         if (item[view.column]) {
                             let val = <string>item[view.column];
-                            if (view.eruptFieldModel.eruptFieldJson.edit.dateType.type == DateEnum.DATE && !val.startsWith("<") && !val.endsWith(">")) {
+                            if (view.eruptFieldModel?.eruptFieldJson.edit?.dateType?.type == DateEnum.DATE && !val.startsWith("<") && !val.endsWith(">")) {
                                 return val.substring(0, 10);
                             } else {
                                 return val;
@@ -174,11 +171,11 @@ export class UiBuildService {
                     obj.type = "tag";
                     if (dataConvert) {
                         obj.tag = {
-                            true: {text: edit.boolType.trueText, color: 'green'},
-                            false: {text: edit.boolType.falseText, color: 'red'},
+                            true: {text: edit?.boolType?.trueText, color: 'green'},
+                            false: {text: edit?.boolType?.falseText, color: 'red'},
                         };
                     } else {
-                        if (edit.title) {
+                        if (edit?.title) {
                             if (edit.boolType) {
                                 obj.tag = {
                                     [edit.boolType.trueText]: {
@@ -193,8 +190,8 @@ export class UiBuildService {
                             }
                         } else {
                             obj.tag = {
-                                true: {text: this.i18n.fanyi('是'), color: 'green'},
-                                false: {text: this.i18n.fanyi('否'), color: 'red'},
+                                true: {text: this.l.instant('是'), color: 'green'},
+                                false: {text: this.l.instant('否'), color: 'red'},
                             };
                         }
                     }
@@ -267,38 +264,38 @@ export class UiBuildService {
                         });
                     };
                     break;
-                case ViewType.MARKDOWN:
-                    obj.className = "text-center";
-                    obj.type = "link";
-                    obj.format = (item: any) => {
-                        if (item[view.column]) {
-                            return "<i class='fa fa-file-text' aria-hidden='true' title=''></i>";
-                        } else {
-                            return "";
-                        }
-                    };
-                    obj.click = (item) => {
-                        let ref = this.modal.create({
-                            nzDraggable: true,
-                            nzWrapClassName: "modal-lg",
-                            nzStyle: {top: "24px"},
-                            nzBodyStyle: {padding: "0"},
-                            nzMaskClosable: true,
-                            nzKeyboard: true,
-                            nzFooter: null,
-                            nzTitle: view.title,
-                          //  nzContent: MarkdownComponent
-                        });
-                        view.eruptFieldModel.eruptFieldJson.edit.$value = item[view.column];
-                        Object.assign(ref.getContentComponent(), {
-                            value: item[view.column],
-                            readonly: true,
-                            erupt: eruptBuildModel.eruptModel,
-                            eruptField: view.eruptFieldModel
-                        });
+                // case ViewType.MARKDOWN:
+                //     obj.className = "text-center";
+                //     obj.type = "link";
+                //     obj.format = (item: any) => {
+                //         if (item[view.column]) {
+                //             return "<i class='fa fa-file-text' aria-hidden='true' title=''></i>";
+                //         } else {
+                //             return "";
+                //         }
+                //     };
+                //     obj.click = (item) => {
+                //         let ref = this.modal.create({
+                //             nzDraggable: true,
+                //             nzWrapClassName: "modal-lg",
+                //             nzStyle: {top: "24px"},
+                //             nzBodyStyle: {padding: "0"},
+                //             nzMaskClosable: true,
+                //             nzKeyboard: true,
+                //             nzFooter: null,
+                //             nzTitle: view.title,
+                //             //nzContent: MarkdownComponent
+                //         });
+                //         view.eruptFieldModel?.eruptFieldJson.edit.$value = item[view.column];
+                //         Object.assign(ref.getContentComponent(), {
+                //             value: item[view.column],
+                //             readonly: true,
+                //             erupt: eruptBuildModel.eruptModel,
+                //             eruptField: view.eruptFieldModel
+                //         });
 
-                    };
-                    break;
+                //     };
+                //     break;
                 case ViewType.CODE:
                     obj.className = "text-center";
                     obj.type = "link";
@@ -310,7 +307,7 @@ export class UiBuildService {
                         }
                     };
                     obj.click = (item) => {
-                        let codeEditType = view.eruptFieldModel.eruptFieldJson.edit.codeEditType;
+                        let codeEditType = view.eruptFieldModel?.eruptFieldJson.edit?.codeEditType;
                         let ref = this.modal.create({
                             nzDraggable: true,
                             nzWrapClassName: "modal-lg",
@@ -369,14 +366,14 @@ export class UiBuildService {
                     obj.width = titleWidth + 30;
                     obj.format = (item: any) => {
                         if (item[view.column]) {
-                            const attachmentType = view.eruptFieldModel.eruptFieldJson.edit.attachmentType;
+                            const attachmentType = view.eruptFieldModel?.eruptFieldJson.edit?.attachmentType;
                             let imgs;
                             if (attachmentType) {
                                 imgs = (<string>item[view.column]).split(attachmentType.fileSeparator);
                             } else {
                                 imgs = (<string>item[view.column]).split("|");
                             }
-                            let imgElements = [];
+                            let imgElements :any[]= [];
                             for (let i in imgs) {
                                 imgElements[i] = `<img width="100%" class="e-table-img" src="${DataService.previewAttachment(imgs[i])}" alt="${imgs[i]}"/>`;
                             }
@@ -388,7 +385,7 @@ export class UiBuildService {
                         }
                     };
                     obj.click = (item) => {
-                        this.imageService.preview(item[view.column].split("|").map(it => {
+                        this.imageService.preview(item[view.column].split("|").map((it:any) => {
                             return {
                                 src: DataService.previewAttachment(it.trim())
                             }
@@ -572,7 +569,7 @@ export class UiBuildService {
                     };
                     break;
                 default:
-                    obj.width = null;
+                    obj.width = undefined;
                     break;
             }
             if (view.template) {
@@ -580,7 +577,7 @@ export class UiBuildService {
                     try {
                         let value = item[view.column];
                         return new Function('value', "return " + view.template)(value);
-                    } catch (e) {
+                    } catch (e:any) {
                         console.error(e);
                         this.msg.error(e.toString());
                     }
@@ -599,8 +596,8 @@ export class UiBuildService {
                 obj.type = "link"
                 obj.click = (item) => {
                     let url = this.dataService.getEruptViewTpl(eruptBuildModel.eruptModel.eruptName,
-                        view.eruptFieldModel.fieldName,
-                        item[eruptBuildModel.eruptModel.eruptJson.primaryKeyCol]);
+                        view.eruptFieldModel?.fieldName??"",
+                        item[eruptBuildModel.eruptModel.eruptJson.primaryKeyCol])??'';
                     this.openTpl(item, view.title, url, view.tpl);
                 };
             }
@@ -632,103 +629,16 @@ export class UiBuildService {
         }
         return cols;
     }
-
-    attachmentView(view: View, path: string) {
-        let viewType = view.viewType;
-        let $paths: string[];
-        if (view.eruptFieldModel.eruptFieldJson.edit.type === EditType.ATTACHMENT) {
-            const attachmentType = view.eruptFieldModel.eruptFieldJson.edit.attachmentType;
-            $paths = (<string>path).split(attachmentType.fileSeparator);
-        } else {
-            $paths = (path).split("|");
-        }
-        if ($paths.length == 1) {
-            if (viewType == ViewType.DOWNLOAD || viewType == ViewType.ATTACHMENT) {
-                const a = document.createElement('a');
-                a.href = DataService.previewAttachment(path, true);
-                a.click();
-                a.remove();
-            } else if (viewType == ViewType.ATTACHMENT_DIALOG) {
-                let ref = this.modal.create({
-                    nzDraggable: true,
-                    nzWrapClassName: "modal-lg modal-body-nopadding",
-                    nzStyle: {top: "30px"},
-                    nzKeyboard: true,
-                    nzFooter: null,
-                    nzContent: ViewTypeComponent
-                });
-                Object.assign(ref.getContentComponent(), {
-                    value: path,
-                    view: view
-                });
-            }
-        } else {
-            let ref = this.modal.create({
-                nzDraggable: true,
-                nzWrapClassName: "modal-xs modal-body-nopadding",
-                nzStyle: {top: "30px"},
-                nzKeyboard: true,
-                nzFooter: null,
-                nzTitle: view.title,
-                nzContent: AttachmentSelectComponent
-            });
-            Object.assign(ref.getContentComponent(), {
-                paths: $paths,
-                view: view
-            });
-        }
+    attachmentView(view: View, arg1: any) {
+        throw new Error("Method not implemented.");
     }
 
-    openTpl(item: any, title: string, url: string, tpl: Tpl) {
-        if (!tpl.openWay || tpl.openWay == OpenWay.MODAL) {
-            let isIframe = !tpl.embedType || tpl.embedType == PageEmbedType.IFRAME;
-            let ref = this.modal.create({
-                nzDraggable: true,
-                nzKeyboard: true,
-                nzTitle: title,
-                nzMaskClosable: false,
-                nzWidth: tpl.width,
-                nzStyle: {top: "20px"},
-                nzWrapClassName: tpl.width || "modal-lg",
-                nzBodyStyle: {
-                    padding: "0"
-                },
-                nzFooter: null,
-                // @ts-ignore
-                nzContent: isIframe ? EruptIframeComponent : EruptMicroAppComponent,
-                nzOnCancel: () => {
-                    // this.query();
-                }
-            });
-            ref.getContentComponent().url = url;
-            ref.getContentComponent().height = tpl.height;
-        } else if (tpl.openWay == OpenWay.DRAWER) {
-            let placement = tpl.drawerPlacement;
-            this.drawerService.create({
-                nzClosable: false,
-                nzKeyboard: true,
-                nzMaskClosable: true,
-                // @ts-ignore
-                nzPlacement: placement.toLowerCase(),
-                nzWidth: tpl.width || "40%",
-                nzHeight: tpl.height || "40%",
-                nzBodyStyle: {
-                    padding: 0
-                },
-                nzFooter: null,
-                nzContent: EruptIframeComponent,
-                nzContentParams: {
-                    url: url,
-                    height: "100%",
-                    width: '100%'
-                }
-            })
-        } else if (tpl.openWay == OpenWay.ROUTER) {
-            let path = tpl.path;
-            if (path.indexOf("{") !== -1 && path.indexOf("}") !== -1) {
-                path = path.replace(/\{(\w+)\}/g, (match, key) => item[key]);
-            }
-            this.router.navigate([path]);
-        }
+    openTpl(data: any, title: string, url: string, tpl: any): void {
+    }
+
+    openTpl3(eruptName: string, code: string, ids: any[], eruptValue: any): void {
+    }
+
+    openTpl2(eruptName: string, code: string, ids: any[]): void {
     }
 }

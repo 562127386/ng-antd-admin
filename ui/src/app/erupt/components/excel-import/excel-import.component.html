@@ -1,0 +1,50 @@
+<button nz-button nzType="default" class="mb-sm" (click)="this.dataService.downloadExcelTemplate(eruptModel.eruptName)">
+  <i nz-icon nzType="download" nzTheme="outline"></i>{{'table.download_template'| abpLocalization}}
+</button>
+@if (errorText) {
+  <nz-alert style="margin-bottom: 8px;" nzType="error" nzCloseable [nzDescription]="errorText">
+  </nz-alert>
+}
+<!-- <nz-upload nzType="drag" nzAccept=".xls,.xlsx" [(nzFileList)]="fileList" [nzLimit]="1" [nzHeaders]="header" [nzAction]="dataService.excelImport + eruptModel.eruptName" [nzShowButton]="true" (nzChange)="upLoadNzChange($event)">
+  <p class="ant-upload-drag-icon">
+    <i nz-icon nzType="inbox"></i>
+  </p>
+  <p class="ant-upload-text">{{'table.excel.import_hint'| abpLocalization}}</p>
+</nz-upload> -->
+
+<nz-upload nzType="drag" nzAccept=".xls,.xlsx,.csv"
+  [nzShowButton]="true"
+  [nzBeforeUpload]="beforeUpload"
+  [nzFileList]="fileList"
+  [nzShowUploadList]="true"
+  [nzMultiple]="false"
+  (nzChange)="upLoadNzChange($event)"
+>
+ <p class="ant-upload-drag-icon">
+        <nz-icon nzType="inbox" />
+      </p>
+      <p class="ant-upload-text">Click or drag file to this area to upload</p>
+      <p class="ant-upload-hint">
+        Support for a single or bulk upload. Strictly prohibit from uploading company data or other band files
+      </p>
+</nz-upload>
+
+<!-- 上传按钮 -->
+<button
+  nz-button
+  nzType="primary"
+  [disabled]="!fileList.length"
+  (click)="submitUpload()"
+>
+  确认上传
+</button>
+<!-- ======================
+状态条（核心）
+======================= -->
+<!-- <div *ngIf="statusText" class="mt-3">
+  <nz-progress
+    [nzStatus]="statusType"
+    [nzShowInfo]="false"
+  ></nz-progress>
+  <p class="mt-1 text-center">{{ statusText }}</p>
+</div> -->

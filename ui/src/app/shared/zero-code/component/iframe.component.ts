@@ -1,67 +1,23 @@
-import {Component, Inject, Input, OnInit} from '@angular/core';
-import {DA_SERVICE_TOKEN, ITokenService} from "@delon/auth";
-import { IframeHeight } from '../util/window.util';
+import {Component, Input, OnInit} from '@angular/core';
 
 @Component({
     standalone: false,
     selector: 'erupt-iframe',
     template: `
-        <nz-spin [nzSpinning]="spin" style="height: 100%;width: 100%">
-            <iframe [src]="url|safeUrl" height="100%"
-                    style="width: 100%;border: 0;display: block;vertical-align: bottom;"
-                    [ngStyle]="style"
-                    (load)="iframeLoad($event)">
-
-            </iframe>
-        </nz-spin>
+        <div style="height: 100%; width: 100%; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+            <span>Iframe Component</span>
+        </div>
     `,
     styles: []
 })
 export class EruptIframeComponent implements OnInit {
 
-    @Input() url: string | null;
+    @Input() url: string | null | undefined= null;
 
-    @Input() height: string | null;
+    @Input() height: string | null = null;
 
-    @Input() width: string | null;
+    @Input() width: string | null = null;
 
-    @Input() style: object = {};
-
-    spin: boolean = true;
-
-    constructor(@Inject(DA_SERVICE_TOKEN) public tokenService: ITokenService,) {
-
+    ngOnInit(): void {
     }
-
-    ngOnInit() {
-        if (this.url) {
-            if (this.url.indexOf('_token=') === -1) {
-                this.url += (this.url.indexOf("?") === -1 ? "?" : "&") + "_token=" + this.tokenService.get().token;
-            }
-        }
-        this.spin = true;
-        if (this.height) {
-            this.style["height"] = this.height;
-        }
-        if (this.width) {
-            this.style["width"] = this.width;
-        }
-        setTimeout(() => {
-            this.spin = false;
-        }, 3000)
-    }
-
-    iframeLoad(event: any) {
-        this.spin = false;
-        if (!this.height) {
-            try {
-                IframeHeight(event);
-            } catch (e) {
-                this.style["height"] = "600px"
-                console.error(e)
-            }
-        }
-        this.spin = false;
-    };
-
 }

@@ -3,7 +3,6 @@
  */
 import {Injectable} from "@angular/core";
 
-
 const searchKey = "search";
 
 const columnKey = "column";
@@ -14,68 +13,51 @@ export class EruptStorageService {
     constructor() {
     }
 
-    saveSearch(code: string, query: any) {
+    saveSearch(code: string, query: any): void {
         this.save(code, searchKey, query);
     }
 
-    getSearch(code: string): {
-        key: string,
-        value: any
-    }[] {
+    getSearch(code: string): any[] {
         return this.get(code, searchKey);
     }
 
-    clearSearch(code: string) {
+    clearSearch(code: string): void {
         this.delete(code, searchKey);
     }
 
-    // saveColumnWidth(code: string, column: string, width: number) {
-    //     let dataStr = localStorage.getItem(code);
-    //     let data = {};
-    //     if (!dataStr) {
-    //         data = JSON.parse(dataStr);
-    //     }
-    //     data["column"] = query;
-    //     localStorage.setItem(code, JSON.stringify(data));
-    // }
-
-    private save(code: string, key: string, query: any) {
-        let dataStr = localStorage.getItem(code);
-        let data = {};
+    private save(code: string, key: string, query: any): void {
+        const dataStr = localStorage.getItem(code);
+        const data: Record<string, any> = {};
         if (dataStr) {
-            data = JSON.parse(dataStr);
+            const parsed = JSON.parse(dataStr);
+            Object.assign(data, parsed);
         }
         data[key] = query;
         localStorage.setItem(code, JSON.stringify(data));
     }
 
     private get(code: string, key: string): any {
-        let dataStr = localStorage.getItem(code);
+        const dataStr = localStorage.getItem(code);
         if (dataStr) {
-            let data = JSON.parse(dataStr);
+            const data = JSON.parse(dataStr);
             return data[key];
         }
         return null;
     }
 
-    private delete(code: string, key: string) {
-        let dataStr = localStorage.getItem(code);
+    private delete(code: string, key: string): void {
+        const dataStr = localStorage.getItem(code);
         if (dataStr) {
-            let data = JSON.parse(dataStr);
+            const data = JSON.parse(dataStr);
             delete data[key];
+            localStorage.setItem(code, JSON.stringify(data));
         }
     }
-
-
 }
 
-
 export interface eruptStorage {
-
     search: any;
-
     table: Record<string, {
         width: number;
     }>
-
 }

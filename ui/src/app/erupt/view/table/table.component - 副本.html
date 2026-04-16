@@ -1,0 +1,39 @@
+ 
+    <nz-card class="mb-3">
+      <nz-input-group [nzSuffix]="searchTpl" class="mb-3">
+        <input nz-input placeholder="搜索..." [(ngModel)]="searchValue" (keyup.enter)="toFirstPageAndSearch()" />
+      </nz-input-group>
+      <ng-template #searchTpl>
+        <i nz-icon nzType="search" (click)="toFirstPageAndSearch()"></i>
+      </ng-template>
+
+
+      <button nz-button nzType="primary" (click)="openCreateOrEdit()">
+        <i nz-icon nzType="plus"></i>新增
+      </button>
+
+      <st
+        [data]="(items$ | async)?.items || []"
+        [total]="(items$ | async)?.totalCount || 0"
+        [loading]="list.isLoading$ | async"
+        [columns]="columns"
+        [multiSort]="true"
+        [page]="{ front: false, show: true }"
+        (change)="onStChange($event)"
+
+        resizable [body]="bodyTpl"
+      >
+      <ng-template #bodyTpl>
+        @for (row of extraRows; track row) {
+          <tr [ngClass]="row.className">
+            @for (column of row.columns; track column) {
+              <td [colSpan]="column.colspan"
+                [ngClass]="column.className">
+                {{ column.value }}
+              </td>
+            }
+          </tr>
+        }
+      </ng-template>
+    </st>
+    </nz-card>

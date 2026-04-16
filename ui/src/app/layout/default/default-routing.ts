@@ -49,6 +49,10 @@ export default [
         path: 'attendance',
         loadChildren: () => import('../../pages/attendance/attendance-routing')
       },
+      {
+        path: 'erupt',
+        loadChildren: () => import('../../erupt/erupt-routing.module').then(m => m.EruptRoutingModule)
+      },
       // 此路由用于tab刷新时占位组件
       {
         path: 'refresh-empty',

@@ -1,4 +1,4 @@
-import {VL} from "../../build/erupt/model/erupt-field.model";
+import {VL} from "../../../erupt/model/erupt-field.model";
 
 export interface LoginModel {
     token: string;

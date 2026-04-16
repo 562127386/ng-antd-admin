@@ -1,16 +1,18 @@
 import {NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
-//import {SharedModule} from "@shared/shared.module";  
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {HttpClientModule} from "@angular/common/http";
 import {DragDropModule} from "@angular/cdk/drag-drop";
+import {CoreModule} from "@abp/ng.core";
 import {DataHandlerService} from "./service/data-handler.service";
+import {SyncVirtualScrollDirective} from "@app/shared/zero-code/directive/sync-virtual-scroll.directive";
 
-import {EruptRoutingModule} from "./erupt-routing.module";
 import {TreeComponent} from "./view/tree/tree.component";
 import {TableViewComponent} from "./view/table-view/table-view.component";
 import {EditComponent} from "./view/edit/edit.component";
 import {TableComponent} from './view/table/table.component';
 import {LayoutTreeComponent} from './view/layout-tree/layout-tree.component';
+import {ExcelImportComponent} from './components/excel-import/excel-import.component';
 
 import {UiBuildService} from "./service/ui-build.service";
 
@@ -28,45 +30,75 @@ import {NzEmptyModule} from "ng-zorro-antd/empty";
 
 import {NzSegmentedModule} from "ng-zorro-antd/segmented";
 import {GanttComponent} from "./vis/gantt/gantt.component";
-//import {NgxGanttModule} from "@worktile/gantt";  甘特图组件  先注释
+import {NgxGanttModule} from "@worktile/gantt";
 import {NzButtonModule} from "ng-zorro-antd/button";
 import {NzTooltipDirective} from "ng-zorro-antd/tooltip";
 
+import {NzCardModule} from "ng-zorro-antd/card";
+import {NzIconModule} from "ng-zorro-antd/icon";
+import {NzInputModule} from "ng-zorro-antd/input";
+import {NzSelectModule} from "ng-zorro-antd/select";
+import {NzDatePickerModule} from "ng-zorro-antd/date-picker";
+import {NzCheckboxModule} from "ng-zorro-antd/checkbox";
+import {NzRadioModule} from "ng-zorro-antd/radio";
+import {NzSwitchModule} from "ng-zorro-antd/switch";
+import {NzSliderModule} from "ng-zorro-antd/slider";
+import {NzCascaderModule} from "ng-zorro-antd/cascader";
+import {NzTreeSelectModule} from "ng-zorro-antd/tree-select";
+import {NzAutocompleteModule} from "ng-zorro-antd/auto-complete";
+import {NzMentionModule} from "ng-zorro-antd/mention";
+import {NzTimePickerModule} from "ng-zorro-antd/time-picker";
+import {NzUploadModule} from "ng-zorro-antd/upload";
+import {NzModalModule} from "ng-zorro-antd/modal";
+import {NzDrawerModule} from "ng-zorro-antd/drawer";
+import {NzPopconfirmModule} from "ng-zorro-antd/popconfirm";
+import {NzPopoverModule} from "ng-zorro-antd/popover";
+import {NzTooltipModule} from "ng-zorro-antd/tooltip";
+import {NzDropDownModule} from "ng-zorro-antd/dropdown";
+import {NzMenuModule} from "ng-zorro-antd/menu";
+import {NzBreadCrumbModule} from "ng-zorro-antd/breadcrumb";
+import {NzTabsModule} from "ng-zorro-antd/tabs";
+import {NzStepsModule} from "ng-zorro-antd/steps";
+import {NzTableModule} from "ng-zorro-antd/table";
+import {NzPaginationModule} from "ng-zorro-antd/pagination";
+import {NzTreeModule} from "ng-zorro-antd/tree";
+import {NzProgressModule} from "ng-zorro-antd/progress";
+import {NzSpinModule} from "ng-zorro-antd/spin";
+import {NzSkeletonModule} from "ng-zorro-antd/skeleton";
+import {NzAlertModule} from "ng-zorro-antd/alert";
+import {NzTagModule} from "ng-zorro-antd/tag";
+import {NzBadgeModule} from "ng-zorro-antd/badge";
+import {NzAvatarModule} from "ng-zorro-antd/avatar";
+import {NzCalendarModule} from "ng-zorro-antd/calendar";
+import {NzTimelineModule} from "ng-zorro-antd/timeline";
+import {NzDescriptionsModule} from "ng-zorro-antd/descriptions";
+import {NzResultModule} from "ng-zorro-antd/result";
+import {NzStatisticModule} from "ng-zorro-antd/statistic";
+import {NzAnchorModule} from "ng-zorro-antd/anchor";
+import {NzAffixModule} from "ng-zorro-antd/affix";
+import {NzWatermarkModule} from "ng-zorro-antd/watermark";
+import {NzQRCodeModule as NzQRCodeModule2} from "ng-zorro-antd/qr-code";
+import {NzResultModule as NzResultModule2} from "ng-zorro-antd/result";
+import {NzFormModule} from "ng-zorro-antd/form";
 
-// import {EditTypeComponent} from "./components/edit-type/edit-type.component";
+import {STModule} from "@delon/abc/st";
+import {STColumn} from "@delon/abc/st";
+
  import {ViewTypeComponent} from "./components/view-type/view-type.component";
-// import {TabTableComponent} from "./components/tab-table/tab-table.component";
-// import {TreeSelectComponent} from "./components/tree-select/tree-select.component";
-// import {ExcelImportComponent} from "./components/excel-import/excel-import.component";
-// import {ReferenceTableComponent} from "./components/reference-table/reference-table.component";
-// import {CkeditorComponent} from "./components/ckeditor/ckeditor.component";
-// import {AmapComponent} from "./components/amap/amap.component";
-// import {MultiChoiceComponent} from './components/multi-choice/multi-choice.component';
-// import {SignaturePadComponent} from './components/signature-pad/signature-pad.component';
-// import {SmartSearchComponent} from './components/smart-search/smart-search.component';
  import {AttachmentSelectComponent} from './components/attachment-select/attachment-select.component';
-// import {SearchSeComponent} from "./components/search-se/search-se.component";
-// import {SearchComponent} from './components/search/search.component';
-// import {AutoCompleteComponent} from './components/auto-complete/auto-complete.component';
-// import {ReferenceComponent} from './components/reference/reference.component';
-// import {ChoiceComponent} from "./components/choice/choice.component";
-// import {TagsComponent} from "./components/tags/tags.component";
  import {CodeEditorComponent} from './components/code-editor/code-editor.component';
-// import {EruptUeditorComponent} from './components/ueditor/erupt-ueditor.component';
-// import {TabTreeComponent} from './components/tab-tree/tab-tree.component';
-// import {CheckboxComponent} from './components/checkbox/checkbox.component';
-// import {SafeTemplateComponent} from './components/safe-template/safe-template.component';
-// import {DateComponent} from './components/date/date.component';
-// import {MarkdownComponent} from './components/markdown/markdown.component';
-
+import { EditTypeComponent } from "./components/edit-type/edit-type.component";
+import { EruptIframeComponent } from "@app/shared/zero-code/component/iframe.component";
 
 
 @NgModule({
     imports: [
+       
         CommonModule,
-        //SharedModule,  目前没SharedModule
+        FormsModule,
+        ReactiveFormsModule,
         HttpClientModule,
-        EruptRoutingModule,
+        CoreModule,
         DragDropModule,
         TagSelectModule,
         NzCodeEditorModule,
@@ -76,64 +108,80 @@ import {NzTooltipDirective} from "ng-zorro-antd/tooltip";
         NzRateModule,
         NzEmptyModule,
         NzSegmentedModule,
-        //NgxGanttModule,
+        NgxGanttModule,
         NzButtonModule,
-        NzTooltipDirective
+        NzTooltipDirective,
+        NzCardModule,
+        NzIconModule,
+        NzInputModule,
+        NzSelectModule,
+        NzDatePickerModule,
+        NzCheckboxModule,
+        NzRadioModule,
+        NzSwitchModule,
+        NzSliderModule,
+        NzCascaderModule,
+        NzTreeSelectModule,
+        NzAutocompleteModule,
+        NzMentionModule,
+        NzTimePickerModule,
+        NzUploadModule,
+        NzModalModule,
+        NzDrawerModule,
+        NzPopconfirmModule,
+        NzPopoverModule,
+        NzTooltipModule,
+        NzDropDownModule,
+        NzMenuModule,
+        NzBreadCrumbModule,
+        NzTabsModule,
+        NzStepsModule,
+        NzTableModule,
+        NzPaginationModule,
+        NzTreeModule,
+        NzProgressModule,
+        NzSpinModule,
+        NzSkeletonModule,
+        NzAlertModule,
+        NzTagModule,
+        NzBadgeModule,
+        NzAvatarModule,
+        NzCalendarModule,
+        NzTimelineModule,
+        NzDescriptionsModule,
+        NzResultModule,
+        NzStatisticModule,
+        NzAnchorModule,
+        NzAffixModule,
+        NzWatermarkModule,
+        NzQRCodeModule2,
+        NzResultModule2,
+        NzFormModule,
+        STModule
     ],
     providers: [
         DataHandlerService,
         UiBuildService
     ],
     exports: [
-        // EditTypeComponent,
          ViewTypeComponent,
-        // TabTableComponent,
-        // SmartSearchComponent
+         EditTypeComponent
     ],
     declarations: [
-        // EditTypeComponent,
-        // TreeSelectComponent,
-        // CkeditorComponent,
-        // TabTableComponent,
-        // AmapComponent,
-        // ExcelImportComponent,
-        // ReferenceTableComponent,
-  
-        // CodeEditorComponent,
-        // EruptUeditorComponent,
-        // TabTreeComponent,
-        // CheckboxComponent,
-        // SafeTemplateComponent,
-        // DateComponent,
-        // MarkdownComponent,
-        // ChoiceComponent,
-        // TagsComponent,
-        // SearchComponent,
-        // AutoCompleteComponent,
-        // ReferenceComponent,
-        // SearchSeComponent,
-
-        // EditTypeComponent,
+        EruptIframeComponent,
+        EditTypeComponent,
          ViewTypeComponent,
-        // TreeSelectComponent,
-        // ExcelImportComponent,
-        // ReferenceTableComponent,
          CodeEditorComponent,
-        // SafeTemplateComponent,
-        // MarkdownComponent,
          AttachmentSelectComponent,
-        // MultiChoiceComponent,
-        // SignaturePadComponent,
-        // SmartSearchComponent,
+         ExcelImportComponent,
         EditComponent,
         TreeComponent,
         TableViewComponent,
         TableComponent,
         LayoutTreeComponent,
         CardComponent,
-        TableComponent,
-        EditComponent,
-        GanttComponent
+        GanttComponent,
+        SyncVirtualScrollDirective
     ]
 })
 export class EruptModule {

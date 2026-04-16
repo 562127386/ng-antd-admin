@@ -1,40 +1,21 @@
 import {AfterViewInit, Component, ElementRef, Input, ViewChild} from '@angular/core';
-import microApp from '@micro-zoe/micro-app'
-import { ContextKey, EruptContextService } from '../service/erupt-context.service';
 
 @Component({
     standalone: false,
     selector: 'erupt-micro-app',
     template: `
-        <micro-app #microApp name="erupt-micro-app-ele" id="erupt-micro-app-ele"
-                   style="width: 100%;height: 100%;display: block">
-
-        </micro-app>
+        <div style="height: 100%; width: 100%; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+            <span>Micro App Component</span>
+        </div>
     `,
-    styles: [],
-    styleUrls: ['./micro-app.component.less'],
+    styles: []
 })
 export class EruptMicroAppComponent implements AfterViewInit {
 
-    @Input() url: string | null;
+    @Input() url: string | null = null;
 
-    spin: boolean = false;
+    @ViewChild('microApp') microApp!: ElementRef;
 
-    @ViewChild('microApp') microApp: ElementRef;
-
-    constructor(private eruptContextService: EruptContextService) {
-        if (!this.eruptContextService.has(ContextKey.INIT_MICRO_APP)) {
-            this.eruptContextService.set(ContextKey.INIT_MICRO_APP, true);
-            microApp.start({
-                'router-mode': 'native',
-                // shadowDOM: true
-            });
-        }
+    ngAfterViewInit(): void {
     }
-
-    ngAfterViewInit() {
-        this.microApp.nativeElement.setAttribute('url', this.url);
-    }
-
-
 }

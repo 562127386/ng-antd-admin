@@ -1,36 +1,34 @@
-@if (!eruptBuildModel) {
+ @if (!eruptBuildModel) {
   <nz-skeleton [nzActive]="true" [nzTitle]="true" [nzParagraph]="{ rows: 10 }"></nz-skeleton>
 }
 @if (eruptBuildModel) {
   <div nz-row [nzGutter]="12">
     @if (linkTree) {
       <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6" [nzXl]="4">
-        <layout-tree [eruptModel]="eruptBuildModel.eruptModel" (trigger)="clickTreeNode($event)"></layout-tree>
+        <app-layout-tree [eruptModel]="eruptBuildModel.eruptModel" (trigger)="clickTreeNode($event)"></app-layout-tree>
       </div>
     }
     <div nz-col [nzXs]="24" [nzMd]="linkTree?16:24" [nzLg]="linkTree?18:24" [nzXl]="linkTree?20:24"
-      [hidden]="!showTable"
-             [ngStyle]="{overflowX: 'hidden',overflowY: linkTree?'auto':'hidden',height:linkTree?'calc(100vh - 103px - ' + (this.settingSrv.layout['reuse'] ? '40px' : '0px') +' + '+
-                (settingSrv.layout['breadcrumbs']?'0px':'38px')+ ')':'auto'}">
+      [hidden]="!showTable">
       <ng-container>
         <div class="erupt-btn-item">
           <div>
             @if (eruptBuildModel.eruptModel.eruptJson.power.add) {
-              <button nz-button nzType="default" class="mb-sm" (click)="addData()" id="erupt-btn-add">
-                <i nz-icon nzType="plus" nzTheme="outline"></i>{{ 'table.add'|translate }}
+              <button nz-button nzType="default" class="mb-sm" (click)="openCreateOrEdit()" id="erupt-btn-add">
+                <i nz-icon nzType="plus" nzTheme="outline"></i>{{ 'table.add'|abpLocalization  }}
               </button>
             }
             @if (eruptBuildModel.eruptModel.eruptJson.power.export) {
               <button nz-button nzType="default" class="mb-sm" (click)="exportExcel()"
                 id="erupt-btn-export" [nzLoading]="downloading">
-                <i nz-icon nzType="download" nzTheme="outline"></i>{{ 'table.download'|translate }}
+                <i nz-icon nzType="download" nzTheme="outline"></i>{{ 'table.download'|abpLocalization  }}
               </button>
             }
             @if (eruptBuildModel.eruptModel.eruptJson.power.importable) {
               <span style="margin-left:8px">
                 <button nz-button (click)="importableExcel()" id="erupt-btn-importable">
                   <i nz-icon nzType="import" nzTheme="outline"></i>
-                  &nbsp;{{ 'table.import'|translate }}
+                  &nbsp;{{ 'table.import'|abpLocalization  }}
                 </button>
                 <button nz-button nz-dropdown [nzDropdownMenu]="menu1" nzPlacement="bottomRight" style="margin-left: -1px">
                   <i nz-icon nzType="ellipsis"></i>
@@ -40,7 +38,7 @@
                 <ul nz-menu>
                   <li nz-menu-item (click)="downloadExcelTemplate()">
                     <i nz-icon nzType="build" nzTheme="outline"></i>
-                    &nbsp;{{ 'table.download_template'|translate }}
+                    &nbsp;{{ 'table.download_template'|abpLocalization  }}
                   </li>
                 </ul>
               </nz-dropdown-menu>
@@ -53,7 +51,7 @@
                 nzPopoverTrigger="click"
                 nzPopoverPlacement="bottomLeft"
                 [style.border-color]="selectedSorts.length?'var(--ant-primary-color-hover)':null">
-                <i nz-icon nzType="swap" nzTheme="outline" style="transform: rotateZ(90deg)"></i> {{ 'global.sort'|translate }}
+                <i nz-icon nzType="swap" nzTheme="outline" style="transform: rotateZ(90deg)"></i> {{ 'global.sort'|abpLocalization  }}
               </button>
               <ng-template #sortPopoverContent>
                 <div style="width: 400px;">
@@ -68,7 +66,7 @@
                             style="flex: 1; min-width: 120px;"
                             nzShowSearch
                             [nzDisabled]="true"
-                            [nzPlaceHolder]="i18n.fanyi('table.sort.select_field')"
+                            [nzPlaceHolder]="l.instant('table.sort.select_field')"
                             nzSize="small">
                             @for (field of sortFields; track field) {
                               <nz-option
@@ -104,14 +102,14 @@
                       }
                       @if (selectedSorts.length === 0) {
                         <div style="text-align: center; color: #8c8c8c; padding: 40px 20px;">
-                          {{ 'table.sort.not_field' | translate }}
+                          {{ 'table.sort.not_field' | abpLocalization }}
                         </div>
                       }
                     </div>
                     <div style="margin-top: 8px; border-top: 1px solid #e8e8e8; padding-top: 8px;">
                       <nz-select [(ngModel)]="tempSelectedField"
                         (ngModelChange)="onFieldSelectChange($event)"
-                        [nzPlaceHolder]="i18n.fanyi('table.sort.select_field')"
+                        [nzPlaceHolder]="l.instant('table.sort.select_field')"
                         nzShowSearch
                         style="width: 100%;">
                         @for (field of getAvailableFields(); track field) {
@@ -125,10 +123,10 @@
                   </div>
                   <div style="display: flex; justify-content: flex-end;padding-top: 8px;">
                     <button nz-button nzSize="small" (click)="showSortPopover = false">
-                      {{ 'global.cancel'|translate }}
+                      {{ 'global.cancel'|abpLocalization  }}
                     </button>
                     <button nz-button nzType="primary" nzSize="small" (click)="applySort()">
-                      {{ 'global.ok'|translate }}
+                      {{ 'global.ok'|abpLocalization  }}
                     </button>
                   </div>
                 </div>
@@ -138,7 +136,7 @@
               <button nz-button nzType="default" [nzSearch]="true"
                 class="mb-sm" [nzLoading]="dataPage.querying" id="erupt-btn-query"
                 (click)="query()">
-                <i nz-icon nzType="search" nzTheme="outline"></i>{{ 'table.query'|translate }}
+                <i nz-icon nzType="search" nzTheme="outline"></i>{{ 'table.query'|abpLocalization  }}
               </button>
             }
             @if (eruptBuildModel.eruptModel.eruptJson.power.delete) {
@@ -146,7 +144,7 @@
                 <button nz-button nzType="default" nzDanger
                   class="mb-sm" [nzLoading]="deleting" id="erupt-btn-delete"
                   (click)="delRows()">
-                  <i nz-icon nzType="delete" nzTheme="outline"></i>{{ 'table.delete'|translate }}
+                  <i nz-icon nzType="delete" nzTheme="outline"></i>{{ 'table.delete'|abpLocalization  }}
                 </button>
               }
             }
@@ -202,7 +200,7 @@
                   <i nz-icon nzType="table" nzTheme="outline"></i>
                 </button>
                 <ng-template #tableColumnCtrl>
-                  <div nz-row style="max-width: 520px;">
+                  <!-- <div nz-row style="max-width: 520px;">
                     @for (col of columns; track col) {
                       @if (col.title&&col.index) {
                         <div nz-col nzSpan="6">
@@ -212,9 +210,9 @@
                         </div>
                       }
                     }
-                  </div>
+                  </div> -->
                 </ng-template>
-                @if (hasSearchFields) {
+                <!-- @if (hasSearchFields) {
                   <nz-divider class="hidden-mobile" nzType="vertical"></nz-divider>
                   <button class="mb-sm" nz-button (click)="hideCondition=!hideCondition"
                     style="padding: 4px 8px">
@@ -222,15 +220,15 @@
                   </button>
                   <button class="mb-sm" nz-button (click)="clearCondition()" id="erupt-btn-reset"
                     [disabled]="dataPage.querying">
-                    <i nz-icon nzType="sync" nzTheme="outline"></i>{{ 'table.reset'|translate }}
+                    <i nz-icon nzType="sync" nzTheme="outline"></i>{{ 'table.reset'|abpLocalization  }}
                   </button>
-                }
+                } -->
               </div>
             </div>
           }
         </div>
         @if (eruptBuildModel.eruptModel.eruptJson.power.query) {
-          @if (alert) {
+          <!--@if (alert) {
             <nz-alert style="margin-bottom:8px" [nzMessage]="alertMessage" [nzType]="alert.uiType"
               [nzCloseable]="alert.closeable" (nzOnClose)="alert = null">
             </nz-alert>
@@ -238,11 +236,11 @@
               <span [innerHTML]="alert.message | safeHtml"></span>
             </ng-template>
           }
-          @if (hasSearchFields) {
+           @if (hasSearchFields) {
             <nz-card [nzBodyStyle]="{padding:'10px'}" class="search-card" [hidden]="hideCondition">
               <erupt-search [searchEruptModel]="searchErupt" (search)="query()" [size]="'default'"/>
             </nz-card>
-          }
+          } -->
           @if (vis.length) {
             <div>
               @if (visOptions.length > 1) {
@@ -266,21 +264,6 @@
                   @case (VisType.TABLE) {
                     <ng-container [ngTemplateOutlet]="eruptTable"></ng-container>
                   }
-                  @case (VisType.GANTT) {
-                    <vis-gantt [eruptBuildModel]="eruptBuildModel" [data]="dataPage.data"
-                      (onEdit)="onEdit($event)"
-                      (onSelectionChange)="handleGanttSelectionChange($event)"
-                      [selectionMode]="_reference ? _reference.mode : null"
-                      [vis]="vis[selectedVisIndex]"/>
-                  }
-                  @case (VisType.TPL) {
-                    <nz-spin [nzSpinning]="!getVisTplData()" [ngStyle]="{height: vis[selectedVisIndex].tplView.height || ((525 + (clientHeight - 814)) + 'px')}">
-                      @if (getVisTplData()) {
-                        <erupt-iframe [url]="dataService.getEruptVisTpl(eruptBuildModel.eruptModel.eruptName,vis[selectedVisIndex].code)"
-                          height="100%" width="'100%'"/>
-                      }
-                    </nz-spin>
-                  }
                   @default {
                     <ng-container [ngTemplateOutlet]="eruptTable"></ng-container>
                   }
@@ -301,7 +284,7 @@
               (nzPageIndexChange)="pageIndexChange($event)"
             ></nz-pagination>
             <ng-template #totalTemplate
-              let-total>{{ 'table.totalLeft'|translate }} {{ dataPage.total }} {{ 'table.totalRight'|translate }}
+              let-total>{{ 'table.totalLeft'| abpLocalization  }} {{ dataPage.total }} {{ 'table.totalRight'| abpLocalization  }}
             </ng-template>
           }
         }
@@ -311,13 +294,17 @@
 }
 <ng-template #eruptTable>
   <div [syncVirtualScroll]="dataPage.data.length >= 100">
-    <st #st resizable [loading]="dataPage.querying" [widthMode]="{strictBehavior:'truncate'}"
-      [body]="bodyTpl" [data]="dataPage.data" [columns]="columns"
-      [virtualScroll]="dataPage.data.length >= 100"
-      [virtualItemSize]="47"
-      [scroll]="{x: (clientWidth > 768 ? tableWidth : '0px'), y: (clientHeight > 814 ? 525 + (clientHeight - 814) : 525) + 'px'}"
-      (change)="tableDataChange($event)" [bordered]="settingSrv.layout['bordered']"
-      [page]="dataPage.page" [size]="'middle'"
+    <st #st
+        [data]="(items$ | async)?.items || []"
+        [total]="(items$ | async)?.totalCount || 0"
+        [loading]="list.isLoading$ | async"
+        [columns]="columns"
+        [multiSort]="true"
+        [page]="{ front: false, show: true }"
+        (change)="onStChange($event)"
+
+        [scroll]="{ x:'300px', y: '1300px' }" responsive="false"
+        resizable [body]="bodyTpl"
       >
       <ng-template #bodyTpl>
         @for (row of extraRows; track row) {

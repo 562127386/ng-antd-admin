@@ -5,7 +5,7 @@
         @if (eruptBuildModel.eruptModel.eruptJson.power.add) {
           <button nz-button nzType="dashed" style="display:block;width: 100%;" (click)="addBlock()" class="mb-sm"
             >
-            <i nz-icon nzType="plus" theme="outline"></i> {{ 'tree.add_button'|translate }}
+            <i nz-icon nzType="plus" theme="outline"></i> {{ 'tree.add_button'| abpLocalization }}
           </button>
         }
         <nz-input-group [nzSuffix]="suffixIcon" class="mb-sm" style="width: 100%;">
@@ -39,7 +39,7 @@
                   @if (eruptBuildModel.eruptModel.eruptJson.power.edit) {
                     <button nz-button (click)="update()" [disabled]="loading" id="erupt-btn-save"
                       >
-                      <i nz-icon nzType="save" theme="outline"></i>{{ 'tree.update'|translate }}
+                      <i nz-icon nzType="save" theme="outline"></i>{{ 'tree.update'| abpLocalization }}
                     </button>
                   }
                   @if (eruptBuildModel.eruptModel.eruptJson.power.delete) {
@@ -47,14 +47,14 @@
                       [nzGhost]="true"
                       (click)="del()" [disabled]="loading" id="erupt-btn-delete"
                       >
-                      <i nz-icon nzType="delete" theme="outline"></i>{{ 'tree.delete'|translate }}
+                      <i nz-icon nzType="delete" theme="outline"></i>{{ 'tree.delete'| abpLocalization }}
                     </button>
                   }
                   @if (eruptBuildModel.eruptModel.eruptJson.power.add&&eruptBuildModel.eruptModel.eruptJson.tree.pid) {
                     <button nz-button nzType="dashed" (click)="addSub()" [disabled]="loading"
                       id="erupt-btn-add_sub"
                       >
-                      <i nz-icon nzType="arrow-down" nzTheme="outline"></i>{{ 'tree.add_children'|translate }}
+                      <i nz-icon nzType="arrow-down" nzTheme="outline"></i>{{ 'tree.add_children'| abpLocalization }}
                     </button>
                   }
                 }
@@ -62,7 +62,7 @@
                   @if (eruptBuildModel.eruptModel.eruptJson.power.add) {
                     <button nz-button (click)="add()" [disabled]="loading" id="erupt-btn-add-new"
                       >
-                      <i nz-icon nzType="save" theme="outline"></i>{{ 'tree.add'|translate }}
+                      <i nz-icon nzType="save" theme="outline"></i>{{ 'tree.add'| abpLocalization }}
                     </button>
                   }
                 }
@@ -70,7 +70,7 @@
             </div>
             <div [ngStyle]="{overflow: 'auto',overflowX:'hidden'}" style="width: 100%;height:calc(100vh - 140px)">
               <nz-collapse nzAccordion nzExpandIconPosition="end">
-                <nz-collapse-panel [nzActive]="true" [nzHeader]="'tree.base'|translate" [nzDisabled]="true"
+                <nz-collapse-panel [nzActive]="true" [nzHeader]="'tree.base'| abpLocalization" [nzDisabled]="true"
                   [nzShowArrow]="false">
                   <nz-spin [nzSpinning]="loading" nzSize="large">
                     <erupt-edit [eruptBuildModel]="eruptBuildModel" [behavior]="behavior">

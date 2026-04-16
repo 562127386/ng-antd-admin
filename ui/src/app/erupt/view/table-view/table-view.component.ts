@@ -1,7 +1,8 @@
-import {Component, EventEmitter, OnDestroy, OnInit, Output} from "@angular/core";
+import {Component, inject, OnDestroy, OnInit, TemplateRef, ViewChild} from "@angular/core";
 import {ActivatedRoute} from "@angular/router";
-import {Subscription} from "rxjs";
-import {SettingsService} from "@delon/theme";
+import { STChange, STColumn, STColumnFilter, STColumnFilterHandle, STData } from "@delon/abc/st";
+import { NzMessageService } from "ng-zorro-antd/message";
+import { delay, of, Subscription } from "rxjs";
 
 @Component({
     standalone: false,
@@ -11,23 +12,58 @@ import {SettingsService} from "@delon/theme";
 })
 export class TableViewComponent implements OnInit, OnDestroy {
 
-    constructor(public route: ActivatedRoute,
-                public settingSrv: SettingsService) {
+    constructor(public route: ActivatedRoute) {
     }
 
-    private router$!: Subscription;
+    private router$: Subscription;
 
-    public eruptName: string | undefined;
+    public eruptName: string;
 
     ngOnInit() {
         this.router$ = this.route.params.subscribe(params => {
             this.eruptName = params["name"];
+            if(!this.eruptName)
+            {// 获取路由data中的entityName
+                this.route.data.subscribe(data => {
+                    this.eruptName = data['entityName'];
+                });
+            }
         });
+ 
+      
     }
 
     ngOnDestroy(): void {
         this.router$.unsubscribe();
     }
 
-}
 
+
+
+
+
+
+
+
+
+    private readonly msg = inject(NzMessageService);
+  users: STData[] = [];
+  @ViewChild('customFilter', { static: true }) readonly customFilter!: TemplateRef<{
+    $implicit: STColumnFilter;
+    col: STColumn;
+    handle: STColumnFilterHandle;
+  }>;
+  columns: STColumn[] = [];
+ 
+  close(f: STColumnFilter, handle: STColumnFilterHandle, result: boolean): void {
+    this.msg.info(`Process result: ${result}${result ? '(only name 2)' : ''}`);
+    f.menus = [{ value: result ? 'name 2' : null }];
+    handle.close(result);
+  }
+
+  change(e: STChange): void {
+    console.log(e);
+  }
+
+  
+}

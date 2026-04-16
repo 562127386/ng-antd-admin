@@ -183,7 +183,7 @@ interface ChoiceType {
     dependField: string;
     items: VL[],
     trigger: string;
-    onVLChange(value, oldValue): void;
+    onVLChange(value: any, oldValue: any): void;
 }
 
 interface MultiChoiceType {

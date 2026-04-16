@@ -3,6 +3,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "strictPropertyInitialization": false,  // 加上这行   变量未赋值检查报错  关闭这个提示
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "strict": true,

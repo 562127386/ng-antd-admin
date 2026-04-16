@@ -1,0 +1,29 @@
+@if (visible()) {
+  <nz-collapse nzAccordion>
+    <nz-collapse-panel [nzHeader]="groupConfig().label | abpLocalization" [nzActive]="true">
+      <form [formGroup]="formGroup()">
+        <nz-row [nzGutter]="16">
+          @for (field of sortedChildren; track field.key) {
+            <nz-col [nzSpan]="field.gridSize ? field.gridSize * 2 : 24">
+
+              @if (field.type === 'group') {
+                <nz-dynamic-form-group
+                  [groupConfig]="field"
+                  [formGroup]="getChildFormGroup(field.key)" />
+              } @else if (field.type === 'array') {
+                <nz-dynamic-form-array
+                  [arrayConfig]="field"
+                  [formGroup]="getChildFormGroup(field.key)" />
+              } @else {
+                <nz-dynamic-form-field
+                  [field]="field"
+                  [formControlName]="field.key" />
+              }
+
+            </nz-col>
+          }
+        </nz-row>
+      </form>
+    </nz-collapse-panel>
+  </nz-collapse>
+}

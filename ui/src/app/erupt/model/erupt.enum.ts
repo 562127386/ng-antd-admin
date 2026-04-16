@@ -1,4 +1,6 @@
-import {WindowModel} from "@shared/model/window.model";
+import {WindowModel} from "../../shared/zero-code/model/window.model";
+
+
 
 export class RestPath {
     public static erupt: string = WindowModel.domain + "erupt-api";
@@ -155,4 +157,72 @@ export enum PagingType {
 export enum SortType {
     ASC = "ASC",
     DESC = "DESC",
+}
+
+ 
+export enum MenuTypeEnum {
+    table = "table",
+    tree = "tree",
+    bi = "bi",
+    tpl = "tpl",
+    mtpl = "mtpl",
+    router = "router",
+    newWindow = "newWindow",
+    selfWindow = "selfWindow",
+    link = "link",
+    fill = "fill"
+}
+ 
+
+export enum FieldVisibility {
+    INCLUDE,
+    EXCLUDE
+}
+
+export enum FormSize {
+    default = "default",
+    large = "large",
+    small = "small"
+}
+
+export enum OperationIfExprBehavior {
+    hide = "hide",
+    disabled = "disabled",
+    readonly = "readonly"
+}
+
+export enum OperationMode {
+    add = "add",
+    edit = "edit",
+    view = "view"
+}
+
+export enum OperationType {
+    add = "add",
+    edit = "edit",
+    view = "view",
+    delete = "delete",
+    detail = "detail"
+}
+
+export enum PagingType {
+    paging = "paging",
+    simple = "simple",
+    none = "none"
+}
+
+export enum SortType {
+    asc = "asc",
+    desc = "desc"
+}
+
+export enum ViewType {
+    table = "table",
+    picture = "picture",
+    pictureWall = "pictureWall",
+    avatar = "avatar",
+    qrcode = "qrcode",
+    barcode = "barcode",
+    video = "video",
+    file = "file"
 }

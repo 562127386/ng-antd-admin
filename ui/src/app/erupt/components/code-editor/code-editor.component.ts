@@ -65,7 +65,7 @@ export class CodeEditorComponent implements OnInit {
         // });
     }
 
-    codeEditorInit(event) {
+    codeEditorInit(event:any) {
         this.initComplete = true;
         // 确保编辑器正确布局
         setTimeout(() => {

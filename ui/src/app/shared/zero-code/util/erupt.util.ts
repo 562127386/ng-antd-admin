@@ -3,10 +3,10 @@
  * @param menuType  菜单类型
  * @param menuValue 菜单值
  */
-import {HttpEvent} from "@angular/common/http";
+import {HttpEvent, HttpResponse} from "@angular/common/http";
 import {MenuTypeEnum} from "../model/erupt-menu";
 
-export function generateMenuPath(type: string, value: string) {
+export function generateMenuPath(type: string, value: string): string {
     let menuValue = value || '';
     if (menuValue.indexOf("fill=1") != -1 || menuValue.indexOf("fill=true") != -1) {
         return '/fill' + joinPath(type, value);
@@ -15,7 +15,6 @@ export function generateMenuPath(type: string, value: string) {
     }
 }
 
-//关联路径
 function joinPath(type: string, value: string): string {
     let menuValue = value || '';
     switch (type) {
@@ -44,21 +43,25 @@ function joinPath(type: string, value: string): string {
                 return "/fill/" + menuValue;
             }
     }
-    return null;
+    return '';
 }
 
 
-export function downloadFile(res: HttpEvent<any>) {
-    // @ts-ignore
-    let url = window.URL.createObjectURL(new Blob([res.body]));
-    let link = document.createElement("a");
-    link.style.display = "none";
-    link.href = url;
-    // @ts-ignore
-    link.setAttribute("download", decodeURIComponent(res.headers.get('Content-Disposition').split(';')[1].split('=')[1]));
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+export function downloadFile(res: HttpEvent<any>): void {
+    if (res instanceof HttpResponse) {
+        const url = window.URL.createObjectURL(new Blob([res.body]));
+        const link = document.createElement("a");
+        link.style.display = "none";
+        link.href = url;
+        const contentDisposition = res.headers.get('Content-Disposition');
+        if (contentDisposition) {
+            const fileName = contentDisposition.split(';')[1].split('=')[1];
+            link.setAttribute("download", decodeURIComponent(fileName));
+        }
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    }
 }
 
 
@@ -66,7 +69,7 @@ export function isNull(val: any): boolean {
     return !val && val != 0;
 }
 
-export function isNotNull(val: any) {
+export function isNotNull(val: any): boolean {
     return !isNull(val);
 }
 

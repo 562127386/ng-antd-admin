@@ -1,25 +1,27 @@
 import {NzTreeNode} from "ng-zorro-antd/core/tree";
 
 export function calcChecks(nodes: NzTreeNode[]): any[] {
-    let arr = [];
+    const arr: any[] = [];
 
-    function putParents(node: NzTreeNode) {
-        if (node.getParentNode()) {
-            arr.push(node.getParentNode().key);
-            putParents(node.parentNode);
+    function putParents(node: NzTreeNode): void {
+        const parent = node.getParentNode();
+        if (parent) {
+            arr.push(parent.key);
+            putParents(parent);
         }
     }
 
-    function putChildren(node: NzTreeNode) {
-        if (node.getChildren() && node.getChildren().length > 0) {
-            for (let child of node.getChildren()) {
+    function putChildren(node: NzTreeNode): void {
+        const children = node.getChildren();
+        if (children && children.length > 0) {
+            for (const child of children) {
                 putChildren(child);
                 arr.push(child.key);
             }
         }
     }
 
-    for (let node of nodes) {
+    for (const node of nodes) {
         arr.push(node.key);
         if (node.isChecked) {
             putParents(node);

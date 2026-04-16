@@ -1,22 +1,17 @@
+declare const window: any;
+
 export interface TenantDomainInfo {
-    code: string;
-    name: string;
-    logo: string;
-    js: string;
-    css: string;
+    domain: string;
+    tenantId: string;
+    tenantName: string;
 }
 
-
-let tenantDomainInfo: TenantDomainInfo = window["eruptTenantDomainInfo"] || null;
-
-export class EruptTenantInfoData {
-
-    static get() {
-        return tenantDomainInfo;
-    }
-
-    static put(value: TenantDomainInfo) {
-        tenantDomainInfo = value;
-    }
-
+export interface TenantInfo {
+    domainInfo: TenantDomainInfo | null;
 }
+
+const eruptTenantDomainInfo: TenantDomainInfo | null = window["eruptTenantDomainInfo"] || null;
+
+export const eruptTenant: TenantInfo = {
+    domainInfo: eruptTenantDomainInfo
+};

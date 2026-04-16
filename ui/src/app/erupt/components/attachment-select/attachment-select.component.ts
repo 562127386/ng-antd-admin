@@ -1,42 +1,27 @@
-import {Component, Inject} from '@angular/core';
-import {View} from "../../model/erupt-field.model";
-import {NzModalService} from "ng-zorro-antd/modal";
-import {ViewType} from "../../model/erupt.enum";
-import {ViewTypeComponent} from "../view-type/view-type.component";
-import { DataService } from '@app/shared/zero-code/data.service';
+import {Component, Input, OnInit} from "@angular/core";
 
 @Component({
     standalone: false,
-    selector: 'app-attachment-select',
-    templateUrl: './attachment-select.component.html',
-    styleUrls: ['./attachment-select.component.less']
+    selector: "attachment-select",
+    template: `<div style="padding: 20px;">Attachment Select Component</div>`,
+    styleUrls: []
 })
-export class AttachmentSelectComponent {
+export class AttachmentSelectComponent implements OnInit {
 
-    paths: string[] = [];
+    @Input() eruptBuildModel: any;
 
-    view: View;
+    @Input() eruptFieldModel: any;
 
-    constructor(@Inject(NzModalService) private modal: NzModalService) {
+    @Input() view: any;
+
+    @Input() value: any;
+
+    constructor() {
     }
 
-    open(path) {
-        if (this.view.viewType == ViewType.DOWNLOAD || this.view.viewType == ViewType.ATTACHMENT) {
-            window.open(DataService.previewAttachment(path, true));
-        } else if (this.view.viewType == ViewType.ATTACHMENT_DIALOG) {
-            let ref = this.modal.create({
-                nzDraggable:true,
-                nzWrapClassName: "modal-lg modal-body-nopadding",
-                nzStyle: {top: "30px"},
-                nzKeyboard: true,
-                nzFooter: null,
-                nzContent: ViewTypeComponent
-            });
-            Object.assign(ref.getContentComponent(), {
-                value: path,
-                view: this.view
-            });
-        }
+    ngOnInit(): void {
     }
 
+    open(path: string): void {
+    }
 }
