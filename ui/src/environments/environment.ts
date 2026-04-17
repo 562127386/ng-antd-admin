@@ -25,7 +25,7 @@ export const environment = {
   apis: {
     default: {
       url: 'https://localhost:44312',
-      rootNamespace: 'MyCompanyName.MyProjectName',
+      rootNamespace: 'LG.TQMS',
     },
   },
 } as Environment;

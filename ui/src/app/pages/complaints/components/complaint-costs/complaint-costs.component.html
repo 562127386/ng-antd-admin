@@ -1,0 +1,71 @@
+<div class="costs-container">
+  <div class="total-cost">
+    <nz-statistic nzTitle="总质量成本" [nzValue]="totalCost" nzPrefix="¥" [nzValueStyle]="{ color: '#cf1322' }"></nz-statistic>
+  </div>
+
+  <div class="operations">
+    <button nz-button nzType="primary" (click)="openCreateModal()">添加成本</button>
+  </div>
+
+  <nz-table [nzData]="costs" [nzLoading]="loading" [nzShowPagination]="false" style="margin-top: 16px;">
+    <thead>
+      <tr>
+        <th>成本类型</th>
+        <th>费用类别</th>
+        <th>金额</th>
+        <th>说明</th>
+        <th>记录人</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let cost of costs">
+        <td>{{ cost.costType === 1 ? '直接成本' : '间接成本' }}</td>
+        <td>{{ cost.costCategoryName }}</td>
+        <td>¥{{ cost.amount | number:'1.2-2' }}</td>
+        <td>{{ cost.description }}</td>
+        <td>{{ cost.recordedByName }}</td>
+        <td>
+          <button nz-button nzType="link" (click)="openEditModal(cost)">编辑</button>
+          <button nz-button nzType="link" nzDanger (click)="deleteCost(cost.id!)">删除</button>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+</div>
+
+<nz-modal [(nzVisible)]="isModalVisible" [nzTitle]="editingCostId ? '编辑成本' : '添加成本'" (nzOnOk)="handleModalOk()" (nzOnCancel)="handleModalCancel()">
+  <ng-container *nzModalContent>
+    <form [formGroup]="costForm" nz-form>
+      <nz-form-item>
+        <nz-form-label nzRequired>成本类型</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="costType" style="width: 100%;">
+            <nz-option [nzValue]="1" nzLabel="直接成本"></nz-option>
+            <nz-option [nzValue]="2" nzLabel="间接成本"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzRequired>费用类别</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="costCategory" style="width: 100%;">
+            <nz-option *ngFor="let opt of costCategoryOptions" [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzRequired>金额</nz-form-label>
+        <nz-form-control>
+          <nz-input-number formControlName="amount" [nzMin]="0" style="width: 100%;"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>说明</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="description" rows="3"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>

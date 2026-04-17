@@ -14,7 +14,7 @@ export const environment = {
     logoUrl: '',
   },
   oAuthConfig: {
-    issuer: 'https://localhost:44318',
+    issuer: 'http://192.168.31.244:44312',
     clientId: 'CmsKit_ConsoleTestApp',
     dummyClientSecret: '1q2w3e*',
     scope: 'CmsKit',
@@ -24,7 +24,7 @@ export const environment = {
   },
   apis: {
     default: {
-      url: 'https://localhost:44318',
+      url: 'http://192.168.31.244:44312',
     },
     CmsKit: {
       url: 'https://localhost:44371',

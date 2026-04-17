@@ -1,0 +1,265 @@
+<div class="complaint-8d-container">
+  <nz-card nzTitle="8D报告进度">
+    <nz-steps [nzCurrent]="currentStep" nzSize="small">
+      <nz-step nzTitle="D1组建团队"></nz-step>
+      <nz-step nzTitle="D2问题描述"></nz-step>
+      <nz-step nzTitle="D3临时措施"></nz-step>
+      <nz-step nzTitle="D4根本原因"></nz-step>
+      <nz-step nzTitle="D5永久措施"></nz-step>
+      <nz-step nzTitle="D6实施跟踪"></nz-step>
+      <nz-step nzTitle="D7预防措施"></nz-step>
+      <nz-step nzTitle="D8结案"></nz-step>
+    </nz-steps>
+  </nz-card>
+
+  <nz-card nzTitle="D1 - 组建团队" style="margin-top: 16px;">
+    <nz-descriptions [nzColumn]="1" nzBordered>
+      <nz-descriptions-item nzTitle="团队成员">
+        <div [innerHTML]="complaint8D?.d1_TeamMembers || '暂无'"></div>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="完成时间">{{ complaint8D?.d1_CompletedTime | date:'yyyy-MM-dd HH:mm' }}</nz-descriptions-item>
+    </nz-descriptions>
+    <div style="margin-top: 16px;">
+      <button nz-button nzType="primary" (click)="openD1Modal()">编辑D1</button>
+    </div>
+  </nz-card>
+
+  <nz-card nzTitle="D2 - 问题描述" style="margin-top: 16px;">
+    <nz-descriptions [nzColumn]="1" nzBordered>
+      <nz-descriptions-item nzTitle="问题详细描述">
+        <div [innerHTML]="complaint8D?.d2_ProblemDetails || '暂无'"></div>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="现场照片/附件">
+        <div [innerHTML]="complaint8D?.d2_Photos || '暂无'"></div>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="完成时间">{{ complaint8D?.d2_CompletedTime | date:'yyyy-MM-dd HH:mm' }}</nz-descriptions-item>
+    </nz-descriptions>
+    <div style="margin-top: 16px;">
+      <button nz-button nzType="primary" (click)="openD2Modal()">编辑D2</button>
+    </div>
+  </nz-card>
+
+  <nz-card nzTitle="D3 - 临时遏制措施" style="margin-top: 16px;">
+    <nz-descriptions [nzColumn]="1" nzBordered>
+      <nz-descriptions-item nzTitle="临时措施">
+        <div [innerHTML]="complaint8D?.d3_ContainmentAction || '暂无'"></div>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="验证结果">
+        <div [innerHTML]="complaint8D?.d3_VerificationResult || '暂无'"></div>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="完成时间">{{ complaint8D?.d3_CompletedTime | date:'yyyy-MM-dd HH:mm' }}</nz-descriptions-item>
+    </nz-descriptions>
+    <div style="margin-top: 16px;">
+      <button nz-button nzType="primary" (click)="openD3Modal()">编辑D3</button>
+    </div>
+  </nz-card>
+
+  <nz-card nzTitle="D4 - 根本原因分析" style="margin-top: 16px;">
+    <nz-descriptions [nzColumn]="1" nzBordered>
+      <nz-descriptions-item nzTitle="分析工具">{{ complaint8D?.d4_AnalysisTools || '暂无' }}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="根本原因">
+        <div [innerHTML]="complaint8D?.d4_RootCauses || '暂无'"></div>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="完成时间">{{ complaint8D?.d4_CompletedTime | date:'yyyy-MM-dd HH:mm' }}</nz-descriptions-item>
+    </nz-descriptions>
+    <div style="margin-top: 16px;">
+      <button nz-button nzType="primary" (click)="openD4Modal()">编辑D4</button>
+    </div>
+  </nz-card>
+
+  <nz-card nzTitle="D5 - 永久纠正措施" style="margin-top: 16px;">
+    <nz-descriptions [nzColumn]="1" nzBordered>
+      <nz-descriptions-item nzTitle="纠正措施">
+        <div [innerHTML]="complaint8D?.d5_CorrectiveActions || '暂无'"></div>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="完成时间">{{ complaint8D?.d5_CompletedTime | date:'yyyy-MM-dd HH:mm' }}</nz-descriptions-item>
+    </nz-descriptions>
+    <div style="margin-top: 16px;">
+      <button nz-button nzType="primary" (click)="openD5Modal()">编辑D5</button>
+    </div>
+  </nz-card>
+
+  <nz-card nzTitle="D6 - 措施实施与跟踪" style="margin-top: 16px;">
+    <nz-descriptions [nzColumn]="1" nzBordered>
+      <nz-descriptions-item nzTitle="实施跟踪">
+        <div [innerHTML]="complaint8D?.d6_ImplementationTrack || '暂无'"></div>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="完成时间">{{ complaint8D?.d6_CompletedTime | date:'yyyy-MM-dd HH:mm' }}</nz-descriptions-item>
+    </nz-descriptions>
+    <div style="margin-top: 16px;">
+      <button nz-button nzType="primary" (click)="openD6Modal()">编辑D6</button>
+    </div>
+  </nz-card>
+
+  <nz-card nzTitle="D7 - 预防措施标准化" style="margin-top: 16px;">
+    <nz-descriptions [nzColumn]="1" nzBordered>
+      <nz-descriptions-item nzTitle="标准化预防措施">
+        <div [innerHTML]="complaint8D?.d7_Standardization || '暂无'"></div>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="完成时间">{{ complaint8D?.d7_CompletedTime | date:'yyyy-MM-dd HH:mm' }}</nz-descriptions-item>
+    </nz-descriptions>
+    <div style="margin-top: 16px;">
+      <button nz-button nzType="primary" (click)="openD7Modal()">编辑D7</button>
+    </div>
+  </nz-card>
+
+  <nz-card nzTitle="D8 - 结案总结" style="margin-top: 16px;">
+    <nz-descriptions [nzColumn]="1" nzBordered>
+      <nz-descriptions-item nzTitle="结案总结">
+        <div [innerHTML]="complaint8D?.d8_Conclusion || '暂无'"></div>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="客户确认">
+        <nz-tag [nzColor]="complaint8D?.customerConfirmation ? 'green' : 'red'">
+          {{ complaint8D?.customerConfirmation ? '已确认' : '未确认' }}
+        </nz-tag>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="结案日期">{{ complaint8D?.d8_ClosureDate | date:'yyyy-MM-dd' }}</nz-descriptions-item>
+    </nz-descriptions>
+    <div style="margin-top: 16px;">
+      <button nz-button nzType="primary" (click)="openD8Modal()">完成8D</button>
+    </div>
+  </nz-card>
+</div>
+
+<!-- D1 Modal -->
+<nz-modal [(nzVisible)]="isD1ModalVisible" nzTitle="编辑D1 - 组建团队" (nzOnOk)="saveD1()" (nzOnCancel)="closeD1Modal()">
+  <ng-container *nzModalContent>
+    <form [formGroup]="d1Form" nz-form>
+      <nz-form-item>
+        <nz-form-label nzRequired>团队成员</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="teamMembers" rows="6" placeholder="请输入团队成员名单，格式：姓名-部门-职位"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>
+
+<!-- D2 Modal -->
+<nz-modal [(nzVisible)]="isD2ModalVisible" nzTitle="编辑D2 - 问题描述" (nzOnOk)="saveD2()" (nzOnCancel)="closeD2Modal()">
+  <ng-container *nzModalContent>
+    <form [formGroup]="d2Form" nz-form>
+      <nz-form-item>
+        <nz-form-label nzRequired>问题详细描述</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="problemDetails" rows="6" placeholder="请详细描述问题发生的时间、地点、现象等"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>现场照片/附件</nz-form-label>
+        <nz-form-control>
+          <nz-upload nzAction="" [nzBeforeUpload]="() => false">
+            <button nz-button><span nz-icon nzType="upload"></span>上传照片</button>
+          </nz-upload>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>
+
+<!-- D3 Modal -->
+<nz-modal [(nzVisible)]="isD3ModalVisible" nzTitle="编辑D3 - 临时遏制措施" (nzOnOk)="saveD3()" (nzOnCancel)="closeD3Modal()">
+  <ng-container *nzModalContent>
+    <form [formGroup]="d3Form" nz-form>
+      <nz-form-item>
+        <nz-form-label nzRequired>临时措施</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="containmentAction" rows="4" placeholder="请描述已实施的临时措施"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzRequired>验证结果</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="verificationResult" rows="4" placeholder="请描述临时措施的效果验证"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>
+
+<!-- D4 Modal -->
+<nz-modal [(nzVisible)]="isD4ModalVisible" nzTitle="编辑D4 - 根本原因分析" (nzOnOk)="saveD4()" (nzOnCancel)="closeD4Modal()">
+  <ng-container *nzModalContent>
+    <form [formGroup]="d4Form" nz-form>
+      <nz-form-item>
+        <nz-form-label>分析工具</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="analysisTools" nzMode="multiple" nzPlaceHolder="选择分析工具">
+            <nz-option nzLabel="5Why分析法" nzValue="5Why"></nz-option>
+            <nz-option nzLabel="鱼骨图" nzValue="Fishbone"></nz-option>
+            <nz-option nzLabel="FMEA" nzValue="FMEA"></nz-option>
+            <nz-option nzLabel="柏拉图" nzValue="Pareto"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label nzRequired>根本原因</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="rootCauses" rows="6" placeholder="请分析并列出根本原因"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>
+
+<!-- D5 Modal -->
+<nz-modal [(nzVisible)]="isD5ModalVisible" nzTitle="编辑D5 - 永久纠正措施" (nzOnOk)="saveD5()" (nzOnCancel)="closeD5Modal()">
+  <ng-container *nzModalContent>
+    <form [formGroup]="d5Form" nz-form>
+      <nz-form-item>
+        <nz-form-label nzRequired>纠正措施</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="correctiveActions" rows="6" placeholder="请制定针对根本原因的永久纠正措施"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>
+
+<!-- D6 Modal -->
+<nz-modal [(nzVisible)]="isD6ModalVisible" nzTitle="编辑D6 - 实施跟踪" (nzOnOk)="saveD6()" (nzOnCancel)="closeD6Modal()">
+  <ng-container *nzModalContent>
+    <form [formGroup]="d6Form" nz-form>
+      <nz-form-item>
+        <nz-form-label nzRequired>实施跟踪</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="implementationTrack" rows="6" placeholder="请记录措施实施进度、遇到的问题及解决办法"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>
+
+<!-- D7 Modal -->
+<nz-modal [(nzVisible)]="isD7ModalVisible" nzTitle="编辑D7 - 预防措施标准化" (nzOnOk)="saveD7()" (nzOnCancel)="closeD7Modal()">
+  <ng-container *nzModalContent>
+    <form [formGroup]="d7Form" nz-form>
+      <nz-form-item>
+        <nz-form-label nzRequired>标准化预防措施</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="standardization" rows="6" placeholder="请描述更新至SOP、FMEA、检验标准等的预防措施"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>
+
+<!-- D8 Modal -->
+<nz-modal [(nzVisible)]="isD8ModalVisible" nzTitle="完成D8 - 结案" (nzOnOk)="saveD8()" (nzOnCancel)="closeD8Modal()">
+  <ng-container *nzModalContent>
+    <form [formGroup]="d8Form" nz-form>
+      <nz-form-item>
+        <nz-form-label nzRequired>结案总结</nz-form-label>
+        <nz-form-control>
+          <textarea nz-input formControlName="conclusion" rows="6" placeholder="请总结整个8D过程的经验和教训"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label>客户确认</nz-form-label>
+        <nz-form-control>
+          <label nz-checkbox formControlName="customerConfirmation">客户已确认问题解决</label>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-modal>

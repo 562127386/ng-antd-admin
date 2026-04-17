@@ -50,6 +50,10 @@ export default [
         loadChildren: () => import('../../pages/attendance/attendance-routing')
       },
       {
+        path: 'complaints',
+        loadChildren: () => import('../../pages/complaints/complaints.module').then(m => m.ComplaintsModule)
+      },
+      {
         path: 'erupt',
         loadChildren: () => import('../../erupt/erupt-routing.module').then(m => m.EruptRoutingModule)
       },

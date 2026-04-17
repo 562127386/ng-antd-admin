@@ -1,0 +1,47 @@
+<div class="comments-container">
+  <!-- <nz-list [nzDataSource]="comments" [nzRenderItem]="item" [nzItemLayout]="'horizontal'">
+    <ng-template #item let-item>
+      <nz-comment [nzAuthor]="item.creatorName || '匿名'" [nzDatetime]="(item.creationTime | date:'yyyy-MM-dd HH:mm') || ''">
+       <nz-avatar nzIcon="user" style="background-color:#87d068;" />
+        <nz-avatar nzGap="4" [nzText]="item.creatorName || '匿名'" nzSize="large" [style.background-color]="color()" />
+        <div nz-comment-content>
+          <p>{{ item.content }}</p>
+        </div>
+        <nz-comment-action>
+          <span nz-icon nzType="delete" nzTheme="outline" (click)="deleteComment(item.id!)">删除</span>
+        </nz-comment-action>
+      </nz-comment>
+    </ng-template>
+  </nz-list> -->
+
+    <nz-list [nzDataSource]="comments" [nzRenderItem]="item" nzItemLayout="horizontal">
+      <ng-template #item let-item>
+       <nz-comment [nzAuthor]="item.creatorName || '匿名'" [nzDatetime]="(item.creationTime | date:'yyyy-MM-dd HH:mm') || ''">
+         <nz-avatar nz-comment-avatar nzIcon="user" style="background-color:#87d068;" />
+          <nz-comment-content>
+            <p>{{ item.content }}</p>
+          </nz-comment-content>
+          <nz-comment-action>
+            <span nz-icon nzType="delete" nzTheme="outline" (click)="deleteComment(item.id!)">删除</span>
+          </nz-comment-action>
+          <nz-comment-action>回复</nz-comment-action>
+        </nz-comment>
+      </ng-template>
+    </nz-list>
+
+
+  <div class="comment-form">
+    <form [formGroup]="commentForm" (ngSubmit)="submitComment()">
+      <nz-form-item>
+        <nz-form-control>
+          <textarea nz-input formControlName="content" rows="4" placeholder="请输入评论内容，支持@提及..."></textarea>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-control>
+          <button nz-button nzType="primary" [disabled]="commentForm.invalid">提交评论</button>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </div>
+</div>

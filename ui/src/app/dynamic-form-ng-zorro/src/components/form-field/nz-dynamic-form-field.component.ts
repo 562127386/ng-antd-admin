@@ -119,10 +119,52 @@ export class NzDynamicFormFieldComponent implements OnInit, ControlValueAccessor
   }
 
   writeValue(value: any): void {
-    this.value?.setValue(value ?? '');
+    // 后端 → 前端（显示）：TimePicker 需要 Date 对象，但后端是 TimeSpan 字符串
+    if (this.field().type === 'time' && value) {
+      // TimeSpan "08:30:00" 转换为 Date
+      const timeValue = this.parseTimeSpanToDate(value);
+      this.value?.setValue(timeValue);
+    } else {
+      this.value?.setValue(value ?? '');
+    }
   }
 
-  registerOnChange(fn: any): void { this.onChange = fn; }
+  //parseTimeSpanToDate() : 将 TimeSpan 字符串 "08:30:00" 转换为 Date 对象
+  private parseTimeSpanToDate(timeSpanValue: string | null): Date | null {
+    if (!timeSpanValue) return null;
+    // TimeSpan 格式: "08:30:00" 或 "08:30"
+    const parts = timeSpanValue.split(':');
+    if (parts.length >= 2) {
+      const date = new Date();
+      date.setHours(parseInt(parts[0], 10) || 0);
+      date.setMinutes(parseInt(parts[1], 10) || 0);
+      date.setSeconds(parts[2] ? parseInt(parts[2], 10) : 0);
+      date.setMilliseconds(0);
+      return date;
+    }
+    return null;
+  }
+//formatDateToTimeSpan() : 将 Date 对象转换回 TimeSpan 字符串 "HH:mm:ss"
+  private formatDateToTimeSpan(date: Date | null | string): string | null {
+    if (!date) return null;
+    if (typeof date === 'string') return date;
+    // Date 对象转换为 TimeSpan 字符串 "HH:mm:ss"
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
+  }
+
+  registerOnChange(fn: any): void {
+    // 包装 onChange，TimePicker 需要转换回 TimeSpan
+    this.onChange = (value: any) => {
+      if (this.field().type === 'time' && value instanceof Date) {
+        fn(this.formatDateToTimeSpan(value));
+      } else {
+        fn(value);
+      }
+    };
+  }
   registerOnTouched(fn: any): void { this.onTouched = fn; }
   setDisabledState(isDisabled: boolean): void {
     isDisabled ? this.value?.disable() : this.value?.enable();

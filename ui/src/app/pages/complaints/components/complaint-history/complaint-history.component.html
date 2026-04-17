@@ -1,0 +1,27 @@
+<div class="history-container">
+  <nz-timeline *ngIf="statusLogs.length > 0">
+    <nz-timeline-item *ngFor="let log of statusLogs" [nzColor]="log.toStatus === 6 ? 'green' : 'blue'">
+      <div class="timeline-item">
+        <div class="timeline-header">
+          <nz-tag>{{ log.operationTime | date:'yyyy-MM-dd HH:mm:ss' }}</nz-tag>
+          <nz-tag nzColor="blue">{{ log.operatorName || '系统' }}</nz-tag>
+        </div>
+        <div class="timeline-content">
+          <span *ngIf="log.fromStatusName" class="status-change">
+            {{ log.fromStatusName }}
+          </span>
+          <span *ngIf="log.fromStatusName" class="arrow">→</span>
+          <nz-tag [nzColor]="log.toStatus === 6 ? 'green' : 'processing'">
+            {{ log.toStatusName }}
+          </nz-tag>
+        </div>
+        <div *ngIf="log.remark" class="timeline-remark">
+          备注：{{ log.remark }}
+        </div>
+      </div>
+    </nz-timeline-item>
+  </nz-timeline>
+  <div *ngIf="statusLogs.length === 0 && !loading" class="no-data">
+    暂无处理记录
+  </div>
+</div>

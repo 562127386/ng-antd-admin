@@ -26,6 +26,9 @@ import { DataService } from "@app/shared/zero-code/data.service";
     styleUrls: ["./edit-type.component.less"]
 })
 export class EditTypeComponent implements OnInit, OnDestroy, DoCheck {
+    fillForm(data: any) {
+        throw new Error('Method not implemented.');
+    }
 
     @Input() loading: boolean = false;
 
@@ -268,7 +271,7 @@ export class EditTypeComponent implements OnInit, OnDestroy, DoCheck {
     //         val = "";
     //     }
     //     navigator.clipboard.writeText(val).then(() => {
-    //         this.msg.success(this.i18n.fanyi("global.copy_success"))
+    //         this.msg.success(this.l.instant("global.copy_success"))
     //     });
     // }
 

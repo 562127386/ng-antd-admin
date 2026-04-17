@@ -1,0 +1,35 @@
+<div class="attachments-container">
+  <div class="operations">
+    <nz-upload [nzBeforeUpload]="handleUpload" [nzShowUploadList]="false">
+      <button nz-button nzType="primary">
+        <span nz-icon nzType="upload"></span>上传附件
+      </button>
+    </nz-upload>
+  </div>
+
+  <nz-table [nzData]="attachments" [nzLoading]="loading" [nzShowPagination]="false" style="margin-top: 16px;">
+    <thead>
+      <tr>
+        <th>文件名</th>
+        <th>类型</th>
+        <th>大小</th>
+        <th>关联阶段</th>
+        <th>上传人</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let att of attachments">
+        <td>{{ att.fileName }}</td>
+        <td><nz-tag>{{ att.fileType }}</nz-tag></td>
+        <td>{{ formatFileSize(att.fileSize || 0) }}</td>
+        <td><nz-tag *ngIf="att.related8DStep">{{ att.related8DStep }}</nz-tag></td>
+        <td>{{ att.uploadedByName }}</td>
+        <td>
+          <button nz-button nzType="link" (click)="downloadAttachment(att)">下载</button>
+          <button nz-button nzType="link" nzDanger (click)="deleteAttachment(att.id!)">删除</button>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+</div>

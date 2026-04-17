@@ -22,8 +22,8 @@
         <!-- Number -->
         @else if (field().type === 'number') {
           <nz-input-number [formControlName]="'value'"
-                           [nzMin]="field()?.min" [nzMax]="field()?.max"
-                           [nzStep]="field()?.step" style="width: 100%" />
+                           [nzMin]="field().min??0" [nzMax]="field().max??undefined"
+                           [nzStep]="field().step??1" style="width: 100%" />
         }
 
         <!-- Select -->

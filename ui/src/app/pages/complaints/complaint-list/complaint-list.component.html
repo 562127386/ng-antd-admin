@@ -1,0 +1,383 @@
+<div class="complaint-container">
+  <nz-card [nzBordered]="false" class="dashboard-card">
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="4">
+        <nz-statistic
+          *ngIf="dashboard"
+          [nzValue]="dashboard.totalComplaints || 0"
+          nzTitle="客诉总数"></nz-statistic>
+      </div>
+      <div nz-col [nzSpan]="4">
+        <nz-statistic
+          *ngIf="dashboard"
+          [nzValue]="dashboard.pendingComplaints || 0"
+          nzTitle="待处理"
+          nzTheme="warning"></nz-statistic>
+      </div>
+      <div nz-col [nzSpan]="4">
+        <nz-statistic
+          *ngIf="dashboard"
+          [nzValue]="dashboard.inProgressComplaints || 0"
+          nzTitle="处理中"
+          nzTheme="processing"></nz-statistic>
+      </div>
+      <div nz-col [nzSpan]="4">
+        <nz-statistic
+          *ngIf="dashboard"
+          [nzValue]="dashboard.overdueComplaints || 0"
+          nzTitle="已超时"
+          nzTheme="error"></nz-statistic>
+      </div>
+      <div nz-col [nzSpan]="4">
+        <nz-statistic
+          *ngIf="dashboard"
+          [nzValue]="(dashboard.closureRate || 0) / 100"
+          nzTitle="结案率"
+          [nzPrefix]="'%'"
+          [nzValueStyle]="{ color: '#3f8600' }"></nz-statistic>
+      </div>
+    </div>
+  </nz-card>
+
+  <nz-card [nzBordered]="false" class="search-card">
+    <form [formGroup]="searchForm" nz-form nzLayout="inline">
+      <nz-form-item>
+        <nz-form-control>
+          <input nz-input formControlName="filter" placeholder="搜索客诉号/客户/产品" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-control>
+          <input nz-input formControlName="complaintNo" placeholder="客诉单号" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-control>
+          <nz-select formControlName="severityLevel" nzAllowClear nzPlaceHolder="严重程度" style="width: 120px;">
+            <nz-option *ngFor="let opt of severityOptions" [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-control>
+          <nz-select formControlName="status" nzAllowClear nzPlaceHolder="状态" style="width: 120px;">
+            <nz-option *ngFor="let opt of statusOptions" [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-control>
+          <input nz-input formControlName="productBatch" placeholder="批次号" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-control>
+          <nz-date-picker formControlName="occurrenceDateFrom" nzPlaceHolder="发生日期从"></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-control>
+          <nz-date-picker formControlName="occurrenceDateTo" nzPlaceHolder="发生日期至"></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-control>
+          <button nz-button nzType="primary" (click)="search()">
+            <span>搜索</span>
+          </button>
+          <button nz-button (click)="reset()" style="margin-left: 8px;">重置</button>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </nz-card>
+
+  <nz-card [nzBordered]="false">
+    <div class="table-operations">
+      <button nz-button nzType="primary" (click)="openCreateModal()">
+        <span>新增客诉</span>
+      </button>
+    </div>
+
+    <nz-table
+      [nzData]="complaints"
+      [nzLoading]="loading"
+      [nzTotal]="totalCount"
+      [nzPageIndex]="pageIndex"
+      [nzPageSize]="pageSize"
+      (nzPageIndexChange)="onPageIndexChange($event)"
+      (nzPageSizeChange)="onPageSizeChange($event)"
+      nzShowSizeChanger
+      [nzFrontPagination]="false">
+      <thead>
+        <tr>
+          <th>客诉单号</th>
+          <th>客户名称</th>
+          <th>产品/批次</th>
+          <th>问题描述</th>
+          <th>严重程度</th>
+          <th>状态</th>
+          <th>负责人</th>
+          <th>响应时限</th>
+          <th>处理时限</th>
+          <th>是否超时</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let complaint of complaints; trackBy: trackByComplaintId">
+          <td>
+            <a (click)="openDetailDrawer(complaint)">{{ complaint.complaintNo }}</a>
+          </td>
+          <td>{{ complaint.customerName }}</td>
+          <td>
+            <div>{{ complaint.productCode }}</div>
+            <div style="color: #999; font-size: 12px;">{{ complaint.productBatch }}</div>
+          </td>
+          <td>
+            {{ complaint.problemDescription | slice:0:30 }}{{ (complaint.problemDescription?.length || 0) > 30 ? '...' : '' }}
+          </td>
+          <td>
+            <nz-tag [nzColor]="getSeverityTagColor(complaint.severityLevel!)">
+              {{ severityLevelNames[complaint.severityLevel!] }}
+            </nz-tag>
+          </td>
+          <td>
+            <nz-tag [nzColor]="getStatusTagColor(complaint.status!)">
+              {{ complaintStatusNames[complaint.status!] }}
+            </nz-tag>
+          </td>
+          <td>{{ complaint.assignedToName }}</td>
+          <td>
+            <span *ngIf="complaint.responseDueTime">
+              {{ complaint.responseDueTime | date:'yyyy-MM-dd HH:mm' }}
+            </span>
+          </td>
+          <td>
+            <span *ngIf="complaint.resolutionDueTime">
+              {{ complaint.resolutionDueTime | date:'yyyy-MM-dd HH:mm' }}
+            </span>
+          </td>
+          <td>
+            <nz-tag nzColor="red" *ngIf="isOverdue(complaint)">已超时</nz-tag>
+            <nz-tag nzColor="green" *ngIf="!isOverdue(complaint)">正常</nz-tag>
+          </td>
+          <td>
+            <button nz-button nzType="link" (click)="openDetailDrawer(complaint)">详情</button>
+            <button nz-button nzType="link" (click)="openEditModal(complaint)">编辑</button>
+            <button nz-button nzType="link" nzDanger (click)="deleteComplaint(complaint)">删除</button>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </nz-card>
+</div>
+
+<nz-drawer
+  [nzVisible]="isDrawerVisible"
+  [nzTitle]="drawerTitle"
+  [nzWidth]="1200"
+  (nzOnClose)="closeDrawer()">
+  <ng-container *nzDrawerContent>
+    <div *ngIf="selectedComplaint" class="complaint-detail">
+      <nz-tabs>
+        <nz-tab nzTitle="基本信息">
+          <div class="action-bar">
+            <nz-space>
+              <button nz-button nzType="primary" (click)="openStatusUpdateModal()">
+                <span>更新状态</span>
+              </button>
+              <button nz-button (click)="openAssignModal()">
+                <span>分配客诉</span>
+              </button>
+            </nz-space>
+          </div>
+          <nz-descriptions [nzColumn]="2" nzBordered>
+            <nz-descriptions-item nzTitle="客诉单号">{{ selectedComplaint.complaintNo }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="客户名称">{{ selectedComplaint.customerName }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="客户联系方式">{{ selectedComplaint.customerContact }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="客户邮箱">{{ selectedComplaint.customerEmail }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="产品编号">{{ selectedComplaint.productCode }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="产品名称">{{ selectedComplaint.productName }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="产品批次">{{ selectedComplaint.productBatch }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="严重程度">
+              <nz-tag [nzColor]="getSeverityTagColor(selectedComplaint.severityLevel!)">
+                {{ severityLevelNames[selectedComplaint.severityLevel!] }}
+              </nz-tag>
+            </nz-descriptions-item>
+            <nz-descriptions-item nzTitle="问题描述" [nzSpan]="2">{{ selectedComplaint.problemDescription }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="期望处理方式">{{ selectedComplaint.expectedResolution }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="发生时间">{{ selectedComplaint.occurrenceTime | date:'yyyy-MM-dd HH:mm' }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="当前状态">
+              <nz-tag [nzColor]="getStatusTagColor(selectedComplaint.status!)">
+                {{ complaintStatusNames[selectedComplaint.status!] }}
+              </nz-tag>
+            </nz-descriptions-item>
+            <nz-descriptions-item nzTitle="负责人">{{ selectedComplaint.assignedToName }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="负责团队">{{ selectedComplaint.assignedTeam }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="响应时限">{{ selectedComplaint.responseDueTime | date:'yyyy-MM-dd HH:mm' }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="处理时限">{{ selectedComplaint.resolutionDueTime | date:'yyyy-MM-dd HH:mm' }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="实际响应时间">{{ selectedComplaint.actualResponseTime | date:'yyyy-MM-dd HH:mm' }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="实际处理时间">{{ selectedComplaint.actualResolutionTime | date:'yyyy-MM-dd HH:mm' }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="是否需要8D">
+              <nz-tag nzColor="blue" *ngIf="selectedComplaint.is8DRequired">是</nz-tag>
+              <nz-tag *ngIf="!selectedComplaint.is8DRequired">否</nz-tag>
+            </nz-descriptions-item>
+            <nz-descriptions-item nzTitle="总质量成本">{{ selectedComplaint.totalCost | currency:'¥' }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="来源渠道">{{ selectedComplaint.sourceChannel }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="备注" [nzSpan]="2">{{ selectedComplaint.remark }}</nz-descriptions-item>
+          </nz-descriptions>
+        </nz-tab>
+
+        <nz-tab nzTitle="8D报告" *ngIf="selectedComplaint.is8DRequired">
+          <app-complaint-8d [complaintId]="selectedComplaint.id!"></app-complaint-8d>
+        </nz-tab>
+
+        <nz-tab nzTitle="处理记录">
+          <app-complaint-history [complaintId]="selectedComplaint.id!"></app-complaint-history>
+        </nz-tab>
+
+        <nz-tab nzTitle="协同评论">
+          <app-complaint-comments [complaintId]="selectedComplaint.id!"></app-complaint-comments>
+        </nz-tab>
+
+        <nz-tab nzTitle="质量成本">
+          <app-complaint-costs [complaintId]="selectedComplaint.id!"></app-complaint-costs>
+        </nz-tab>
+
+        <nz-tab nzTitle="附件">
+          <app-complaint-attachments [complaintId]="selectedComplaint.id!"></app-complaint-attachments>
+        </nz-tab>
+
+        <nz-tab nzTitle="全链路追溯">
+          <app-complaint-traceability [complaintId]="selectedComplaint.id!"></app-complaint-traceability>
+        </nz-tab>
+      </nz-tabs>
+    </div>
+  </ng-container>
+</nz-drawer>
+
+<nz-modal
+  [(nzVisible)]="isModalVisible"
+  [nzTitle]="modalTitle"
+  [nzOkText]="'确认'"
+  [nzCancelText]="'取消'"
+  (nzOnOk)="handleModalOk()"
+  (nzOnCancel)="handleModalCancel()"
+  [nzWidth]="800">
+  <ng-container *nzModalContent>
+    <form [formGroup]="complaintForm" nz-form>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6" nzRequired>客户名称</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <input nz-input formControlName="customerName" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6" nzRequired>产品编号</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <input nz-input formControlName="productCode" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">产品名称</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <input nz-input formControlName="productName" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">产品批次</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <input nz-input formControlName="productBatch" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6" nzRequired>问题描述</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <textarea nz-input formControlName="problemDescription" rows="4"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6" nzRequired>严重程度</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <nz-select formControlName="severityLevel" style="width: 100%;">
+            <nz-option *ngFor="let opt of severityOptions" [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">备注</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <textarea nz-input formControlName="remark" rows="3"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+    </ng-container>
+  </nz-modal>
+
+  <!-- 状态更新模态框 -->
+  <nz-modal
+    [(nzVisible)]="isStatusUpdateModalVisible"
+    nzTitle="更新客诉状态"
+    [nzOkText]="'确认'"
+    [nzCancelText]="'取消'"
+    (nzOnOk)="handleStatusUpdateOk()"
+    (nzOnCancel)="handleStatusUpdateCancel()"
+    [nzWidth]="600">
+    <ng-container *nzModalContent>
+      <form [formGroup]="statusUpdateForm" nz-form>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6" nzRequired>新状态</nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <nz-select formControlName="newStatus" style="width: 100%;">
+              <nz-option *ngFor="let opt of statusOptions" [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6">备注</nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <textarea nz-input formControlName="remark" rows="3"></textarea>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </ng-container>
+  </nz-modal>
+
+  <!-- 客诉分配模态框 -->
+  <nz-modal
+    [(nzVisible)]="isAssignModalVisible"
+    nzTitle="分配客诉"
+    [nzOkText]="'确认'"
+    [nzCancelText]="'取消'"
+    (nzOnOk)="handleAssignOk()"
+    (nzOnCancel)="handleAssignCancel()"
+    [nzWidth]="600">
+    <ng-container *nzModalContent>
+      <form [formGroup]="assignForm" nz-form>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6" nzRequired>负责人ID</nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <input nz-input formControlName="assigneeId" placeholder="请输入负责人ID" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6" nzRequired>负责人名称</nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <input nz-input formControlName="assigneeName" placeholder="请输入负责人名称" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6">负责团队</nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <input nz-input formControlName="team" placeholder="请输入负责团队" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6">备注</nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <textarea nz-input formControlName="remark" rows="3"></textarea>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </ng-container>
+  </nz-modal>

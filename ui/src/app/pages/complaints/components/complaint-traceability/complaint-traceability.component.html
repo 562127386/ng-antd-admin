@@ -1,0 +1,85 @@
+<div class="traceability-container">
+  <nz-spin [nzSpinning]="loading">
+    <nz-card nzTitle="全链路追溯报告" style="margin-bottom: 16px;">
+      <nz-descriptions [nzColumn]="2" nzBordered>
+        <nz-descriptions-item nzTitle="客诉单号">{{ report?.complaintInfo?.complaintNo }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="产品批次">{{ report?.complaintInfo?.productBatch }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="生成时间">{{ report?.generatedAt | date:'yyyy-MM-dd HH:mm' }}</nz-descriptions-item>
+      </nz-descriptions>
+      <div style="margin-top: 16px;">
+        <button nz-button (click)="loadTraceReport()">刷新数据</button>
+      </div>
+    </nz-card>
+
+    <nz-tabs>
+      <nz-tab nzTitle="来料检验(IQC)">
+        <nz-card nzTitle="来料检验记录">
+          <p *ngIf="!report?.iqc">暂无数据</p>
+          <nz-descriptions *ngIf="report?.iqc" [nzColumn]="1" nzBordered>
+            <nz-descriptions-item nzTitle="检验单数量">{{ report?.iqc?.inspectionOrders?.length || 0 }}</nz-descriptions-item>
+          </nz-descriptions>
+        </nz-card>
+      </nz-tab>
+
+      <nz-tab nzTitle="过程检验(IPQC)">
+        <nz-card nzTitle="过程检验记录">
+          <p *ngIf="!report?.ipqc">暂无数据</p>
+          <nz-descriptions *ngIf="report?.ipqc" [nzColumn]="1" nzBordered>
+            <nz-descriptions-item nzTitle="检验单数量">{{ report?.ipqc?.inspectionOrders?.length || 0 }}</nz-descriptions-item>
+          </nz-descriptions>
+        </nz-card>
+      </nz-tab>
+
+      <nz-tab nzTitle="成品检验(FQC)">
+        <nz-card nzTitle="成品检验记录">
+          <p *ngIf="!report?.fqc">暂无数据</p>
+          <nz-descriptions *ngIf="report?.fqc" [nzColumn]="1" nzBordered>
+            <nz-descriptions-item nzTitle="检验单数量">{{ report?.fqc?.inspectionOrders?.length || 0 }}</nz-descriptions-item>
+          </nz-descriptions>
+        </nz-card>
+      </nz-tab>
+
+      <nz-tab nzTitle="出货检验(OQC)">
+        <nz-card nzTitle="出货检验记录">
+          <p *ngIf="!report?.oqc">暂无数据</p>
+        </nz-card>
+      </nz-tab>
+
+      <nz-tab nzTitle="生产数据">
+        <nz-card nzTitle="生产工单信息">
+          <p *ngIf="!report?.production">暂无数据</p>
+        </nz-card>
+      </nz-tab>
+
+      <nz-tab nzTitle="设备参数">
+        <nz-card nzTitle="设备运行记录">
+          <p *ngIf="!report?.equipment">暂无数据</p>
+        </nz-card>
+      </nz-tab>
+
+      <nz-tab nzTitle="测试报告">
+        <nz-card nzTitle="测试报告记录">
+          <p *ngIf="!report?.testReports">暂无数据</p>
+        </nz-card>
+      </nz-tab>
+
+      <nz-tab nzTitle="物料追溯">
+        <nz-card nzTitle="物料批次信息">
+          <p *ngIf="!report?.material">暂无数据</p>
+        </nz-card>
+      </nz-tab>
+
+      <nz-tab nzTitle="供应商">
+        <nz-card nzTitle="供应商资质">
+          <p *ngIf="!report?.supplier">暂无数据</p>
+        </nz-card>
+      </nz-tab>
+
+      <nz-tab nzTitle="批次流向">
+        <nz-card nzTitle="产品批次流向">
+          <p *ngIf="!report?.batchFlow">暂无数据</p>
+        </nz-card>
+      </nz-tab>
+    </nz-tabs>
+  </nz-spin>
+</div>

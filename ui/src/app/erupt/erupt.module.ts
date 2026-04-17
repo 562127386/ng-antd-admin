@@ -89,11 +89,18 @@ import {STColumn} from "@delon/abc/st";
  import {CodeEditorComponent} from './components/code-editor/code-editor.component';
 import { EditTypeComponent } from "./components/edit-type/edit-type.component";
 import { EruptIframeComponent } from "@app/shared/zero-code/component/iframe.component";
-
+import { SearchComponent } from "./components/search/search.component";
+import { SearchSeComponent } from "./components/search-se/search-se.component";
+import { AutoCompleteComponent } from "./components/auto-complete/auto-complete.component";
+import { DateComponent } from "./components/date/date.component";
+import { ChoiceComponent } from "./components/choice/choice.component";
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { TreeSelectComponent } from "./components/tree-select/tree-select.component";
+import { ReferenceComponent } from "./components/reference/reference.component";
 
 @NgModule({
     imports: [
-       
+       NzInputNumberModule,
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
@@ -174,6 +181,15 @@ import { EruptIframeComponent } from "@app/shared/zero-code/component/iframe.com
          CodeEditorComponent,
          AttachmentSelectComponent,
          ExcelImportComponent,
+
+          DateComponent,
+        //MarkdownComponent,
+        ChoiceComponent,
+        TreeSelectComponent,
+              SearchComponent,
+        AutoCompleteComponent,
+        ReferenceComponent,
+        SearchSeComponent,
         EditComponent,
         TreeComponent,
         TableViewComponent,

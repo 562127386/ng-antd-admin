@@ -1269,7 +1269,7 @@ export class TableComponent implements OnInit, OnDestroy {
         }
         if (tableOperators.length > 0) {
             _columns.push({
-                title: this.l.instant("table.operation"),
+                title: this.l.instant("操作"),
                 fixed: "right",
                 width: eruptJson.layout.tableOperatorWidth ? eruptJson.layout.tableOperatorWidth :
                     ((tableOperators.length + (this.eruptBuildModel.eruptModel.tags?.size || 0)) * 35 + 18 + (isFoldButtons ? 60 : 0)),
@@ -1525,16 +1525,163 @@ export class TableComponent implements OnInit, OnDestroy {
 
     tempSelectedField: View | null = null;
 
+   
     @Input() set drill(drill: DrillInput) {
         this._drill = drill;
+        this.init(this.dataService.getEruptBuild(drill.erupt), {
+            url: RestPath.data + "/table/" + drill.erupt,
+            header: {
+                erupt: drill.erupt,
+                ...DataService.drillToHeader(drill)
+            }
+        });
     }
 
-    _reference: { eruptBuild: EruptBuildModel, eruptField: EruptFieldModel, mode: SelectMode } | undefined;
+    _reference: { eruptBuild: EruptBuildModel, eruptField: EruptFieldModel, mode: SelectMode };
+
+    @Input() set referenceTable(reference: {
+        eruptBuild: EruptBuildModel,
+        eruptField: EruptFieldModel, mode: SelectMode,
+        parentEruptName?: string,
+        dependVal?: any, tabRef: boolean
+    }) {
+        this._reference = reference;
+        this.init(this.dataService.getEruptBuildByField(reference.eruptBuild.eruptModel.eruptName,
+            reference.eruptField.fieldName, reference.parentEruptName), {
+            url: RestPath.data + "/" + reference.eruptBuild.eruptModel.eruptName
+                + "/reference-table/" + reference.eruptField.fieldName
+                + "?tabRef=" + reference.tabRef
+                + (reference.dependVal ? "&dependValue=" + reference.dependVal : ''),
+            header: {
+                erupt: reference.eruptBuild.eruptModel.eruptName,
+                eruptParent: reference.parentEruptName || ''
+            }
+        }, (eb: EruptBuildModel) => {
+            let erupt = eb.eruptModel.eruptJson;
+            erupt.rowOperation = [];
+            erupt.drills = [];
+            erupt.power.add = false;
+            erupt.power.delete = false;
+            erupt.power.importable = false;
+            erupt.power.edit = false;
+            erupt.power.export = false;
+            erupt.power.viewDetails = false;
+        });
+    }
 
     ngOnDestroy(): void {
         if (this.refreshTimeInterval) {
             clearInterval(this.refreshTimeInterval);
         }
+    }
+
+    init(observable: Observable<EruptBuildModel>, req: {
+        url: string,
+        header: any
+    }, callback?: Function) {
+        this.selectedRows = [];
+        this.showTable = true;
+        this.adding = false;
+      //  this.eruptBuildModel = null;   这个地方需要设置为空
+        this.searchErupt = null;
+        this.hasSearchFields = false;
+        this.existMultiRowFoldButtons = false;
+        this.sortFields = [];
+        this.selectedSorts = [];
+        this.tempSelectedField = null;
+        this.showSortPopover = false;
+        this.header = req.header;
+        this.dataPage.url = req.url;
+        observable.subscribe(eb => {
+                this.vis = eb.eruptModel.eruptJson.vis || [];
+                if (this.vis.length) {
+                    this.hideCondition = true;
+                    this.visOptions = this.vis.map((i, index) => ({
+                        label: i.title,
+                        value: index,
+                        useTemplate: true
+                    }))
+                    if (eb.eruptModel.eruptJson.visRawTable) {
+                        this.visOptions.push({
+                            icon: 'table'
+                        })
+                    }
+                }
+                eb.eruptModel.eruptJson.rowOperation.forEach((item) => {
+                    if (item.mode != OperationMode.SINGLE) {
+                        if (item.fold) {
+                            this.existMultiRowFoldButtons = true;
+                        }
+                    }
+                })
+
+                for (let eruptFieldModel of eb.eruptModel.eruptFieldModels) {
+                    for (let view of eruptFieldModel.eruptFieldJson.views??[]) {
+                        if (view.sortable) {
+                            this.sortFields.push(view);
+                        }
+                    }
+                }
+
+                let layout = eb.eruptModel.eruptJson.layout;
+                if (layout) {
+                    if (layout.pageSizes) {
+                        this.dataPage.pageSizes = layout.pageSizes;
+                    }
+                    if (layout.pageSize) {
+                        this.dataPage.ps = layout.pageSize;
+                    }
+                    if (layout.pagingType) {
+                        if (layout.pagingType == PagingType.FRONT) {
+                            let page = this.dataPage.page;
+                            page.front = true;
+                            page.show = true;
+                            page.placement = "center";
+                            page.showQuickJumper = true;
+                            page.showSize = true;
+                            page.pageSizes = layout.pageSizes;
+                            this.dataPage.showPagination = false;
+                        } else if (layout.pagingType == PagingType.NONE) {
+                            this.dataPage.ps = layout.pageSizes[layout.pageSizes.length - 1] * 10;
+                            this.dataPage.showPagination = false;
+                            this.dataPage.page.show = false;
+                        }
+                    }
+                    if (layout.refreshTime && layout.refreshTime > 0) {
+                        this.refreshTimeInterval = setInterval(() => {
+                            try {
+                                this.query();
+                            } catch (e) {
+                                this.query()
+                            }
+                        }, layout.refreshTime);
+                    }
+                }
+                let dt = eb.eruptModel.eruptJson.linkTree;
+                this.linkTree = !!dt;
+                this.dataHandler.initErupt(eb);
+                callback && callback(eb);
+                this.eruptBuildModel = eb;
+                this.buildTableConfig();
+                this.searchErupt = <EruptModel>cloneDeep(this.eruptBuildModel.eruptModel);
+                for (let fieldModel of this.searchErupt.eruptFieldModels) {
+                    let edit = fieldModel.eruptFieldJson.edit;
+                    if (edit) {
+                        if (edit.search.value) {
+                            this.hasSearchFields = true;
+                            fieldModel.eruptFieldJson.edit && (fieldModel.eruptFieldJson.edit.$value = this.searchErupt.searchCondition[fieldModel.fieldName]);
+                        }
+                    }
+                }
+                if (dt) {
+                    this.showTable = !dt.dependNode;
+                    if (dt.dependNode) {
+                        return;
+                    }
+                }
+                this.query();
+            }
+        );
     }
 
     visChange(e: number) {

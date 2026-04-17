@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Rest, RestService } from '@abp/ng.core';
 import { Observable } from 'rxjs';
-import { DrillInput, Sort } from '@app/erupt/model/erupt.model';
+import { DrillInput, Sort, Tree } from '@app/erupt/model/erupt.model';
 import { QueryCondition } from '@app/erupt/model/erupt.vo';
+import { VL } from '@app/erupt/model/erupt-field.model';
 
 // 通用分页请求
 export interface PagedRequest {
@@ -14,6 +15,104 @@ export interface PagedRequest {
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
+    //获取reference-tree数据
+    queryReferenceTreeData(eruptName: string, refName: string, dependVal?: any, eruptParent?: string): Observable<Tree[]> {
+        let param :any= {};
+        if (dependVal) {
+            param["dependValue"] = dependVal;
+        }
+        param["erupt"]= eruptName
+        if (eruptParent) {
+            param["eruptParent"] = eruptParent;
+        } 
+
+        //这个地方需要后端再完善
+        const url = `${this.getApiBaseUrl('common')}/reference-tree`;
+        return this.rest.request<any, any>(
+            { method: 'POST', url, 
+              body:  { 
+              dependValue:dependVal,
+              param:param,
+              refName:refName,
+              erupt: eruptName,
+              eruptParent: eruptParent || ''
+              } 
+            },
+            { apiName: 'default' }
+        );
+
+    }
+    findAutoCompleteValue(eruptName: string, field: string, formData: any, val: string, eruptParentName?: string): Observable<string[]> {
+        // return this._http.post(RestPath.comp + "/auto-complete/" + eruptName + "/" + field, formData, {
+        //     val: val.trim(),
+        // }, {
+        //     observe: "body",
+        //     headers: {
+        //         erupt: eruptName,
+        //         eruptParent: eruptParentName || ''
+        //     }
+        // });
+         //这个地方需要后端再完善
+        const url = `${this.getApiBaseUrl('common')}/auto-complete/${field}`;
+        return this.rest.request<any, any>(
+            { method: 'POST', url, 
+              body:  { 
+              field:field,
+              val:val,
+              formData:formData,
+              erupt: eruptName,
+              eruptParent: eruptParentName || ''
+              } 
+            },
+            { apiName: 'default' }
+        );
+    }
+    choiceTrigger(eruptName: string, field: string, val: any, eruptParentName?: string): any {
+        // return this._http.get<any>(RestPath.component + "/choice-trigger/" + eruptName + "/" + field, {
+        //     val: val
+        // }, {
+        //     observe: "body",
+        //     headers: {
+        //         erupt: eruptName,
+        //         eruptParent: eruptParentName || ''
+        //     }
+        // });
+        //这个地方需要后端再完善
+        const url = `${this.getApiBaseUrl('common')}/choice-trigger/${field}`;
+        return this.rest.request<any, any>(
+            { method: 'POST', url, 
+              body:  { 
+              field:field,
+              val:val,
+              erupt: eruptName,
+              eruptParent: eruptParentName || ''
+              } 
+            },
+            { apiName: 'default' }
+        );
+    }
+   findChoiceItemFilter(eruptName: string, field: string, data: object, eruptParentName?: string): Observable<VL[]> {
+        // return this._http.post(RestPath.component + "/choice-item-filter/" + eruptName + "/" + field, data, {}, {
+        //     observe: "body",
+        //     headers: {
+        //         erupt: eruptName,
+        //         eruptParent: eruptParentName || ''
+        //     }
+        // });
+        //这个地方需要后端再完善
+        const url = `${this.getApiBaseUrl('common')}/choice-item-filter/${field}`;
+        return this.rest.request<any, any>(
+            { method: 'POST', url, 
+              body:  { 
+              field:field,
+              data:data,
+              erupt: eruptName,
+              eruptParent: eruptParentName || ''
+              } 
+            },
+            { apiName: 'default' }
+        );
+    }
     public upload: string = "/upload/";
 
     public excelImport: string = "/import/";

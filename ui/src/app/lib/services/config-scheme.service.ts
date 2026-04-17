@@ -10,13 +10,14 @@ import {
   PagedRequest,
   PagedResult
 } from '../models';
+import { environment } from '@env/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ConfigSchemeService {
-  private readonly apiUrl = 'https://localhost:44312/api/dynamic-form/schemes';
-  private readonly filterSchemeApiUrl = 'https://localhost:44312/api/dynamic-form/filter-schemes';
-  private readonly tableColumnApiUrl = 'https://localhost:44312/api/dynamic-form/table-columns';
-  private readonly lookupSchemeApiUrl = 'https://localhost:44312/api/dynamic-form/lookup-schemes';
+  private apiUrl = environment['apiUrl'] + '/api/dynamic-form/schemes';
+  private readonly filterSchemeApiUrl = environment['apiUrl'] +'/api/dynamic-form/filter-schemes';
+  private readonly tableColumnApiUrl = environment['apiUrl'] +'/api/dynamic-form/table-columns';
+  private readonly lookupSchemeApiUrl = environment['apiUrl'] +'/api/dynamic-form/lookup-schemes';
 
   constructor(private http: HttpClient) {}
 

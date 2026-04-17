@@ -18,6 +18,7 @@
   "private": true,
   "dependencies": {
     "@abp/ng.core": "^10.2.0",
+    "@abp/signalr": "^10.2.0",
     "@amap/amap-jsapi-loader": "^1.0.1",
     "@angular/animations": "~21.2.0",
     "@angular/common": "~21.2.0",
@@ -36,6 +37,7 @@
     "@delon/cache": "^21.1.0",
     "@delon/theme": "^21.1.0",
     "@micro-zoe/micro-app": "^1.0.0-rc.29",
+    "@microsoft/signalr": "^10.0.0",
     "@ngx-validate/core": "^0.2.0",
     "@tinymce/tinymce-angular": "^9.0.0",
     "@worktile/gantt": "^21.0.0",
