@@ -7,7 +7,8 @@ import { NzUploadModule, NzUploadFile } from 'ng-zorro-antd/upload';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { ComplaintAttachment } from '../../models/complaint.model';
-import { ComplaintService } from '../../services/complaint.service';
+import { ComplaintService } from '@app/proxy/application/complaints';
+//import { ComplaintService } from '../../services/complaint.service';
 
 @Component({
   selector: 'app-complaint-attachments',
@@ -33,7 +34,7 @@ export class ComplaintAttachmentsComponent implements OnInit {
 
   loadAttachments(): void {
     this.loading = true;
-    this.complaintService.getAttachments(this.complaintId).subscribe({
+    this.complaintService.getAttachments(this.complaintId,{ maxResultCount:500,skipCount:0 }).subscribe({
       next: (result:any) => {
         this.attachments = result.items;
         this.loading = false;

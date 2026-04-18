@@ -43,8 +43,10 @@ import {
   COMPLAINT_STATUS_NAMES,
   ComplaintStatus
 } from '../models/enums';
-import { ComplaintService } from '../services/complaint.service';
+//import { ComplaintService } from '../services/complaint.service';
 import { ComplaintNotificationService } from '../services/complaint-notification.service';
+import { ComplaintService } from '@app/proxy/application/complaints';
+import { ComplaintDashboardDto, ComplaintDto, GetComplaintListDto } from '@app/proxy/application/contracts/complaints';
 
 @Component({
   selector: 'app-complaint-list',
@@ -87,7 +89,7 @@ import { ComplaintNotificationService } from '../services/complaint-notification
   standalone: true
 })
 export class ComplaintListComponent implements OnInit {
-  complaints: Complaint[] = [];
+  complaints: ComplaintDto[] = [];
   loading = false;
   totalCount = 0;
   pageIndex = 1;
@@ -99,7 +101,7 @@ export class ComplaintListComponent implements OnInit {
   modalTitle = '新增客诉';
   editingComplaintId: string | null = null;
 
-  selectedComplaint: Complaint | null = null;
+  selectedComplaint: ComplaintDto | null = null;
   isDrawerVisible = false;
   drawerTitle = '客诉详情';
 
@@ -111,7 +113,7 @@ export class ComplaintListComponent implements OnInit {
   isAssignModalVisible = false;
   assignForm: FormGroup;
 
-  dashboard: ComplaintDashboard | null = null;
+  dashboard: ComplaintDashboardDto | null = null;
   isDashboardLoading = false;
 
   severityOptions = Object.entries(SEVERITY_LEVEL_NAMES).map(([value, label]) => ({ value: Number(value), label }));
@@ -142,7 +144,9 @@ export class ComplaintListComponent implements OnInit {
       productCode: ['', Validators.required],
       productName: [''],
       productBatch: [''],
+      sn: [''],
       problemDescription: ['', Validators.required],
+      expectedResolution: [''],
       severityLevel: [null, Validators.required],
       remark: ['']
     });
@@ -179,16 +183,16 @@ export class ComplaintListComponent implements OnInit {
 
   getComplaints(): void {
     this.loading = true;
-    const params: GetComplaintList = {
+    const params: GetComplaintListDto = {
       skipCount: (this.pageIndex - 1) * this.pageSize,
       maxResultCount: this.pageSize,
       ...this.searchForm.value
     };
 
-    this.complaintService.getComplaints(params).subscribe({
+    this.complaintService.getList(params).subscribe({
       next: (result) => {
-        this.complaints = result.items;
-        this.totalCount = result.totalCount;
+        this.complaints = result.items??[];
+        this.totalCount = result.totalCount??0;
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -253,14 +257,16 @@ export class ComplaintListComponent implements OnInit {
       productCode: '',
       productName: '',
       productBatch: '',
+      sn: '',
       problemDescription: '',
+      expectedResolution: '',
       severityLevel: null,
       remark: ''
     });
     this.isModalVisible = true;
   }
 
-  openEditModal(complaint: Complaint): void {
+  openEditModal(complaint: ComplaintDto): void {
     this.editingComplaintId = complaint.id || null;
     this.modalTitle = '编辑客诉';
     this.complaintForm.patchValue({
@@ -268,13 +274,15 @@ export class ComplaintListComponent implements OnInit {
       productCode: complaint.productCode,
       productName: complaint.productName || '',
       productBatch: complaint.productBatch || '',
+      sn: complaint.sn || '',
       problemDescription: complaint.problemDescription,
+      expectedResolution: complaint.expectedResolution || '',
       severityLevel: complaint.severityLevel
     });
     this.isModalVisible = true;
   }
 
-  openDetailDrawer(complaint: Complaint): void {
+  openDetailDrawer(complaint: ComplaintDto): void {
     this.selectedComplaint = complaint;
     this.drawerTitle = `客诉详情 - ${complaint.complaintNo}`;
     this.isDrawerVisible = true;
@@ -302,7 +310,7 @@ export class ComplaintListComponent implements OnInit {
     const complaintData = this.complaintForm.value;
 
     if (this.editingComplaintId) {
-      this.complaintService.updateComplaint(this.editingComplaintId, complaintData).subscribe({
+      this.complaintService.update(this.editingComplaintId, complaintData).subscribe({
         next: () => {
           this.message.success('更新成功');
           this.isModalVisible = false;
@@ -314,7 +322,7 @@ export class ComplaintListComponent implements OnInit {
         }
       });
     } else {
-      this.complaintService.createComplaint(complaintData).subscribe({
+      this.complaintService.create(complaintData).subscribe({
         next: () => {
           this.message.success('创建成功');
           this.isModalVisible = false;
@@ -328,7 +336,7 @@ export class ComplaintListComponent implements OnInit {
     }
   }
 
-  deleteComplaint(complaint: Complaint): void {
+  deleteComplaint(complaint: ComplaintDto): void {
     this.modal.confirm({
       nzTitle: '确认删除',
       nzContent: `确定要删除客诉 ${complaint.complaintNo} 吗？`,
@@ -336,7 +344,7 @@ export class ComplaintListComponent implements OnInit {
       nzOkType: 'primary',
       nzOkDanger: true,
       nzOnOk: () => {
-        this.complaintService.deleteComplaint(complaint.id!).subscribe({
+        this.complaintService.delete(complaint.id!).subscribe({
           next: () => {
             this.message.success('删除成功');
             this.getComplaints();
@@ -374,7 +382,7 @@ export class ComplaintListComponent implements OnInit {
     return colors[status] || 'default';
   }
 
-  isOverdue(complaint: Complaint): boolean {
+  isOverdue(complaint: ComplaintDto): boolean {
     if (complaint.status === ComplaintStatus.Closed || complaint.status === ComplaintStatus.Archived) {
       return false;
     }
@@ -384,7 +392,7 @@ export class ComplaintListComponent implements OnInit {
     return false;
   }
 
-  trackByComplaintId(index: number, complaint: Complaint): string {
+  trackByComplaintId(index: number, complaint: ComplaintDto): string {
     return complaint.id || index.toString();
   }
 
@@ -459,7 +467,7 @@ export class ComplaintListComponent implements OnInit {
 
     const assignData = this.assignForm.value;
 
-    this.complaintService.assignComplaint(this.selectedComplaint.id, assignData).subscribe({
+    this.complaintService.assign(this.selectedComplaint.id, assignData).subscribe({
       next: () => {
         this.message.success('客诉分配成功');
         this.isAssignModalVisible = false;

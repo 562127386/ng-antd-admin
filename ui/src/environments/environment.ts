@@ -17,9 +17,9 @@ export const environment = {
   oAuthConfig: {
     issuer: 'https://localhost:44312/',
     redirectUri: baseUrl,
-    clientId: 'MyProjectName_App',
+    clientId: 'TQMS_App',
     responseType: 'code',
-    scope: 'offline_access MyProjectName',
+    scope: 'offline_access TQMS',
     requireHttps: true,
   },
   apis: {

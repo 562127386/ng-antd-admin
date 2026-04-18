@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { NzTimelineModule } from 'ng-zorro-antd/timeline';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { ComplaintStatusLog } from '../../models/complaint.model';
-import { ComplaintService } from '../../services/complaint.service';
+//import { ComplaintService } from '../../services/complaint.service';
 import { COMPLAINT_STATUS_NAMES } from '../../models/enums';
+import { ComplaintService } from '@app/proxy/application/complaints/complaint.service';
 
 @Component({
   selector: 'app-complaint-history',
@@ -28,7 +29,7 @@ export class ComplaintHistoryComponent implements OnInit {
 
   loadHistory(): void {
     this.loading = true;
-    this.complaintService.getStatusLogs(this.complaintId).subscribe({
+    this.complaintService.getStatusLogs(this.complaintId,{ maxResultCount:500,skipCount:0 }).subscribe({
       next: (result:any) => {
         this.statusLogs = result.items;
         this.loading = false;

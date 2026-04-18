@@ -12,7 +12,8 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzStatisticModule } from 'ng-zorro-antd/statistic';
 import { ComplaintCost } from '../../models/complaint.model';
 import { COST_CATEGORY_NAMES, CostType } from '../../models/enums';
-import { ComplaintService } from '../../services/complaint.service';
+import { ComplaintService } from '@app/proxy/application/complaints';
+//import { ComplaintService } from '../../services/complaint.service';
 
 @Component({
   selector: 'app-complaint-costs',
@@ -65,7 +66,7 @@ export class ComplaintCostsComponent implements OnInit {
 
   loadCosts(): void {
     this.loading = true;
-    this.complaintService.getCosts(this.complaintId).subscribe({
+    this.complaintService.getCosts(this.complaintId,{ maxResultCount:500,skipCount:0 }).subscribe({
       next: (result:any) => {
         this.costs = result.items;
         this.totalCost = this.costs.reduce((sum, c) => sum + (c.amount || 0), 0);

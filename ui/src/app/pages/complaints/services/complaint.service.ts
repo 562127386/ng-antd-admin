@@ -20,7 +20,7 @@ import {
 @Injectable({
   providedIn: 'root'
 })
-export class ComplaintService {
+export class ComplaintServiceOLD {
   private apiUrl = '/api/app/complaint';
 
   constructor(private rest: RestService) {}
@@ -57,18 +57,56 @@ export class ComplaintService {
   }
 
   createComplaint(complaint: CreateUpdateComplaint): Observable<Complaint> {
-    return this.rest.request<CreateUpdateComplaint, Complaint>({
+    const requestBody: any = {
+      CustomerId: complaint.customerId,
+      CustomerName: complaint.customerName,
+      CustomerContact: complaint.customerContact,
+      CustomerEmail: complaint.customerEmail,
+      ProductId: complaint.productId,
+      ProductCode: complaint.productCode,
+      ProductName: complaint.productName,
+      ProductBatch: complaint.productBatch,
+      SN: complaint.sn,
+      ProblemDescription: complaint.problemDescription,
+      SeverityLevel: complaint.severityLevel,
+      OccurrenceTime: complaint.occurrenceTime,
+      ExpectedResolution: complaint.expectedResolution,
+      Is8DRequired: complaint.is8DRequired,
+      Remark: complaint.remark,
+      SourceChannel: complaint.sourceChannel
+    };
+
+    return this.rest.request<any, Complaint>({
       method: 'POST',
       url: this.apiUrl,
-      body: complaint
+      body: requestBody
     });
   }
 
   updateComplaint(id: string, complaint: CreateUpdateComplaint): Observable<Complaint> {
-    return this.rest.request<CreateUpdateComplaint, Complaint>({
+    const requestBody: any = {
+      CustomerId: complaint.customerId,
+      CustomerName: complaint.customerName,
+      CustomerContact: complaint.customerContact,
+      CustomerEmail: complaint.customerEmail,
+      ProductId: complaint.productId,
+      ProductCode: complaint.productCode,
+      ProductName: complaint.productName,
+      ProductBatch: complaint.productBatch,
+      SN: complaint.sn,
+      ProblemDescription: complaint.problemDescription,
+      SeverityLevel: complaint.severityLevel,
+      OccurrenceTime: complaint.occurrenceTime,
+      ExpectedResolution: complaint.expectedResolution,
+      Is8DRequired: complaint.is8DRequired,
+      Remark: complaint.remark,
+      SourceChannel: complaint.sourceChannel
+    };
+
+    return this.rest.request<any, Complaint>({
       method: 'PUT',
       url: `${this.apiUrl}/${id}`,
-      body: complaint
+      body: requestBody
     });
   }
 

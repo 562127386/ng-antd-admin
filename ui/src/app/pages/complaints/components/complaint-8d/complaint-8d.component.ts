@@ -18,7 +18,8 @@ import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { COMPLAINT_8D_STATUS_NAMES } from '../../models/enums';
 import { Complaint8D } from '../../models/complaint.model';
-import { ComplaintService } from '../../services/complaint.service';
+import { ComplaintService } from '@app/proxy/application/complaints';
+//import { ComplaintService } from '../../services/complaint.service';
 
 @Component({
   selector: 'app-complaint-8d',

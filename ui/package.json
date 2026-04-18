@@ -59,6 +59,7 @@
     "zxcvbn3": "^0.1.1"
   },
   "devDependencies": {
+    "@abp/ng.schematics": "^10.3.0",
     "@angular/build": "~21.2.0",
     "@angular/cli": "~21.2.0",
     "@angular/compiler-cli": "~21.2.0",

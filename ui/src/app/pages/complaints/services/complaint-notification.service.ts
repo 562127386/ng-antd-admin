@@ -21,130 +21,238 @@ export class ComplaintNotificationService implements OnDestroy {
     this.initSignalRConnection();
   }
 
+  private getAuthToken(): string {
+    // ABP框架通常将token存储在以下key中
+    const possibleKeys = [
+      // ABP Angular 存储的key
+      'o3r',  // ABP Angular的token key
+      'access_token',
+      'abp.auth.token',
+      'Authorization',
+      // 其他可能的key
+      'ng3auth',
+      'oidc_token'
+    ];
+
+    // 也尝试从sessionStorage获取
+    const sessionKeys = ['Authorization', 'abp.auth.token'];
+
+    console.log('SignalR: Searching for auth token...');
+
+    // 先检查sessionStorage（ABP通常用这个）
+    for (const key of sessionKeys) {
+      const token = sessionStorage.getItem(key);
+      if (token) {
+        console.log('SignalR: Found token in sessionStorage with key:', key);
+        return token.replace(/^Bearer\s+/i, '').trim();
+      }
+    }
+
+    // 再检查localStorage
+    for (const key of possibleKeys) {
+      const token = localStorage.getItem(key);
+      if (token) {
+        console.log('SignalR: Found token in localStorage with key:', key);
+        return token.replace(/^Bearer\s+/i, '').trim();
+      }
+    }
+
+    // 尝试从ABP的环境配置获取
+    try {
+      const abpAuth = (window as any).abp?.auth;
+      if (abpAuth?.token) {
+        console.log('SignalR: Found token in window.abp.auth');
+        return abpAuth.token.replace(/^Bearer\s+/i, '').trim();
+      }
+    } catch (e) {
+      console.log('SignalR: Could not access window.abp.auth');
+    }
+
+    console.warn('SignalR: No authorization token found');
+    return '';
+  }
+
   private initSignalRConnection(): void {
     try {
       const apiUrl = this.getApiUrl();
-      //const hubUrl = `${apiUrl}/hubs/complaint`;
-const hubUrl = `${apiUrl}/signalr-hubs/complaint`;
-      // // 获取认证令牌
-      // const token = sessionStorage.getItem('Authorization');
-      // // 移除Bearer前缀
-      // const accessToken = token ? token.replace('Bearer ', '') : '';
-      // this.hubConnection = new signalR.HubConnectionBuilder()
-      //   .withUrl(hubUrl, {
-      //     accessTokenFactory: () => accessToken
-      //   })
-      //   .withAutomaticReconnect()
-      //   .build();
+      const hubUrl = `${apiUrl}/signalr-hubs/complaint`;
 
-       this.hubConnection = new signalR.HubConnectionBuilder()
-        .withUrl(hubUrl)
-        .withAutomaticReconnect()
+      // 获取认证令牌
+      const accessToken = this.getAuthToken();
+      console.log('SignalR: Connecting to', hubUrl);
+      console.log('SignalR: Token available:', !!accessToken, 'Length:', accessToken?.length);
+
+      this.hubConnection = new signalR.HubConnectionBuilder()
+        .withUrl(hubUrl, {
+          accessTokenFactory: () => accessToken,
+          skipNegotiation: false,
+          transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling
+        })
+        .withAutomaticReconnect([0, 2000, 5000, 10000, 15000, 30000])
+        .configureLogging(signalR.LogLevel.Debug)
         .build();
 
+      // 添加连接状态变化日志
+      this.hubConnection.onclose((error) => {
+        console.log('SignalR: Connection closed', error);
+      });
 
+      this.hubConnection.onreconnecting((error) => {
+        console.log('SignalR: Reconnecting...', error);
+      });
+
+      this.hubConnection.onreconnected((connectionId) => {
+        console.log('SignalR: Reconnected with ID:', connectionId);
+        this.connectionEstablished.next(true);
+      });
 
       if (this.hubConnection) {
-        this.hubConnection.on('ReceiveComplaintNotification', (data: ComplaintNotification) => {
-          this.showNotification(data);
-          this.notificationSubject.next(data);
-        });
-
-        this.hubConnection.on('ReceiveStatusChangeNotification', (data: ComplaintNotification) => {
-          this.showNotification(data);
-          this.notificationSubject.next(data);
-        });
-
-        this.hubConnection.on('ReceiveReminderNotification', (data: ComplaintNotification) => {
-          this.showReminder(data);
-          this.notificationSubject.next(data);
-        });
-
-        this.hubConnection.on('ReceiveEscalationNotification', (data: ComplaintNotification) => {
-          this.showEscalation(data);
-          this.notificationSubject.next(data);
-        });
-
-        this.hubConnection.on('ReceiveAssignmentNotification', (data: ComplaintNotification) => {
-          this.showNotification(data);
-          this.notificationSubject.next(data);
-        });
-
-        this.hubConnection.on('ReceiveApprovalNotification', (data: ComplaintNotification) => {
-          this.showNotification(data);
-          this.notificationSubject.next(data);
-        });
-
-        this.hubConnection.on('ReceiveApprovalResultNotification', (data: ComplaintNotification) => {
-          this.showNotification(data);
-          this.notificationSubject.next(data);
-        });
-
-        this.hubConnection.on('ReceiveCommentNotification', (data: ComplaintNotification) => {
-          this.showComment(data);
-          this.notificationSubject.next(data);
-        });
-
-        this.hubConnection.on('ReceiveMentionNotification', (data: ComplaintNotification) => {
-          this.showMention(data);
-          this.notificationSubject.next(data);
-        });
-
-        this.hubConnection.on('Receive8DStageNotification', (data: ComplaintNotification) => {
-          this.showNotification(data);
-          this.notificationSubject.next(data);
-        });
-
-        this.hubConnection.on('ReceiveClosureNotification', (data: ComplaintNotification) => {
-          this.showNotification(data);
-          this.notificationSubject.next(data);
-        });
-
-        this.hubConnection.on('ReceiveUploadProgress', (data: any) => {
-          this.showUploadProgress(data);
-        });
-
-        this.hubConnection.on('ReceiveUploadComplete', (data: any) => {
-          this.showUploadComplete(data);
-        });
-
-        this.hubConnection.on('ReceiveDownloadReady', (data: any) => {
-          this.showDownloadReady(data);
-        });
-
-        this.hubConnection.on('ReceiveImportProgress', (data: any) => {
-          this.showImportProgress(data);
-        });
-
-        this.hubConnection.on('ReceiveImportComplete', (data: any) => {
-          this.showImportComplete(data);
-        });
+        // 注册所有通知处理器
+        this.registerNotificationHandlers();
 
         this.hubConnection.start()
           .then(() => {
-            console.log('Complaint SignalR connected');
+            console.log('SignalR: Connected successfully');
+            console.log('SignalR: Connection ID:', this.hubConnection?.connectionId);
             this.connectionEstablished.next(true);
           })
           .catch((err: any) => {
-            console.error('Complaint SignalR connection failed:', err);
+            console.error('SignalR: Connection failed:', err);
             this.connectionEstablished.next(false);
           });
       }
     } catch (error) {
-      console.error('Failed to initialize Complaint notification:', error);
+      console.error('SignalR: Initialization failed:', error);
     }
   }
 
+  private registerNotificationHandlers(): void {
+    if (!this.hubConnection) return;
+
+    // 通用通知处理器 - 最重要的一个
+    this.hubConnection.on('ReceiveNotification', (data: any) => {
+      console.log('SignalR: Received ReceiveNotification:', data);
+      this.showNotification(data);
+      this.notificationSubject.next(data);
+    });
+
+    // 客诉特定通知
+    this.hubConnection.on('ReceiveComplaintNotification', (data: ComplaintNotification) => {
+      console.log('SignalR: Received complaint notification:', data);
+      this.showNotification(data);
+      this.notificationSubject.next(data);
+    });
+
+    // 状态变更通知
+    this.hubConnection.on('ReceiveStatusChangeNotification', (data: ComplaintNotification) => {
+      console.log('SignalR: Received status change:', data);
+      this.showNotification(data);
+      this.notificationSubject.next(data);
+    });
+
+    // 提醒通知
+    this.hubConnection.on('ReceiveReminderNotification', (data: ComplaintNotification) => {
+      console.log('SignalR: Received reminder:', data);
+      this.showReminder(data);
+      this.notificationSubject.next(data);
+    });
+
+    // 升级通知
+    this.hubConnection.on('ReceiveEscalationNotification', (data: ComplaintNotification) => {
+      console.log('SignalR: Received escalation:', data);
+      this.showEscalation(data);
+      this.notificationSubject.next(data);
+    });
+
+    // 分配通知
+    this.hubConnection.on('ReceiveAssignmentNotification', (data: ComplaintNotification) => {
+      console.log('SignalR: Received assignment:', data);
+      this.showNotification(data);
+      this.notificationSubject.next(data);
+    });
+
+    // 审批通知
+    this.hubConnection.on('ReceiveApprovalNotification', (data: ComplaintNotification) => {
+      console.log('SignalR: Received approval:', data);
+      this.showNotification(data);
+      this.notificationSubject.next(data);
+    });
+
+    // 审批结果通知
+    this.hubConnection.on('ReceiveApprovalResultNotification', (data: ComplaintNotification) => {
+      console.log('SignalR: Received approval result:', data);
+      this.showNotification(data);
+      this.notificationSubject.next(data);
+    });
+
+    // 评论通知
+    this.hubConnection.on('ReceiveCommentNotification', (data: ComplaintNotification) => {
+      console.log('SignalR: Received comment:', data);
+      this.showComment(data);
+      this.notificationSubject.next(data);
+    });
+
+    // @提及通知
+    this.hubConnection.on('ReceiveMentionNotification', (data: ComplaintNotification) => {
+      console.log('SignalR: Received mention:', data);
+      this.showMention(data);
+      this.notificationSubject.next(data);
+    });
+
+    // 8D阶段通知
+    this.hubConnection.on('Receive8DStageNotification', (data: ComplaintNotification) => {
+      console.log('SignalR: Received 8D stage:', data);
+      this.showNotification(data);
+      this.notificationSubject.next(data);
+    });
+
+    // 结案通知
+    this.hubConnection.on('ReceiveClosureNotification', (data: ComplaintNotification) => {
+      console.log('SignalR: Received closure:', data);
+      this.showNotification(data);
+      this.notificationSubject.next(data);
+    });
+
+    // 上传进度
+    this.hubConnection.on('ReceiveUploadProgress', (data: any) => {
+      console.log('SignalR: Received upload progress:', data);
+      this.showUploadProgress(data);
+    });
+
+    // 上传完成
+    this.hubConnection.on('ReceiveUploadComplete', (data: any) => {
+      console.log('SignalR: Received upload complete:', data);
+      this.showUploadComplete(data);
+    });
+
+    // 下载就绪
+    this.hubConnection.on('ReceiveDownloadReady', (data: any) => {
+      console.log('SignalR: Received download ready:', data);
+      this.showDownloadReady(data);
+    });
+
+    // 导入进度
+    this.hubConnection.on('ReceiveImportProgress', (data: any) => {
+      console.log('SignalR: Received import progress:', data);
+      this.showImportProgress(data);
+    });
+
+    // 导入完成
+    this.hubConnection.on('ReceiveImportComplete', (data: any) => {
+      console.log('SignalR: Received import complete:', data);
+      this.showImportComplete(data);
+    });
+  }
+
   private getApiUrl(): string {
-    // 使用ABP框架配置的API URL
-    return 'https://localhost:44312'; // 后端API服务器地址
+    return 'https://localhost:44312';
   }
 
   showNotification(data: ComplaintNotification): void {
     const color = this.getColor(data.color);
-    this.notification.create(data.type?.toString() || 'info', data.title || '通知', data.message || '', {
-      nzDuration: 5000,
-      nzStyle: { backgroundColor: color }
+    this.notification.create(data.type?.toString() || 'info', data.title || '通知', (data.message??'') +'\n'+ (data.content??'') , {
+      nzPlacement:'top',
+      nzDuration: 0
     });
   }
 
@@ -159,11 +267,11 @@ const hubUrl = `${apiUrl}/signalr-hubs/complaint`;
   }
 
   showComment(data: ComplaintNotification): void {
-    this.notification.info(data.title || '新评论', data.message || '', { nzDuration: 5000 });
+    this.notification.info(data.title || '新评论', data.message || '', { nzDuration: 0 });
   }
 
   showMention(data: ComplaintNotification): void {
-    this.notification.info(data.title || '@提及', data.message || '', { nzDuration: 5000 });
+    this.notification.info(data.title || '@提及', data.message || '', { nzDuration: 0 });
   }
 
   showUploadProgress(data: any): void {

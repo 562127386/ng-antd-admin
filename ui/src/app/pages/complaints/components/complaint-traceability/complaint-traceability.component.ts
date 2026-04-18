@@ -10,7 +10,8 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzStatisticModule } from 'ng-zorro-antd/statistic';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { FullTraceReport } from '../../models/complaint.model';
-import { ComplaintService } from '../../services/complaint.service';
+import { ComplaintService } from '@app/proxy/application/complaints';
+//import { ComplaintService } from '../../services/complaint.service';
 
 @Component({
   selector: 'app-complaint-traceability',

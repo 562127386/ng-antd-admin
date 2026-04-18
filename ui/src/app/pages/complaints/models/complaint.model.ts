@@ -128,6 +128,7 @@ export interface ComplaintNotification {
   severityLevelName?: string;
   title?: string;
   message?: string;
+  content?: string;
   icon?: string;
   color?: string;
   data?: Record<string, any>;
@@ -137,6 +138,7 @@ export interface ComplaintNotification {
 }
 
 export interface CreateUpdateComplaint {
+  sn?: string;
   customerId?: string;
   customerName?: string;
   customerContact?: string;
