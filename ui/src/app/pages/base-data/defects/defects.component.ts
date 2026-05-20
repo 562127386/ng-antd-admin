@@ -23,8 +23,10 @@ import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
-import { DefectDto, CreateUpdateDefectDto, GetDefectListDto } from '../models/defect.model';
-import { DefectService } from '../services/defect.service';
+//import { DefectDto, CreateUpdateDefectDto, GetDefectListDto } from '../models/defect.model';
+import { CreateUpdateDefectDto, DefectDto, DefectService, GetDefectListDto } from '@app/proxy/base-data/defects';
+import { DefectCategory, DefectSeverity, InspectionType } from '@app/proxy/enums';
+//import { DefectService } from '../services/defect.service';
 
 @Component({
   selector: 'app-defects',
@@ -160,11 +162,11 @@ export class DefectsComponent implements OnInit {
     this.isEdit = true;
     this.editId = id;
     this.searchFormData = {
-      code: dataItem.code,
-      name: dataItem.name,
-      category: dataItem.category,
-      severity: dataItem.severity,
-      module: dataItem.module,
+      code: dataItem.code??'',
+      name: dataItem.name??'',
+      category: dataItem.category??DefectCategory.Dimension,
+      severity: dataItem.severity??DefectSeverity.Major,
+      module: dataItem.module??InspectionType.IQC,
       remark: dataItem.remark || '',
       isEnabled: dataItem.isEnabled
     };

@@ -1,5 +1,15 @@
 import type { EntityDto, PagedAndSortedResultRequestDto } from '@abp/ng.core';
 
+export interface UploadFileDto extends EntityDto<string> {
+  tenantId?: string | null;
+  entityName?: string;
+  recordId?: string;
+  name?: string;
+  type?: string;
+  path?: string;
+  url?: string;
+}
+
 export interface CreateUploadFileDto {
   tenantId?: string | null;
   entityName: string;
@@ -20,14 +30,4 @@ export interface UpdateUploadFileDto {
   name: string;
   type: string;
   path: string;
-}
-
-export interface UploadFileDto extends EntityDto<string> {
-  tenantId?: string | null;
-  entityName?: string;
-  recordId?: string;
-  name?: string;
-  type?: string;
-  path?: string;
-  url?: string;
 }

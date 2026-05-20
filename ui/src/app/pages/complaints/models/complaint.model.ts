@@ -2,6 +2,7 @@ import { SeverityLevel, ComplaintStatus, Complaint8DStatus, NotificationType } f
 
 export interface Complaint {
   id?: string;
+  sn?: string;
   complaintNo?: string;
   customerId?: string;
   customerName?: string;

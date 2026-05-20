@@ -20,11 +20,32 @@
          <nz-avatar nz-comment-avatar nzIcon="user" style="background-color:#87d068;" />
           <nz-comment-content>
             <p>{{ item.content }}</p>
+             <nz-list nzBordered headerRowOutlet>
+  @for (path of item.files; track path) {
+    <nz-list-item>
+      <a href="javascript:void(0)" (click)="open(path.path)">{{ path.path }}</a>
+    </nz-list-item>
+  }
+</nz-list>
           </nz-comment-content>
           <nz-comment-action>
             <span nz-icon nzType="delete" nzTheme="outline" (click)="deleteComment(item.id!)">删除</span>
           </nz-comment-action>
           <nz-comment-action>回复</nz-comment-action>
+            <!-- <nz-comment-action>   <nz-upload
+      [nzShowButton]="true"
+            [nzBeforeUpload]="beforeUpload" 
+            [nzShowUploadList]="true" 
+            (nzChange)="upLoadNzChange($event)"
+    >
+      <button nz-button>
+        <nz-icon nzType="upload" />上传
+      </button>
+    </nz-upload>
+</nz-comment-action> -->
+ 
+
+
         </nz-comment>
       </ng-template>
     </nz-list>
@@ -34,10 +55,13 @@
     <form [formGroup]="commentForm" (ngSubmit)="submitComment()">
       <nz-form-item>
         <nz-form-control>
+                    <!-- 可选：显示全局 Loading -->
+<nz-spin [nzSpinning]="isUploading" nzTip="文件上传中，请稍候...">
+
            <nz-mention [nzSuggestions]="users" (nzOnSelect)="onSelect($event)" [nzValueWith]="valueWith">
               <textarea
                 rows="6"
-                placeholder="请输入评论内容，支持@提及..."
+                placeholder="请输入评论内容，支持 @提及..."
                 nzMentionTrigger
                 nz-input
                 formControlName="content"
@@ -46,7 +70,8 @@
 
 
 
-          <nz-upload nzType="drag"
+
+          <nz-upload nzType="drag" 
             [nzShowButton]="true"
             [nzBeforeUpload]="beforeUpload"
             [nzFileList]="fileList"
@@ -62,6 +87,10 @@
                   支持单次或批量上传。严禁上传公司数据及其他违规文件
                 </p>
           </nz-upload>
+
+  <!-- 内容区 -->
+</nz-spin>
+
           <!-- <nz-list nzBordered headerRowOutlet>
             @for (file of fileList; track file) {
               <nz-list-item>

@@ -110,16 +110,17 @@
       [nzFrontPagination]="false">
       <thead>
         <tr>
-          <th>客诉单号</th>
+          <th style="width: 100px;">客诉单号</th>
           <th>客户名称</th>
           <th>产品/批次</th>
+          <th>SN</th>
           <th>问题描述</th>
-          <th>严重程度</th>
-          <th>状态</th>
-          <th>负责人</th>
-          <th>响应时限</th>
-          <th>处理时限</th>
-          <th>是否超时</th>
+          <th style="width: 80px;">严重程度</th>
+          <th style="width: 80px;">状态</th>
+          <th style="width: 80px;">负责人</th>
+          <th style="width: 120px;">响应时限</th>
+          <th style="width: 120px;">处理时限</th>
+          <th style="width: 80px;">是否超时</th>
           <th>操作</th>
         </tr>
       </thead>
@@ -133,6 +134,7 @@
             <div>{{ complaint.productCode }}</div>
             <div style="color: #999; font-size: 12px;">{{ complaint.productBatch }}</div>
           </td>
+          <td>{{ complaint.sn }}</td>
           <td>
             {{ complaint.problemDescription | slice:0:30 }}{{ (complaint.problemDescription?.length || 0) > 30 ? '...' : '' }}
           </td>
@@ -147,12 +149,12 @@
             </nz-tag>
           </td>
           <td>{{ complaint.assignedToName }}</td>
-          <td>
+          <td style="width: 120px;">
             <span *ngIf="complaint.responseDueTime">
               {{ complaint.responseDueTime | date:'yyyy-MM-dd HH:mm' }}
             </span>
           </td>
-          <td>
+          <td style="width: 120px;">
             <span *ngIf="complaint.resolutionDueTime">
               {{ complaint.resolutionDueTime | date:'yyyy-MM-dd HH:mm' }}
             </span>
@@ -162,7 +164,7 @@
             <nz-tag nzColor="green" *ngIf="!isOverdue(complaint)">正常</nz-tag>
           </td>
           <td>
-            <button nz-button nzType="link" (click)="openDetailDrawer(complaint)">详情</button>
+            <button nz-button nzType="link" (click)="openDetailDrawer(complaint)">处理客诉</button>
             <button nz-button nzType="link" (click)="openEditModal(complaint)">编辑</button>
             <button nz-button nzType="link" nzDanger (click)="deleteComplaint(complaint)">删除</button>
           </td>
@@ -199,6 +201,7 @@
             <nz-descriptions-item nzTitle="产品编号">{{ selectedComplaint.productCode }}</nz-descriptions-item>
             <nz-descriptions-item nzTitle="产品名称">{{ selectedComplaint.productName }}</nz-descriptions-item>
             <nz-descriptions-item nzTitle="产品批次">{{ selectedComplaint.productBatch }}</nz-descriptions-item>
+            <nz-descriptions-item nzTitle="SN">{{ selectedComplaint.sn }}</nz-descriptions-item>
             <nz-descriptions-item nzTitle="严重程度">
               <nz-tag [nzColor]="getSeverityTagColor(selectedComplaint.severityLevel!)">
                 {{ severityLevelNames[selectedComplaint.severityLevel!] }}
@@ -285,6 +288,12 @@
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
+        <nz-form-label [nzSpan]="6">SN</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <input nz-input formControlName="sn" placeholder="请输入SN" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
         <nz-form-label [nzSpan]="6">产品批次</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <input nz-input formControlName="productBatch" />
@@ -305,11 +314,19 @@
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
+        <nz-form-label [nzSpan]="6">期望处理方式</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <textarea nz-input formControlName="expectedResolution" rows="3" placeholder="请输入期望处理方式"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
         <nz-form-label [nzSpan]="6">备注</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <textarea nz-input formControlName="remark" rows="3"></textarea>
         </nz-form-control>
       </nz-form-item>
+      
     </form>
     </ng-container>
   </nz-modal>
@@ -358,8 +375,17 @@
           <nz-form-label [nzSpan]="6" nzRequired>负责人ID</nz-form-label>
           <nz-form-control [nzSpan]="18">
             <input nz-input formControlName="assigneeId" placeholder="请输入负责人ID" />
+
+            <!-- <erupt-reference [eruptModel]="searchEruptModel" [field]="field" [readonly]="false"
+                [size]="size"></erupt-reference> -->
+
           </nz-form-control>
         </nz-form-item>
+
+
+            
+
+
         <nz-form-item>
           <nz-form-label [nzSpan]="6" nzRequired>负责人名称</nz-form-label>
           <nz-form-control [nzSpan]="18">

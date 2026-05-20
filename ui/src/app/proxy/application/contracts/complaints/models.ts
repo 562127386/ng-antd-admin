@@ -1,5 +1,6 @@
 import type { AuditedEntityDto, EntityDto, PagedAndSortedResultRequestDto } from '@abp/ng.core';
 import type { Complaint8DStatus } from '../../../enums/complaint8-dstatus.enum';
+import type { UploadFileDto } from '../../../upload-files/models';
 import type { CostType } from '../../../enums/cost-type.enum';
 import type { CostCategory } from '../../../enums/cost-category.enum';
 import type { SeverityLevel } from '../../../enums/severity-level.enum';
@@ -69,6 +70,7 @@ export interface ComplaintCommentDto extends AuditedEntityDto<string> {
   parentId?: string | null;
   creatorName?: string | null;
   replies?: ComplaintCommentDto[] | null;
+  files?: UploadFileDto[];
 }
 
 export interface ComplaintCostDto extends AuditedEntityDto<string> {
@@ -169,6 +171,7 @@ export interface CreateUpdateComplaintCommentDto {
   content?: string;
   mentionedUsers?: string | null;
   parentId?: string | null;
+  files?: string[] | null;
 }
 
 export interface CreateUpdateComplaintCostDto {

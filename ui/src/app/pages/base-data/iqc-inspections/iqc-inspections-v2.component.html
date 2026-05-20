@@ -106,7 +106,9 @@
             <a (click)="submitInspection(data.id)" *ngIf="canSubmit(data.status)">提交</a>
             <a (click)="startInspection(data.id)" *ngIf="canStartInspection(data.status)">开始检验</a>
             <a (click)="completeInspection(data)" *ngIf="canCompleteInspection(data.status)">完成检验</a>
-            <a (click)="cancelInspection(data.id)" *ngIf="canCancel(data.status)">取消</a>
+            <a  nz-popconfirm
+      nzPopconfirmTitle="确认取消?  取消后此质检单就作废了，无法进行任何操作！"
+      (nzOnConfirm)="cancelInspection(data.id)"    *ngIf="canCancel(data.status)">取消</a>
             <a (click)="createNonConforming(data)" *ngIf="canCreateNonConforming(data.status, data.result, data.nonConformingOrderNo)">创建不合格处理单</a>
             <a (click)="viewNonConforming(data.nonConformingOrderNo)" *ngIf="data.nonConformingOrderNo">查看不合格处理单</a>
             <a nz-popconfirm nzPopconfirmTitle="确定删除?" (nzOnConfirm)="showDeleteConfirm(data.id)" nzPopconfirmOkText="确定" nzPopconfirmCancelText="取消" *ngIf="canDelete(data.status)">删除</a>

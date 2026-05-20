@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@env/environment';
 import { DefectDto, CreateUpdateDefectDto, GetDefectListDto, PagedResultDto } from '../models/defect.model';
+import { Rest } from '@abp/ng.core';
 
 @Injectable({
   providedIn: 'root',
@@ -41,4 +42,14 @@ export class DefectService {
   setEnabled(id: string, isEnabled: boolean): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/${id}/enabled`, { isEnabled });
   }
+    // setEnabled = (id: string, isEnabled: boolean, config?: Partial<Rest.Config>) =>
+    //   this.restService.request<any, void>(
+    //     {
+    //       method: 'PUT',
+    //       url: `/api/Defects/${id}/enabled`,
+    //       body: isEnabled
+    //     },
+    //     { apiName: this.apiName, ...config }
+    //   );
+
 }

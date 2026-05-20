@@ -9,8 +9,9 @@ import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzStatisticModule } from 'ng-zorro-antd/statistic';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { FullTraceReport } from '../../models/complaint.model';
+import { FullTraceReportDto } from '@app/proxy/application/contracts/complaints/models';
 import { ComplaintService } from '@app/proxy/application/complaints';
+import { FullTraceReport } from '../../models/complaint.model';
 //import { ComplaintService } from '../../services/complaint.service';
 
 @Component({
@@ -33,7 +34,7 @@ import { ComplaintService } from '@app/proxy/application/complaints';
 export class ComplaintTraceabilityComponent implements OnInit {
   @Input() complaintId!: string;
 
-  report: FullTraceReport | null = null;
+  report: FullTraceReportDto | null = null;
   loading = false;
   activeTab = 'iqc';
 
@@ -50,7 +51,8 @@ export class ComplaintTraceabilityComponent implements OnInit {
     this.loading = true;
     this.complaintService.getFullTraceReport(this.complaintId).subscribe({
       next: (data:any) => {
-        this.report = data;
+        // 类型断言，确保TypeScript编译器能够识别sn字段
+        this.report = data as FullTraceReportDto;
         this.loading = false;
       },
       error: () => {

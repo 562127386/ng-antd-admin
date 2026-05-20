@@ -3,6 +3,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { Subject, BehaviorSubject } from 'rxjs';
 import { ComplaintNotification } from '../models/complaint.model';
 import * as signalR from '@microsoft/signalr';
+import { environment } from '@env/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -245,7 +246,7 @@ export class ComplaintNotificationService implements OnDestroy {
   }
 
   private getApiUrl(): string {
-    return 'https://localhost:44312';
+    return environment['apiUrl'];//'https://localhost:44312';
   }
 
   showNotification(data: ComplaintNotification): void {

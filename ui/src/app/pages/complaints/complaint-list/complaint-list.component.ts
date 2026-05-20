@@ -47,12 +47,16 @@ import {
 import { ComplaintNotificationService } from '../services/complaint-notification.service';
 import { ComplaintService } from '@app/proxy/application/complaints';
 import { ComplaintDashboardDto, ComplaintDto, GetComplaintListDto } from '@app/proxy/application/contracts/complaints';
+import { DrawerPlacement, EruptFieldModel, FormCtrl, OpenWay, PageEmbedType } from '@app/erupt/model/erupt-field.model';
+import { EditType, ViewType } from '@app/erupt/model/erupt.enum';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   selector: 'app-complaint-list',
   templateUrl: './complaint-list.component.html',
   styleUrls: ['./complaint-list.component.less'],
   imports: [
+    NzSpinModule,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
@@ -121,6 +125,67 @@ export class ComplaintListComponent implements OnInit {
 
   severityLevelNames = SEVERITY_LEVEL_NAMES;
   complaintStatusNames = COMPLAINT_STATUS_NAMES;
+
+
+  field :EruptFieldModel={
+     fieldName: "assigneeId",
+         eruptFieldJson: {
+          views: [{
+            className: '',
+            column: '',
+            title: '',
+            width: '',
+            desc: '',
+            show: false,
+            viewType: ViewType.TEXT,
+            template: '',
+            sortable: false,
+            tpl: {
+              path: '',
+              enable: false,
+              width: '',
+              height: '',
+              openWay: OpenWay.MODAL,
+              embedType: PageEmbedType.IFRAME,
+              drawerPlacement: DrawerPlacement.LEFT
+            }
+          }],
+              edit : {
+                title: "",
+                notNull: true,
+                desc: "选择用户",
+                type: EditType.REFERENCE_TABLE,
+                show: true,
+                referenceTableType:{
+                  id: '',
+                  label: '',
+                  dependField: ''
+                },
+                dynamic: {
+                  dependField: '',
+                  condition: '',
+                  noMatch: FormCtrl.HIDE,
+                  match: FormCtrl.HIDE
+                },
+                onchange: '',
+                readOnly: {
+                  add: false,
+                  edit: false
+                },
+                placeHolder: '',
+                search: {
+                  value: false,
+                  vague: false,
+                  notNull: false
+                }
+              }
+         },
+        //  choiceMap?: Map<String, VL>;
+        //  choiceLabelMap?: Map<String, VL>;
+         componentValue: "",
+         value: ""
+  };
+
 
   constructor(
     private complaintService: ComplaintService,

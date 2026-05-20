@@ -329,28 +329,28 @@ export class IqcInspectionsComponent implements OnInit {
     });
   }
 
-  cancelInspection(id: string): void {
-    this.iqcInspectionService.cancel(id).subscribe({
-      next: () => {
-        this.messageService.success('取消成功');
-        this.loadData();
-      },
-      error: () => {
-        this.messageService.error('取消失败');
-      }
-    });
+  cancelInspection(id: string): void { 
+        this.iqcInspectionService.cancel(id).subscribe({
+          next: () => {
+            this.messageService.success('取消成功');
+            this.loadData();
+          },
+          error: () => {
+            this.messageService.error('取消失败');
+          }
+        }); 
   }
 
-  showDeleteConfirm(id: string): void {
-    this.iqcInspectionService.delete(id).subscribe({
-      next: () => {
-        this.messageService.success('删除成功');
-        this.loadData();
-      },
-      error: () => {
-        this.messageService.error('删除失败');
-      }
-    });
+  showDeleteConfirm(id: string): void { 
+        this.iqcInspectionService.delete(id).subscribe({
+          next: () => {
+            this.messageService.success('删除成功');
+            this.loadData();
+          },
+          error: () => {
+            this.messageService.error('删除失败');
+          }
+        }); 
   }
 
   createNonConforming(item: IqcInspectionOrderDto): void {

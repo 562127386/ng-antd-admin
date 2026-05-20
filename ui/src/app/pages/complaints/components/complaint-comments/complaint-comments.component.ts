@@ -21,12 +21,14 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { FileUploadService } from '@app/erupt/service/file-upload.service';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { CreateUploadFileDto, UploadFileService } from '@app/proxy/upload-files';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
   const colorList = ['#f56a00', '#7265e6', '#ffbf00', '#00a2ae'];
 @Component({
   selector: 'app-complaint-comments',
   templateUrl: './complaint-comments.component.html',
   imports: [
+    NzSpinModule,
     NzUploadModule,
     NzMentionModule,
     CommonModule,
@@ -101,6 +103,8 @@ export class ComplaintCommentsComponent implements OnInit {
     }
    fileList: NzUploadFile[] = [];
     paths: string[] = [];
+      // 核心状态：是否正在上传
+  isUploading = false;
  /**
    * 文件列表变化
    */
@@ -117,27 +121,34 @@ export class ComplaintCommentsComponent implements OnInit {
     //   this.msg.error('只支持 png/jpg/pdf');
     //   return false;
     // }
-    // // 大小限制 10MB
-    // if (file.size! > 10 * 1024 * 1024) {
-    //   this.msg.error('文件不能超过10MB');
-    //   return false;
-    // } 
+    // 大小限制 10MB
+    if (file.size! > 50 * 1024 * 1024) {
+      this.msg.error('上传文件不能超过50MB');
+      return false;
+    } 
     // if (!file.originFileObj) return false;
+    this.isUploading =true;
     // this.uploadService.upload(file.originFileObj).subscribe({
     this.uploadService.upload(file).subscribe({
       next: (res) => {
-        this.msg.success('上传成功！');
+
         console.log('文件标识：', res);
         this.uploadFileService.create({entityName:'ComplaintComment',
                   recordId: this.complaintId,
                   name: res,
                   type: 'ext',
                   path: res}).subscribe(res2=>{
+                      this.msg.success('上传成功！');
                       this.paths.push(res);
+                      this.isUploading =false;
                   });
         
       },
-      error: () => this.msg.error('上传失败'),
+      error: () =>{ this.msg.error('上传失败') ;this.isUploading = false;},
+      complete: () => {
+          // 上传结束（成功/失败都重置）
+          this.isUploading = false;
+      }
     });
     return false; // 关键：返回false => 不自动上传
   };
@@ -213,11 +224,13 @@ export class ComplaintCommentsComponent implements OnInit {
 
     this.complaintService.createComment(this.complaintId, {
       content,
-      mentionedUsers: mentionedUsers
+      mentionedUsers: mentionedUsers,
+      files:this.paths
     }).subscribe({
       next: () => {
         this.message.success('评论成功');
         this.commentForm.reset();
+        this.paths=[];
         this.loadComments();
       },
       error: () => {

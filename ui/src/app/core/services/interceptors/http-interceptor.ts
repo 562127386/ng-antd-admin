@@ -7,6 +7,8 @@ import { TokenKey } from '@config/constant';
 import { WindowService } from '@core/services/common/window.service';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { Router } from '@angular/router';
+import { LoginInOutService } from '@core/services/common/login-in-out.service';
 
 interface CustomHttpConfig {
   headers?: HttpHeaders;
@@ -52,6 +54,8 @@ export const httpInterceptorService: HttpInterceptorFn = (req, next) => {
   const windowServe = inject(WindowService);
   const messageService = inject(NzMessageService);
   const modalService = inject(NzModalService);
+  const router = inject(Router);
+  const loginInOutService = inject(LoginInOutService);
   const token = windowServe.getSessionStorage(TokenKey);
   let httpConfig: CustomHttpConfig = {};
   if (token) {
@@ -95,6 +99,8 @@ export const httpInterceptorService: HttpInterceptorFn = (req, next) => {
 
       if (status === 401) {
         messageService.error('登录已过期，请重新登录');
+        // 跳转到登录页面
+        loginInOutService.loginOut();
         return throwError(() => ({ code: status, message: '未授权' }));
       }
 
